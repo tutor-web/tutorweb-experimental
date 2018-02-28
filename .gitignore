@@ -18,6 +18,7 @@
 /server/local
 /server/share
 /server/.cache
+/server/.pytest_cache
 
 /.local-conf
 

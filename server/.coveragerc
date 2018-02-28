@@ -1,0 +1,3 @@
+[run]
+source = tutorweb_quizdb
+omit = tutorweb_quizdb/test*

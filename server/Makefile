@@ -15,4 +15,7 @@ compile: lib/.requirements
 test: compile
 	./bin/pytest
 
+start:
+	./bin/pserve development.ini
+
 .PHONY: compile test start
