@@ -4,12 +4,9 @@ BEGIN;
 
 
 CREATE TABLE IF NOT EXISTS dataFrame (
-    dataFrameId              SERIAL,
-    PRIMARY KEY (dataFrameId),
-
     path                     TEXT NOT NULL,
     revision                 CHAR(40) NOT NULL,
-    UNIQUE (path, revision),
+    PRIMARY KEY (path, revision),
 
     nextRevision         CHAR(40)
 );
@@ -23,8 +20,9 @@ CREATE TABLE IF NOT EXISTS materialSource (
     revision                 CHAR(40) NOT NULL,
     UNIQUE (path, revision),
 
+    permutationCount         INTEGER NOT NULL DEFAULT 1,
     materialTags             TEXT[] NOT NULL DEFAULT '{}',
-    dataFrameIds             TEXT[] NOT NULL DEFAULT '{}',
+    dataFramePaths           TEXT[] NOT NULL DEFAULT '{}',
     -- NB: Can't have a FOREIGN KEY on array types
 
     nextRevision         CHAR(40)
@@ -32,6 +30,7 @@ CREATE TABLE IF NOT EXISTS materialSource (
 COMMENT ON TABLE  materialSource IS 'Source for material, i.e. a file in the material repository';
 COMMENT ON COLUMN materialSource.path     IS 'Path to material file';
 COMMENT ON COLUMN materialSource.revision IS 'Git revision of this material source';
+COMMENT ON COLUMN materialSource.permutationCount IS 'Number of question permutations';
 COMMENT ON COLUMN materialSource.nextRevision IS
     'Next Git revision of this material, i.e. don''t use this one. Deleted material sources get tagged ''deleted''';
 --TODO: Default "type:question", "type:example" tags
