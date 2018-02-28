@@ -53,6 +53,10 @@ def update():
                 DBSession.flush()
 
 
-@view_config(route_name='view_material_update', renderer='json')
 def view_material_update(request):
     return update(**request.params)
+
+
+def includeme(config):
+    config.add_view(view_material_update, route_name='view_material_update', renderer='json')
+    config.add_route('view_material_update', '/material/update')

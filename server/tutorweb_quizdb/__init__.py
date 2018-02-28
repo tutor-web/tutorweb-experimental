@@ -27,8 +27,6 @@ def main(global_config, **settings):
 
     initialize_dbsession(settings)
     config.include('pyramid_jinja2')
-
-    config.add_route('view_material_update', '/material/update', request_method='POST')
-    config.scan('tutorweb_quizdb.material')
+    config.include('tutorweb_quizdb.material.update')
 
     return config.make_wsgi_app()
