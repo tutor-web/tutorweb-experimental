@@ -7,7 +7,7 @@ from pyramid.view import view_config
 from tutorweb_quizdb import DBSession, Base
 
 
-MATERIAL_BANK = '../questionbank'
+MATERIAL_BANK = '../db/material_bank'
 
 def file_metadata(file):
     """
