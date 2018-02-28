@@ -9,6 +9,7 @@ requires = [
     'pyramid_debugtoolbar',
     'pyramid_tm',
     'SQLAlchemy',
+    'rpy2',
     'transaction',
     'waitress',
     'zope.sqlalchemy',

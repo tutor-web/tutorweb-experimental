@@ -27,6 +27,7 @@ def main(global_config, **settings):
 
     initialize_dbsession(settings)
     config.include('pyramid_jinja2')
+    config.include('tutorweb_quizdb.material.render')
     config.include('tutorweb_quizdb.material.update')
 
     return config.make_wsgi_app()
