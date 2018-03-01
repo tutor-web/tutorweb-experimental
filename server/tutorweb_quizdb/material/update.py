@@ -3,6 +3,7 @@ import os
 import re
 
 from pyramid.view import view_config
+from sqlalchemy.orm.exc import NoResultFound
 
 from tutorweb_quizdb import DBSession, Base
 
@@ -50,6 +51,14 @@ def update():
                     materialtags=metadata.get('TAGS', '').split(','),
                     dataframepaths=metadata.get('DATAFRAMES', '').split(','),  # TODO: Should path be relative?
                 ))
+                if path in prev_files:
+                    # Update previous entry with this new one
+                    try:
+                        ms = DBSession.query(Base.classes.materialsource).filter_by(path=path, revision=prev_files[path]).one()
+                        ms.nextrevision = revision
+                    except NoResultFound:
+                        # If it's not there, then it never got ingested. We don't care
+                        pass
                 DBSession.flush()
 
 
