@@ -34,6 +34,8 @@ def update():
     prev_files = {}
     for commit in repo.iter_commits():
         for file in commit.stats.files:
+            # Resolve moves. TODO: We should track this in our DB
+            file = re.sub(r'''{(.*?) => (.*?)\}''', "\\2", file)
             if file not in files:
                 files[file] = commit.hexsha
             elif file not in prev_files:
