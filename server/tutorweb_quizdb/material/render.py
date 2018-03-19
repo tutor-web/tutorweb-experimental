@@ -10,7 +10,7 @@ from pyramid.view import view_config
 from tutorweb_quizdb import DBSession, Base
 
 
-MATERIAL_BANK = '../db/material_bank'  # TODO: This should be configured centrally, somewhere.
+MATERIAL_BANK = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../../db/material_bank'))  # TODO: This should be configured centrally, somewhere.
 
 def render(path, permutation):
     """
@@ -27,11 +27,12 @@ def render(path, permutation):
 
     # TODO: Caching of question objects?
     robjects.r('''question <- function () stop("R question script did not define a question function")''')
-    with open(os.path.join(MATERIAL_BANK, path), 'r') as f:
-        robjects.r(f.read())
+    robjects.r('''setwd''')(os.path.dirname(os.path.join(MATERIAL_BANK, path)))
+    robjects.r('''source''')(os.path.basename(path))
     # TODO: data.frames support
-    # TODO: Guarantees about cwd?
+
     rob = robjects.globalenv['question'](permutation, [])
+    # TODO: Stacktraces?
 
     rv = {}
     for i, name in enumerate(rob.names):
