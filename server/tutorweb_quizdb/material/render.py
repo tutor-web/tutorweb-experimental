@@ -12,6 +12,12 @@ from tutorweb_quizdb import DBSession, Base
 
 MATERIAL_BANK = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../../db/material_bank'))  # TODO: This should be configured centrally, somewhere.
 
+def rlist_to_dict(a):
+    """
+    Take R ListVector, turn it into a dict
+    """
+    return dict(zip(a.names, map(list,list(a))))
+
 def render(path, permutation):
     """
     Render a question
@@ -39,7 +45,7 @@ def render(path, permutation):
         if name == 'content':
             rv[name] = "".join(rob[i])
         elif name == 'correct':
-            rv[name] = tuple(rob[i])
+            rv[name] = rlist_to_dict(rob[i])
         else:
             raise ValueError("Unknown return value from R question %s - %s" % (path, name))
     if 'content' not in rv:
