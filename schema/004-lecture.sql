@@ -1,43 +1,79 @@
 BEGIN;
 
--- Lecture/drill structure,
+CREATE TABLE IF NOT EXISTS tutorial (
+    hostDomain               TEXT,
+    FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
+    path                     TEXT,
+    PRIMARY KEY (hostDomain, path),
+
+    title                    TEXT,
+
+    lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
+);
+SELECT ddl_lastUpdate_trigger('tutorial');
+COMMENT ON TABLE  tutorial IS 'Tree structure for all tutorials';
+
+
+CREATE TABLE IF NOT EXISTS subscription (
+    hostDomain               TEXT,
+    FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
+    userName                 TEXT,
+    FOREIGN KEY (hostDomain, userName) REFERENCES student(hostDomain, userName),
+    path                     TEXT,
+    FOREIGN KEY (hostDomain, path) REFERENCES tutorial(hostDomain, path),
+    PRIMARY KEY (hostDomain, userName, path),
+
+    hidden                   BOOLEAN NOT NULL DEFAULT 'f',
+    lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
+);
+SELECT ddl_lastUpdate_trigger('subscription');
+COMMENT ON TABLE  subscription IS 'Student<->tutorial subscriptions';
+
+
 CREATE TABLE IF NOT EXISTS lecture (
     hostDomain               TEXT,
     FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
     path                     TEXT,
+    FOREIGN KEY (hostDomain, path) REFERENCES tutorial(hostDomain, path),
+    name                     TEXT, -- TODO: This "name" appears in other tables and is very confusing
     version                  INTEGER,
-    PRIMARY KEY (hostDomain, path, version),
+    PRIMARY KEY (hostDomain, path, name, version),
+
+    title                    TEXT,
 
     lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
+COMMENT ON TABLE  lecture IS 'Lectures sit within a tutorial';
 
 
-CREATE TABLE IF NOT EXISTS lectureStage (
+CREATE TABLE IF NOT EXISTS lectureStage ( -- TODO: Just "stage" enough?
     lectureStageId           SERIAL PRIMARY KEY,
 
     hostDomain               TEXT,
     path                     TEXT,
+    name                     TEXT,
     version                  INTEGER,
-    FOREIGN KEY (hostDomain, path, version) REFERENCES lecture(hostDomain, path, version),
-    stage                    TEXT,
+    FOREIGN KEY (hostDomain, path, name, version) REFERENCES lecture(hostDomain, path, name, version),
+    stage                    TEXT, -- TODO: More consistency vis. "name" as above?
     UNIQUE (hostDomain, path, version, stage),
+
+    title                    TEXT,
 
     materialTags             TEXT[] NOT NULL DEFAULT '{}',
     lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
-
 COMMENT ON TABLE  lectureStage IS 'An individual stage in this lecture, and the tags for relevant content within';
-
 
 
 CREATE TABLE IF NOT EXISTS lectureGlobalSettings (
     hostDomain               TEXT,
-    lecturePath              TEXT,
+    path                     TEXT,
+    name                     TEXT,
     version                  INTEGER,
-    FOREIGN KEY (hostDomain, lecturePath, version) REFERENCES lecture(hostDomain, path, version),
+    FOREIGN KEY (hostDomain, path, name, version) REFERENCES lecture(hostDomain, path, name, version),
     variant                  TEXT NOT NULL DEFAULT '',
     key                      TEXT,
-    PRIMARY KEY (hostDomain, lecturePath, version, variant, key),
+    PRIMARY KEY (hostDomain, path, name, version, variant, key),
 
     creationDate             TIMESTAMP NOT NULL DEFAULT NOW(),
     value                    TEXT,
@@ -55,13 +91,14 @@ COMMENT ON COLUMN lectureGlobalSettings.min IS 'Minimum value, applies a lower b
 
 CREATE TABLE IF NOT EXISTS lectureStudentSettings (
     hostDomain               TEXT,
-    lecturePath              TEXT,
+    path                     TEXT,
+    name                     TEXT,
     version                  INTEGER,
-    FOREIGN KEY (hostDomain, lecturePath, version) REFERENCES lecture(hostDomain, path, version),
+    FOREIGN KEY (hostDomain, path, name, version) REFERENCES lecture(hostDomain, path, name, version),
     userName                  TEXT,
     FOREIGN KEY (hostDomain, userName) REFERENCES student(hostDomain, userName),
     key                      TEXT,
-    PRIMARY KEY (hostDomain, lecturePath, version, userName, key),
+    PRIMARY KEY (hostDomain, path, name, version, userName, key),
 
     -- NB: Not part of the primary key, we only choose one.
     variant                  TEXT NOT NULL DEFAULT '',

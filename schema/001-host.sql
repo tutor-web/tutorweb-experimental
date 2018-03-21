@@ -1,4 +1,4 @@
--- Functions relevant to managing the schema
+-- We have mutiple hosts so we can merge data from remote servers
 BEGIN;
 
 

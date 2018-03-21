@@ -29,5 +29,6 @@ def main(global_config, **settings):
     config.include('pyramid_jinja2')
     config.include('tutorweb_quizdb.material.render')
     config.include('tutorweb_quizdb.material.update')
+    config.include('tutorweb_quizdb.subscriptions.list')
 
     return config.make_wsgi_app()
