@@ -2,7 +2,7 @@
 BEGIN;
 
 
-CREATE TABLE student (
+CREATE TABLE IF NOT EXISTS student (
     hostDomain               TEXT,
     FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
     userName                 TEXT NOT NULL,
