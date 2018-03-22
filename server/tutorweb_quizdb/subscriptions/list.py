@@ -81,11 +81,12 @@ def subscription_list(student):
                 out[-1]['children'][-1]['children'].append(dict(
                     stage=db_stage.stage,
                     title=db_stage.title,
+                    href=os.path.normpath(os.path.join('/api/stage', db_tut.path, db_lec.name, db_stage.stage)),
                 ))
             
         out[-1]['grade'] = tut_grade / len(out[-1]['children'])
 
-        return out
+        return dict(children=out)
 
 
 def view_subscriptions_list(request):
