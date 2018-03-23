@@ -46,6 +46,7 @@ def main(global_config, **settings):
     config.include('tutorweb_quizdb.material.render')
     config.include('tutorweb_quizdb.material.update')
     config.include('tutorweb_quizdb.subscriptions.list')
+    config.include('tutorweb_quizdb.stage')
     config.include('tutorweb_quizdb.student')
 
     return config.make_wsgi_app()

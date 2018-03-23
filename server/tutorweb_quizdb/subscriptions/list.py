@@ -1,6 +1,7 @@
 import git
 import os
 import re
+import urllib.parse
 
 import rpy2
 import rpy2.robjects as robjects
@@ -54,7 +55,9 @@ def render(path, permutation):
     return rv
 
 
-def subscription_list(student):
+def view_subscription_list(request):
+    student = get_current_student(request)
+
     out = []
     for (db_sub, db_tut) in (DBSession.query(Base.classes.subscription, Base.classes.tutorial)
             .filter_by(student=student).filter_by(hidden=False)
@@ -82,18 +85,15 @@ def subscription_list(student):
                 out[-1]['children'][-1]['children'].append(dict(
                     stage=db_stage.stage_name,
                     title=db_stage.title,
-                    href=os.path.normpath(os.path.join('/api/stage', db_tut.path, db_lec.lecture_name, db_stage.stage_name)),
+                    href='/api/stage?%s' % urllib.parse.urlencode(dict(
+                        path=os.path.normpath(os.path.join(db_tut.path, db_lec.lecture_name, db_stage.stage_name)),
+                    )),
                 ))
-            
         out[-1]['grade'] = tut_grade / len(out[-1]['children'])
 
         return dict(children=out)
 
 
-def view_subscriptions_list(request):
-    return subscription_list(get_current_student(request))
-
-
 def includeme(config):
-    config.add_view(view_subscriptions_list, route_name='view_subscriptions_list', renderer='json')
-    config.add_route('view_subscriptions_list', '/subscriptions/list')
+    config.add_view(view_subscription_list, route_name='view_subscription_list', renderer='json')
+    config.add_route('view_subscription_list', '/subscriptions/list')
