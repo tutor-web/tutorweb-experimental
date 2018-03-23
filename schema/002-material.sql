@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS materialSource (
     dataFramePaths           TEXT[] NOT NULL DEFAULT '{}',
     -- NB: Can't have a FOREIGN KEY on array types
 
-    nextRevision         CHAR(40)
+    next_revision         CHAR(40)
 );
 COMMENT ON TABLE  materialSource IS 'Source for material, i.e. a file in the material repository';
 COMMENT ON COLUMN materialSource.path     IS 'Path to material file';

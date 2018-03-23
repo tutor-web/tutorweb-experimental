@@ -23,7 +23,7 @@ def render(path, permutation):
     Render a question
     """
     # Is this permutation even a question?
-    ms = DBSession.query(Base.classes.materialsource).filter_by(path=path, nextrevision=None).one()
+    ms = DBSession.query(Base.classes.materialsource).filter_by(path=path, next_revision=None).one()
     if ms.permutationcount > permutation:
         raise ValueError("Question %s only has %d permutations, not %d" % (
             path,

@@ -1,3 +1,4 @@
+import hashlib
 import git
 import os
 import re
@@ -8,7 +9,20 @@ from sqlalchemy.orm.exc import NoResultFound
 from tutorweb_quizdb import DBSession, Base
 
 
-MATERIAL_BANK = '../db/material_bank'
+MATERIAL_BANK = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../../db/material_bank'))  # TODO: This should be configured centrally, somewhere.
+
+
+def file_md5sum(file):
+    """
+    MD5-sum of file
+    """
+    with open(os.path.join(MATERIAL_BANK, file), 'rb') as f:
+        # TODO: Eugh
+        # TODO: Not enough, what if we revert versions?
+        content = f.read()
+
+    return(hashlib.md5(content).hexdigest())
+
 
 def file_metadata(file):
     """
@@ -28,40 +42,34 @@ def update():
     """
     Ingest material from a given path and update database on it's existence
     """
-    # Get git revision of all files in the material bank
-    repo = git.Repo(MATERIAL_BANK)
-    files = {}
-    prev_files = {}
-    for commit in repo.iter_commits():
-        for file in commit.stats.files:
-            # Resolve moves. TODO: We should track this in our DB
-            file = re.sub(r'''{(.*?) => (.*?)\}''', "\\2", file)
-            if file not in files:
-                files[file] = commit.hexsha
-            elif file not in prev_files:
-                prev_files[file] = commit.hexsha
+    material_paths = {}
+    for root, dirs, files in os.walk(MATERIAL_BANK):
+        if '.git' in root:
+            continue
+        for f in files:
+            if f.endswith('.q.R'):
+                material_paths[os.path.join(os.path.relpath(root, MATERIAL_BANK), f)] = file_md5sum(os.path.join(root, f))
 
-    for path, revision in files.items():
-        if path.endswith('.q.R'):
-            # Is this file/revision already here?
-            if DBSession.query(Base.classes.materialsource).filter_by(path=path, revision=revision).count() == 0:
-                metadata = file_metadata(path)
-                DBSession.add(Base.classes.materialsource(
-                    path=path,
-                    revision=revision,
-                    permutationcount=int(metadata.get('QUESTIONS', 1)),
-                    materialtags=metadata.get('TAGS', '').split(','),
-                    dataframepaths=metadata.get('DATAFRAMES', '').split(','),  # TODO: Should path be relative?
-                ))
-                if path in prev_files:
-                    # Update previous entry with this new one
-                    try:
-                        ms = DBSession.query(Base.classes.materialsource).filter_by(path=path, revision=prev_files[path]).one()
-                        ms.nextrevision = revision
-                    except NoResultFound:
-                        # If it's not there, then it never got ingested. We don't care
-                        pass
-                DBSession.flush()
+
+    # TODO: Having to be committed at least once is annoying
+    for path, revision in material_paths.items():
+        # Is this file/revision already here?
+        already_here = False
+        for m in DBSession.query(Base.classes.materialsource).filter_by(path=path, next_revision=None).all():
+            if m.revision.strip() == revision.strip():
+                already_here = True
+            else:
+                m.next_revision = revision
+        if not already_here:
+            metadata = file_metadata(path)
+            DBSession.add(Base.classes.materialsource(
+                path=path,
+                revision=revision,
+                permutationcount=int(metadata.get('QUESTIONS', 1)),
+                materialtags=metadata.get('TAGS', '').split(','),
+                dataframepaths=metadata.get('DATAFRAMES', '').split(','),  # TODO: Should path be relative?
+            ))
+        DBSession.flush()
 
 
 def view_material_update(request):
