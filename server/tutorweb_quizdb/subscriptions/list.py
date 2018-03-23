@@ -8,6 +8,7 @@ import rpy2.robjects as robjects
 from pyramid.view import view_config
 
 from tutorweb_quizdb import DBSession, Base
+from tutorweb_quizdb.student import get_current_student
 
 
 MATERIAL_BANK = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../../db/material_bank'))  # TODO: This should be configured centrally, somewhere.
@@ -90,13 +91,7 @@ def subscription_list(student):
 
 
 def view_subscriptions_list(request):
-    # TODO: Hack in me
-    student = (DBSession.query(Base.classes.student)
-        .filter_by(hostdomain='ui-tutorweb3.clifford.shuttlethread.com')
-        .filter_by(username='lentinj')
-        .one())
-
-    return subscription_list(student)
+    return subscription_list(get_current_student(request))
 
 
 def includeme(config):

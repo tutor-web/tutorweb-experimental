@@ -10,13 +10,17 @@ from pyramid.view import view_config
 from tutorweb_quizdb import DBSession, Base
 
 
-def student_details(request):
-    # TODO: This route should also be capable of updating a student
+def get_current_student(request):
     # TODO: Hack in me
-    student = (DBSession.query(Base.classes.student)
+    return (DBSession.query(Base.classes.student)
         .filter_by(hostdomain='ui-tutorweb3.clifford.shuttlethread.com')
         .filter_by(username='lentinj')
         .one())
+
+
+def student_details(request):
+    # TODO: This route should also be capable of updating a student
+    student = get_current_student(request)
 
     return student
 
