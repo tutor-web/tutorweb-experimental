@@ -64,24 +64,24 @@ def subscription_list(student):
             children=[],
         ))
         tut_grade = 0
-        # TODO: We only want latest-version lectures
         for db_lec in (DBSession.query(Base.classes.lecture)
                 .filter_by(tutorial=db_tut)
-                .order_by(Base.classes.lecture.name)):
+                .order_by(Base.classes.lecture.lecture_name)):
             out[-1]['children'].append(dict(
-                name=db_lec.name,
+                name=db_lec.lecture_name,
                 title=db_lec.title,
                 grade=5,
                 children=[],
             ))
             tut_grade += out[-1]['children'][-1]['grade']
-            for db_stage in (DBSession.query(Base.classes.lecturestage)
+            for db_stage in (DBSession.query(Base.classes.stage)
                     .filter_by(lecture=db_lec)
-                    .order_by(Base.classes.lecturestage.stage)):
+                    .filter_by(next_version=None)
+                    .order_by(Base.classes.stage.stage_name)):
                 out[-1]['children'][-1]['children'].append(dict(
-                    stage=db_stage.stage,
+                    stage=db_stage.stage_name,
                     title=db_stage.title,
-                    href=os.path.normpath(os.path.join('/api/stage', db_tut.path, db_lec.name, db_stage.stage)),
+                    href=os.path.normpath(os.path.join('/api/stage', db_tut.path, db_lec.lecture_name, db_stage.stage_name)),
                 ))
             
         out[-1]['grade'] = tut_grade / len(out[-1]['children'])

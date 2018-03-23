@@ -35,9 +35,8 @@ CREATE TABLE IF NOT EXISTS lecture (
     FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
     path                     TEXT,
     FOREIGN KEY (hostDomain, path) REFERENCES tutorial(hostDomain, path),
-    name                     TEXT, -- TODO: This "name" appears in other tables and is very confusing
-    version                  INTEGER,
-    PRIMARY KEY (hostDomain, path, name, version),
+    lecture_name             TEXT,
+    PRIMARY KEY (hostDomain, path, lecture_name),
 
     title                    TEXT,
 
@@ -46,69 +45,56 @@ CREATE TABLE IF NOT EXISTS lecture (
 COMMENT ON TABLE  lecture IS 'Lectures sit within a tutorial';
 
 
-CREATE TABLE IF NOT EXISTS lectureStage ( -- TODO: Just "stage" enough?
-    lectureStageId           SERIAL PRIMARY KEY,
-
+CREATE TABLE IF NOT EXISTS stage (
     hostDomain               TEXT,
     path                     TEXT,
-    name                     TEXT,
+    lecture_name             TEXT,
+    FOREIGN KEY (hostDomain, path, lecture_name) REFERENCES lecture(hostDomain, path, lecture_name),
+    stage_name               TEXT,
     version                  INTEGER,
-    FOREIGN KEY (hostDomain, path, name, version) REFERENCES lecture(hostDomain, path, name, version),
-    stage                    TEXT, -- TODO: More consistency vis. "name" as above?
-    UNIQUE (hostDomain, path, version, stage),
+    PRIMARY KEY (hostDomain, path, lecture_name, stage_name, version),
 
-    title                    TEXT,
+    stage_id                 SERIAL,
+    UNIQUE (stage_id),
 
-    materialTags             TEXT[] NOT NULL DEFAULT '{}',
+    title                    TEXT NOT NULL,
+    stage_setting_spec       JSONB,
+    material_tags            TEXT[] NOT NULL DEFAULT '{}',
+
+    next_version             INTEGER NULL,
+    FOREIGN KEY (hostDomain, path, lecture_name, stage_name, next_version)
+        REFERENCES stage(hostDomain, path, lecture_name, stage_name, version),
+
     lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
-COMMENT ON TABLE  lectureStage IS 'An individual stage in this lecture, and the tags for relevant content within';
+COMMENT ON TABLE  stage IS 'An individual stage in this lecture, and the tags for relevant content within';
+COMMENT ON COLUMN stage.stage_id IS 'A shorthand to avoid refering to the entire compound key';
+COMMENT ON COLUMN stage.stage_setting_spec IS 'dict of setting key to a combination of:'
+    '* value: Fixed value / mean value for gamma distribution'
+    '* shape: Shape of gamma curve, if set will choose value for each student from gamma curve'
+    '* max: Maximum value, if set will choose value between [0, value_max)'
+    '* min: Minimum value, applies a lower bound to anything chosen by max'
+    '...or "deleted", if this stage is now removed';
+COMMENT ON COLUMN stage.next_version IS 'If this stage has been replaced by a new version, this field is non-null';
 
 
-CREATE TABLE IF NOT EXISTS lectureGlobalSettings (
+CREATE TABLE IF NOT EXISTS stage_setting (
+    stage_id                 INTEGER NOT NULL,
+    FOREIGN KEY (stage_id) REFERENCES stage(stage_id),
     hostDomain               TEXT,
-    path                     TEXT,
-    name                     TEXT,
-    version                  INTEGER,
-    FOREIGN KEY (hostDomain, path, name, version) REFERENCES lecture(hostDomain, path, name, version),
-    variant                  TEXT NOT NULL DEFAULT '',
-    key                      TEXT,
-    PRIMARY KEY (hostDomain, path, name, version, variant, key),
-
-    creationDate             TIMESTAMP NOT NULL DEFAULT NOW(),
-    value                    TEXT,
-    shape                    FLOAT,
-    max                      FLOAT,
-    min                      FLOAT
-);
-COMMENT ON TABLE  lectureGlobalSettings IS 'All settings set for a lecture over time, for every student';
-COMMENT ON COLUMN lectureGlobalSettings.variant IS 'Variant, e.g. "registered" or all-purpose "". We will choose one for a student';
-COMMENT ON COLUMN lectureGlobalSettings.value IS 'Fixed value / mean value for gamma distribution';
-COMMENT ON COLUMN lectureGlobalSettings.shape IS 'Shape of gamma curve, if set will choose value for each student from gamma curve';
-COMMENT ON COLUMN lectureGlobalSettings.max IS 'Maximum value, if set will choose value between [0, value_max)';
-COMMENT ON COLUMN lectureGlobalSettings.min IS 'Minimum value, applies a lower bound to anything chosen by max';
-
-
-CREATE TABLE IF NOT EXISTS lectureStudentSettings (
-    hostDomain               TEXT,
-    path                     TEXT,
-    name                     TEXT,
-    version                  INTEGER,
-    FOREIGN KEY (hostDomain, path, name, version) REFERENCES lecture(hostDomain, path, name, version),
-    userName                  TEXT,
+    userName                 TEXT,
     FOREIGN KEY (hostDomain, userName) REFERENCES student(hostDomain, userName),
     key                      TEXT,
-    PRIMARY KEY (hostDomain, path, name, version, userName, key),
+    PRIMARY KEY (stage_id, hostDomain, userName, key),
 
-    -- NB: Not part of the primary key, we only choose one.
-    variant                  TEXT NOT NULL DEFAULT '',
+    value                    TEXT,
 
-    creationDate             TIMESTAMP NOT NULL DEFAULT NOW(),
-    value                    TEXT
+    lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
-COMMENT ON TABLE  lectureStudentSettings IS 'All settings assigned to a student';
-COMMENT ON COLUMN lectureStudentSettings.variant IS 'Variant, e.g. "registered" or all-purpose ""';
-
+COMMENT ON TABLE  stage_setting IS 'All chosen settings for a stage, generic and per-student';
+COMMENT ON COLUMN stage_setting.userName IS 'Student setting is for, or one of the special students:'
+     '"(registered)" for a generic registed student,'
+     '"(any)" for any student';
 
 -- TODO: Answer summary per student
 -- TODO: Answer summary per-lecture, to use for difficulty
