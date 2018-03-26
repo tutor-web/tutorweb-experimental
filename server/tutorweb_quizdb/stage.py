@@ -68,6 +68,16 @@ def stage_index(request):
     db_student = get_current_student(request)
     settings = stage_settings(db_stage, db_student)
 
+    # TODO: Hard-code question bank for now
+    if db_stage.stage_name == '0examples':
+        questions = [
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=1),
+        ]
+    else:
+        questions = [
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=1),
+        ]
+
     return dict(
         uri='/api/stage?%s' % urllib.parse.urlencode(dict(
             path=request.params['path'],
@@ -75,7 +85,7 @@ def stage_index(request):
         user=db_student.username,
         title=db_stage.title,
         settings=dict((k, v) for k, v in settings.items() if k not in SERVERSIDE_SETTINGS),
-        questions=[],
+        questions=[dict(uri='/api/material/render?%s' % urllib.parse.urlencode(x)) for x in questions],
         answerQueue=[],
     )
 
