@@ -72,6 +72,7 @@ fi
 
 # ---------------------------
 # NGINX config for serving clientside
+echo -n "" > /etc/nginx/sites-available/${SERVICE_NAME}
 
 if [ -n "${SERVER_CERT_PATH}" ]; then
     cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
