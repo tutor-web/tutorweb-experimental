@@ -47,7 +47,7 @@ def update():
         if '.git' in root:
             continue
         for f in files:
-            if f.endswith('.q.R'):
+            if f.endswith('.q.R') or f.endswith('.e.R'):
                 material_paths[os.path.join(os.path.relpath(root, MATERIAL_BANK), f)] = file_md5sum(os.path.join(root, f))
 
 
