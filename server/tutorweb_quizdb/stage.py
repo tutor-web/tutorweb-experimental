@@ -85,12 +85,32 @@ def stage_index(request):
         user=db_student.username,
         title=db_stage.title,
         settings=dict((k, v) for k, v in settings.items() if k not in SERVERSIDE_SETTINGS),
+        material_tags=db_stage.material_tags,
         questions=[dict(uri='/api/material/render?%s' % urllib.parse.urlencode(x)) for x in questions],
         answerQueue=[],
     )
 
 
+def stage_question(request):
+    """
+    Get one, or all questions for a stage
+    """
+    # TODO:
+    return {}
+
+
+def stage_review(request):
+    """
+    Get all review material for this stage
+    """
+    # TODO:
+    return []
+
+
 def includeme(config):
     config.add_view(stage_index, route_name='stage_index', renderer='json')
+    config.add_view(stage_question, route_name='stage_question', renderer='json')
+    config.add_view(stage_review, route_name='stage_review', renderer='json')
     config.add_route('stage_index', '/stage')
     config.add_route('stage_question', '/stage/question')
+    config.add_route('stage_review', '/stage/review')
