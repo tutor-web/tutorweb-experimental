@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Tutorweb Quiz: Debug page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="libraries.0.css" />
+  <link rel="stylesheet" type="text/css" href="quiz.css" />
+</head>
+<body class="page-debug">
+
+  <label for="twdebug-items">Items in localStorage:</label>
+  <select id="twdebug-items" multiple="multiple" style="width: 100%; height: 10em;">
+  </select>
+  <div id="twdebug-total"></div>
+  <button id="twdebug-selectall" class="button">Select All</button>
+  <button id="twdebug-delete" class="button">Delete selected items</button>
+
+  <hr/>
+  <label for="twdebug-dump">Dump of entire localStorage, minus questions (Ctrl-A, Ctrl-C to copy to cliboard):</label>
+  <textarea id="twdebug-dump" style="width: 100%; height: 10em;"></textarea>
+  <button id="twdebug-send" class="button">Send content to server</button>
+
+  <hr/>
+  <label>Manual run of grading algorithm</label>
+  <canvas id="graph" width="500" height="500" style="border: 1px solid black"></canvas>
+  <label>alpha: <input type="number" id="alpha" value="0.30"  style="width: 100%"/></label>
+  <label>s: <input type="number" id="s" value="1"  style="width: 100%"/></label>
+  <label>Answers (0/1 string): <textarea id="answers" style="width: 100%; height: 10em;">0111</textarea></label>
+  <div id="tw-graphactions">
+      <button onclick="save()" class="button">Save graph</button>
+  </div>
+
+  <hr/>
+  <script type="text/javascript" src="polyfill.js"></script>
+  <script type="text/javascript" src="tw.js"></script>
+  <script>
+function save() {
+    "use strict";
+    var graphEl = document.getElementById('graph');
+    window.open(graphEl.toDataURL("image/png"));
+}
+
+(function (window) {
+    "use strict";
+    var i, dump, domItems = document.getElementById('twdebug-items');
+
+    function refresh() {
+        var i, total = 0;
+        dump = {};
+        this.innerHTML = '';
+        for (i = 0; i < localStorage.length; i++) {
+            total += localStorage.getItem(localStorage.key(i)).length;
+            this.appendChild(new Option(
+                localStorage.key(i) + " - " + localStorage.getItem(localStorage.key(i)).length + " chars",
+                localStorage.key(i)));
+            if (localStorage.key(i).indexOf('quizdb-get-question') === -1) {
+                dump[localStorage.key(i)] = localStorage.getItem(localStorage.key(i))
+            }
+        }
+        document.getElementById('twdebug-total').textContent = total + " chars in total";
+        document.getElementById('twdebug-dump').textContent = JSON.stringify(dump);
+    };
+    refresh.apply(domItems);
+
+    document.getElementById('twdebug-selectall').addEventListener('click', function (e) {
+        var i, opts = domItems.options;
+        for (i = 0; i < opts.length; i++) {
+            opts[i].selected = true;
+        }
+    });
+    document.getElementById('twdebug-delete').addEventListener('click', function (e) {
+        var i, opts = domItems.options;
+        for (i = 0; i < opts.length; i++) {
+            if (opts[i].selected) {
+                localStorage.removeItem(opts[i].value);
+            }
+        }
+        refresh.apply(domItems);
+    });
+    document.getElementById('twdebug-send').addEventListener('click', function (e) {
+        var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
+        xmlhttp.open("POST", "/@@quizdb-logerror");
+        xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xmlhttp.send(JSON.stringify(dump));
+    });
+}(window));
+  </script>
+</body>
+</html>
