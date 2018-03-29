@@ -13,6 +13,7 @@
     "jquery": "~3.3.1",
     "knuth-shuffle": "~1.0.1",
     "lz-string": "~1.4.4",
+    "mathjax": "^2.7.3",
     "seedrandom": "~2.4.2",
     "tape": "^4.9.0",
     "whatwg-fetch": "^2.0.3"

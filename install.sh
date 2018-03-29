@@ -126,6 +126,10 @@ cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
         proxy_pass  http://unix:${UWSGI_SOCKET}:/;
     }
 
+    location /mathjax/ {
+        alias "${PROJECT_PATH}/client/node_modules/mathjax/";
+    }
+
     location / {
         try_files \$uri \$uri.html /app.html;
     }

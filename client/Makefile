@@ -41,7 +41,6 @@ watch:
 	while inotifywait -r $(OUTPUTS); do make compile; done
 
 node_modules/: package.json yarn.lock
-	git submodule update --init
 	$(YARN)
 	touch node_modules/
 
