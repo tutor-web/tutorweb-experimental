@@ -78,9 +78,8 @@ www/css/%.min.css: package.json %/*.css lib/*.css
 	mkdir -p www/css
 	$(NODE_CMD) node_modules/postcss-cli/bin/postcss \
 	    --config postcss.config.js \
-	    -o $@.mktmp \
+	    -o $@ \
 	    $(basename $(basename $(notdir $@)))/index.css
-	mv $@.mktmp $@
 
 www/%.html: package.json %/*.html
 	cat $(basename $(basename $(notdir $@)))/index.html > $@.mktmp
