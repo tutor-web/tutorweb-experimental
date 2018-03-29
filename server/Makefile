@@ -10,7 +10,7 @@ lib/.requirements: requirements.txt bin/pip
 	touch lib/.requirements
 
 compile: lib/.requirements
-	./bin/pip install -e . ".[testing]"
+	./bin/pip install -e .
 
 test: compile
 	./bin/pytest
