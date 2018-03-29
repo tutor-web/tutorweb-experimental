@@ -16,7 +16,6 @@ LIBRARIES_JS = \
     jquery \
 
 LIBRARIES_CSS = \
-    lib/usermenu.css \
     node_modules/bootstrap/dist/css/bootstrap-reboot.min.css \
     node_modules/bootstrap/dist/css/bootstrap-grid.min.css \
 
@@ -75,10 +74,12 @@ www/js/%.min.js: package.json %/*.js lib/*.js
 	mv $@.mktmp.map $@.map
 	mv $@.mktmp $@
 
-www/css/%.min.css: package.json %/*.css
+www/css/%.min.css: package.json %/*.css lib/*.css
 	mkdir -p www/css
-	# i.e. all but package.json
-	cat $(filter-out $<,$^) > $@.mktmp
+	$(NODE_CMD) node_modules/postcss-cli/bin/postcss \
+	    --config postcss.config.js \
+	    -o $@.mktmp \
+	    $(basename $(basename $(notdir $@)))/index.css
 	mv $@.mktmp $@
 
 www/%.html: package.json %/*.html
