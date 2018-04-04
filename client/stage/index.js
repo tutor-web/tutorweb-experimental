@@ -264,6 +264,9 @@ QuizView.prototype = new View(jQuery);
             if (args.material_tags.indexOf("type:template") > -1) {
                 return 'review';
             }
+            if (args.material_tags.indexOf("type:example") > -1) {
+                return 'example-load';
+            }
             if (args.continuing === 'practice') {
                 return 'quiz-practice';
             }
@@ -328,6 +331,19 @@ QuizView.prototype = new View(jQuery);
             } else {
                 twTimer.reset();
             }
+        });
+    };
+
+    twView.states['example-load'] = function (curState, updateState) {
+        twView.updateActions([]);
+        return quiz.getNewQuestion({
+        }).then(function (args) {
+            args.actions = ['example-load'];
+
+            quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
+            return twView.renderNewQuestion(args.qn, args.a, args.actions);
+        }).then(function (args) {
+            twView.updateActions(['gohome', 'example-load']);
         });
     };
 
