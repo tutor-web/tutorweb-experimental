@@ -343,6 +343,9 @@ QuizView.prototype = new View(jQuery);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             return twView.renderNewQuestion(args.qn, args.a, args.actions);
         }).then(function (args) {
+            // Mark it as answered, so we move on
+            return quiz.setQuestionAnswer([]);
+        }).then(function (args) {
             twView.updateActions(['gohome', 'example-load']);
         });
     };
