@@ -4,6 +4,7 @@
   "description": "Tutor-Web quiz system",
   "homepage": "http://www.tutor-web.net/",
   "dependencies": {
+    "@f/serialize-form": "^1.0.0",
     "bootstrap": "^4.0.0",
     "crel": "~3.1.0",
     "custom-event-polyfill": "^0.3.0",

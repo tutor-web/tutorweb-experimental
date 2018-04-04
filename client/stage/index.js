@@ -7,6 +7,7 @@ var View = require('lib/view.js');
 var AjaxApi = require('lib/ajaxapi.js');
 var Timer = require('lib/timer.js');
 var UserMenu = require('lib/usermenu.js');
+var serializeForm = require('@f/serialize-form');
 
 /**
   * View class to translate data into DOM structures
@@ -59,7 +60,7 @@ function QuizView($) {
 
       /** Annotate with correct / incorrect selections */
     this.renderAnswer = function (a, answerData) {
-        var self = this, i,
+        var self = this,
             parsedExplanation = $(jQuery.parseHTML(answerData.explanation));
         self.jqQuiz.find('input,textarea').attr('disabled', 'disabled');
 
@@ -84,9 +85,14 @@ function QuizView($) {
         } else {
             self.jqQuiz.find('#answer_' + a.selected_answer).addClass('selected');
             // Mark all answers as correct / incorrect
-            for (i = 0; i < a.ordering_correct.length; i++) {
-                self.jqQuiz.find('#answer_' + i).addClass(a.ordering_correct[i] ? 'correct' : 'incorrect');
-            }
+            Object.keys(answerData).map(function (k) {
+                // Find any form elements with key/value and mark as correct
+                self.jqQuiz.find('*[name=' + k + ']').each(function () {
+                    var correct = answerData[k].indexOf($(this).val()) > -1;
+                    this.classList.toggle('correct', correct);
+                    this.classList.toggle('incorrect', !correct);
+                });
+            });
 
             if (a.hasOwnProperty('correct')) {
                 self.jqQuiz.children('form').toggleClass('correct', a.correct);
@@ -328,7 +334,7 @@ QuizView.prototype = new View(jQuery);
     twView.states['qn-skip'] = twView.states['qn-submit'] = twView.states['ug-skip'] = twView.states['ug-submit'] = twView.states['ug-rate'] = function (curState) {
         // Disable all controls and mark answer
         twView.updateActions([]);
-        return quiz.setQuestionAnswer(curState.endsWith('-skip') ? [] : twView.jqQuiz.children('form').serializeArray()).then(function (args) {
+        return quiz.setQuestionAnswer(curState.endsWith('-skip') ? [] : serializeForm(twView.jqQuiz.children('form')[0])).then(function (args) {
             twView.renderAnswer(args.a, args.answerData);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             twMenu.syncAttempt(false);

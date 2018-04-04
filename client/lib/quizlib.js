@@ -338,16 +338,9 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
             // Get question data and mark
             return self._getQuestionData(a.uri, true).then(function (qn) {
-                var answerData = !qn.hasOwnProperty('answer') ? {}
-                               : typeof qn.answer === 'string' ? JSON.parse(window.atob(qn.answer))
-                               : qn.answer;
-
-                // Generate array showing which answers were correct
-                if (a.hasOwnProperty('ordering')) {
-                    a.ordering_correct = a.ordering.map(function (v) {
-                        return answerData.correct.indexOf(v) > -1;
-                    });
-                }
+                var answerData = !qn.hasOwnProperty('correct') ? {}
+                               : typeof qn.correct === 'string' ? JSON.parse(window.atob(qn.correct))
+                               : qn.correct;
 
                 if (a.question_type === 'template') {
                     a.student_answer = { "choices": [] };
@@ -402,15 +395,14 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                     // Find student answer in the form_data
                     a.selected_answer = null;
                     a.student_answer = null;
-                    a.form_data.map(function (d) {
-                        if (d.name === 'answer') {
-                            a.selected_answer = d.value;
-                            a.student_answer = typeof (a.ordering[d.value]) === "number" ? a.ordering[d.value] : null;
+
+                    // Check that all parts of answer are correct
+                    a.correct = true;
+                    Object.keys(answerData).map(function (k) {
+                        if (answerData[k].indexOf(a.form_data[k]) === -1) {
+                            a.correct = false;
                         }
                     });
-
-                    // Student correct iff their answer is in list
-                    a.correct = answerData.correct.indexOf(a.student_answer) > -1;
 
                     // Update question with new counts
                     curLecture.questions.map(function (qn) {
