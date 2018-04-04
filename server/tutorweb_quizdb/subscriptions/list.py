@@ -85,6 +85,7 @@ def view_subscription_list(request):
                 out[-1]['children'][-1]['children'].append(dict(
                     stage=db_stage.stage_name,
                     title=db_stage.title,
+                    grade=2,
                     href='/api/stage?%s' % urllib.parse.urlencode(dict(
                         path=os.path.normpath(os.path.join(db_tut.path, db_lec.lecture_name, db_stage.stage_name)),
                     )),
