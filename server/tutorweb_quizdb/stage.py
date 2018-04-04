@@ -72,10 +72,26 @@ def stage_index(request):
     if db_stage.stage_name == '0examples':
         questions = [
             dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=1),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=2),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=3),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=4),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=5),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=6),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=7),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=8),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=9),
         ]
     else:
         questions = [
             dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=1),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=2),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=3),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=4),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=5),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=6),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=7),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=8),
+            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=9),
         ]
 
     return dict(
