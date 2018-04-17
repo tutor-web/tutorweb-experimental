@@ -131,7 +131,7 @@ cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
     }
 
     location / {
-        try_files \$uri \$uri.html /app.html;
+        try_files \$uri \$uri.html /index.html;
     }
 }
 EOF

@@ -1,6 +1,6 @@
 "use strict";
 /*jslint todo: true, regexp: true, browser: true, unparam: true */
-/*global Promise */
+/*global Promise, Element */
 require('es6-promise').polyfill();
 require('whatwg-fetch');
 require('custom-event-polyfill');

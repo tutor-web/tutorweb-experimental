@@ -1,16 +1,18 @@
 GIT = git
+NPM = npm
 YARN = yarn
 NODE = node
 NODE != which node || which nodejs
 NODE_CMD = NODE_PATH="$(CURDIR)" $(NODE)
+SHELL=/bin/bash -o pipefail
 
-OUTPUTS := app preview stage
+OUTPUTS := index preview stage
 
 OUT_FILES = \
-    $(foreach O,$(OUTPUTS),www/$(O).html www/js/$(O).min.js www/css/$(O).min.css) \
     www/js/polyfill.min.js \
     www/js/libraries.min.js \
     www/css/libraries.min.css \
+    $(foreach O,$(OUTPUTS),www/$(O).html www/js/$(O).min.js www/css/$(O).min.css)
 
 LIBRARIES_JS = \
     jquery \
@@ -30,14 +32,14 @@ coverage: node_modules/
 	yarn run istanbul cover node_modules/tape/bin/tape tests/test_*.js
 
 lint: node_modules/
-	yarn run jslint $(foreach O,$(OUTPUTS) lib,$(O)/*.js)
+	yarn run jslint lib/*.js tests/*.js
 
 clean:
-	rm -r -- "node_modules"
-	rm -- www/js/*.min.js www/css/*.min.css
+	rm -r -- "node_modules/"
+	rm -- $(OUT_FILES)
 
 watch:
-	while inotifywait -r $(OUTPUTS); do make compile; done
+	while inotifywait -r lib; do make compile; done
 
 node_modules/: package.json yarn.lock
 	$(YARN)
@@ -58,15 +60,16 @@ www/js/libraries.min.js: package.json
 
 www/css/libraries.min.css: package.json
 	mkdir -p www/css
+	(cd www/css && ln -sf ../../lib .)
 	cat $(LIBRARIES_CSS) > $@.mktmp
 	mv $@.mktmp $@
 
-www/js/%.min.js: package.json %/*.js lib/*.js
+www/js/%.min.js: package.json lib/*.js
 	mkdir -p www/js
-	(cd www/js && ln -sf ../../$(basename $(basename $(notdir $@))) .)
+	(cd www/js && ln -sf ../../lib .)
 	$(NODE_CMD) node_modules/browserify/bin/cmd.js --debug \
 	        $(foreach l,$(LIBRARIES_JS),-x $(l)) \
-	        $(basename $(basename $(notdir $@)))/index.js \
+	        lib/$(basename $(basename $(notdir $@))).js \
 	    | $(NODE_CMD) node_modules/uglify-js/bin/uglifyjs \
 	        --compress --mangle "reserved=['$$','require','exports']" \
 	        --source-map "content='inline',url='$(notdir $@).map'" \
@@ -74,15 +77,16 @@ www/js/%.min.js: package.json %/*.js lib/*.js
 	mv $@.mktmp.map $@.map
 	mv $@.mktmp $@
 
-www/css/%.min.css: package.json %/*.css lib/*.css
+www/css/%.min.css: package.json lib/*.css
 	mkdir -p www/css
+	(cd www/css && ln -sf ../../lib .)
 	$(NODE_CMD) node_modules/postcss-cli/bin/postcss \
 	    --config postcss.config.js \
 	    -o $@ \
-	    $(basename $(basename $(notdir $@)))/index.css
+	    lib/$(basename $(basename $(notdir $@))).css
 
-www/%.html: package.json %/*.html
-	cat $(basename $(basename $(notdir $@)))/index.html > $@.mktmp
+www/%.html: package.json lib/*.html www/css/%.min.css www/js/%.min.js
+	cat lib/$(basename $(basename $(notdir $@))).html > $@.mktmp
 	mv $@.mktmp $@
 
 www/tw.appcache: www/*.html www/tw.js www/polyfill.js www/mathjax-config.js www/*.css www/*.jpg
