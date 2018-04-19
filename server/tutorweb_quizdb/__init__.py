@@ -55,7 +55,7 @@ def main(global_config, **settings):
 
     tutorweb_quizdb.models.ACTIVE_HOST_DOMAIN = settings['tutorweb.host_domain']
     initialize_dbsession(settings)
-    config.set_authorization_policy(ACLAuthorizationPolicy())  # TODO: Is this what we want?
+    config.set_authorization_policy(ACLAuthorizationPolicy())
     config.set_authentication_policy(AuthTktAuthenticationPolicy(settings.get('pyramid_auth.secret', 'itsaseekreet')))
     config.set_session_factory(SignedCookieSessionFactory(settings.get('pyramid_session.secret', 'itsaseekreet')))
     config.include('pyramid_jinja2')
