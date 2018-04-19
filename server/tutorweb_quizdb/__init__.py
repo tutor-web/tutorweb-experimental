@@ -46,6 +46,7 @@ def main(global_config, **settings):
     initialize_dbsession(settings)
     config.set_session_factory(SignedCookieSessionFactory(settings.get('pyramid_session.secret', 'itsaseekreet')))
     config.include('pyramid_jinja2')
+    config.include('tutorweb_quizdb.exceptions')
     config.include('tutorweb_quizdb.material.render')
     config.include('tutorweb_quizdb.material.update')
     config.include('tutorweb_quizdb.subscriptions.list')
