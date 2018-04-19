@@ -41,7 +41,7 @@ def main(global_config, **settings):
     """
     Generate WSGI application
     """
-    config = Configurator(settings=settings)
+    config = Configurator(settings=settings, route_prefix='/api/')
 
     initialize_dbsession(settings)
     config.set_session_factory(SignedCookieSessionFactory(settings.get('pyramid_session.secret', 'itsaseekreet')))

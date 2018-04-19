@@ -123,7 +123,9 @@ cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
     error_page 502 503 504 /error/bad_gateway.json;
 
     location /api/ {
-        proxy_pass  http://unix:${UWSGI_SOCKET}:/;
+        proxy_pass  http://unix:${UWSGI_SOCKET}:/api/;
+        proxy_set_header Host            \$host;
+        proxy_set_header X-Forwarded-For \$remote_addr;
     }
 
     location /mathjax/ {
