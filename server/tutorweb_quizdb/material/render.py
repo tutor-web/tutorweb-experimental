@@ -1,22 +1,19 @@
-import git
 import os
-import re
 
-import rpy2
 import rpy2.robjects as robjects
-
-from pyramid.view import view_config
 
 from tutorweb_quizdb import DBSession, Base
 
 
 MATERIAL_BANK = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../../db/material_bank'))  # TODO: This should be configured centrally, somewhere.
 
+
 def rlist_to_dict(a):
     """
     Take R ListVector, turn it into a dict
     """
-    return dict(zip(a.names, map(list,list(a))))
+    return dict(zip(a.names, map(list, list(a))))
+
 
 def render(path, permutation):
     """

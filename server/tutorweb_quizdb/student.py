@@ -1,14 +1,4 @@
-import git
-import os
-import re
-
-import rpy2
-import rpy2.robjects as robjects
-
 from pyramid.httpexceptions import HTTPForbidden
-from pyramid.view import view_config
-
-from tutorweb_quizdb import DBSession, Base
 
 
 def get_current_student(request):

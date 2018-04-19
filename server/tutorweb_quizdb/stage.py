@@ -1,12 +1,5 @@
-import git
 import os
-import re
 import urllib.parse
-
-import rpy2
-import rpy2.robjects as robjects
-
-from pyramid.view import view_config
 
 from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.student import get_current_student
@@ -56,7 +49,7 @@ def stage_settings(db_stage, db_student):
     """
     Get / create settings for this student
     """
-    #TODO:
+    # TODO:
     return dict()
 
 

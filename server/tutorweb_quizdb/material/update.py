@@ -1,10 +1,6 @@
 import hashlib
-import git
 import os
 import re
-
-from pyramid.view import view_config
-from sqlalchemy.orm.exc import NoResultFound
 
 from tutorweb_quizdb import DBSession, Base
 
@@ -49,7 +45,6 @@ def update():
         for f in files:
             if f.endswith('.q.R') or f.endswith('.e.R'):
                 material_paths[os.path.join(os.path.relpath(root, MATERIAL_BANK), f)] = file_md5sum(os.path.join(root, f))
-
 
     # TODO: Having to be committed at least once is annoying
     for path, revision in material_paths.items():

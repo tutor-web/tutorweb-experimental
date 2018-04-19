@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declared_attr
 from pluserable.data.models import (
-    ActivationBase, GroupBase, UserBase)
+    GroupBase, UserBase)
 from pluserable.data.sqlalchemy.models import (
     ActivationMixin)
 
@@ -41,10 +41,10 @@ class User(UserBase, Base):
     @property
     def csrf_token(self):
         pass
+
     @csrf_token.setter
     def csrf_token(self, value):
         pass
-
 
 
 class Group(GroupBase, Base):

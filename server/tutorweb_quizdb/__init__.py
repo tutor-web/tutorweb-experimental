@@ -24,13 +24,13 @@ class BaseExtensions(object):
         return {key: value for key, value in self.__dict__.items()
                 # Do not serialize 'private' attributes
                 # (SQLAlchemy-internal attributes are among those, too)
-                if not key.startswith('_')
-                and key not in json_exclude}
+                if not key.startswith('_') and
+                key not in json_exclude}
 
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = automap_base(declarative_base=declarative_base(cls=BaseExtensions))
-import tutorweb_quizdb.models
+import tutorweb_quizdb.models  # noqa
 
 
 def initialize_dbsession(settings):

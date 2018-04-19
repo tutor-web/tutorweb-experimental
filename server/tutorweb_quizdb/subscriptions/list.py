@@ -1,12 +1,7 @@
-import git
 import os
-import re
 import urllib.parse
 
-import rpy2
 import rpy2.robjects as robjects
-
-from pyramid.view import view_config
 
 from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.student import get_current_student
@@ -14,11 +9,13 @@ from tutorweb_quizdb.student import get_current_student
 
 MATERIAL_BANK = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../../db/material_bank'))  # TODO: This should be configured centrally, somewhere.
 
+
 def rlist_to_dict(a):
     """
     Take R ListVector, turn it into a dict
     """
-    return dict(zip(a.names, map(list,list(a))))
+    return dict(zip(a.names, map(list, list(a))))
+
 
 def render(path, permutation):
     """
@@ -60,8 +57,8 @@ def view_subscription_list(request):
 
     out = []
     for (db_sub, db_tut) in (DBSession.query(Base.classes.subscription, Base.classes.tutorial)
-            .filter_by(user=student).filter_by(hidden=False)
-            .order_by(Base.classes.subscription.path)):
+                             .filter_by(user=student).filter_by(hidden=False)
+                             .order_by(Base.classes.subscription.path)):
         out.append(dict(
             path=db_tut.path,
             title=db_tut.title,
@@ -69,8 +66,8 @@ def view_subscription_list(request):
         ))
         tut_grade = 0
         for db_lec in (DBSession.query(Base.classes.lecture)
-                .filter_by(tutorial=db_tut)
-                .order_by(Base.classes.lecture.lecture_name)):
+                       .filter_by(tutorial=db_tut)
+                       .order_by(Base.classes.lecture.lecture_name)):
             out[-1]['children'].append(dict(
                 name=db_lec.lecture_name,
                 title=db_lec.title,
@@ -79,9 +76,9 @@ def view_subscription_list(request):
             ))
             tut_grade += out[-1]['children'][-1]['grade']
             for db_stage in (DBSession.query(Base.classes.stage)
-                    .filter_by(lecture=db_lec)
-                    .filter_by(next_version=None)
-                    .order_by(Base.classes.stage.stage_name)):
+                             .filter_by(lecture=db_lec)
+                             .filter_by(next_version=None)
+                             .order_by(Base.classes.stage.stage_name)):
                 out[-1]['children'][-1]['children'].append(dict(
                     stage=db_stage.stage_name,
                     title=db_stage.title,

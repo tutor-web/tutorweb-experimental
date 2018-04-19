@@ -1,6 +1,6 @@
 PROJECT=tutorweb
 
-all: compile test
+all: compile test lint
 
 bin/pip:
 	python3 -m venv .
@@ -14,6 +14,9 @@ compile: lib/.requirements
 
 test: compile
 	./bin/pytest
+
+lint: lib/.requirements
+	./bin/flake8 --ignore=E501 tutorweb_quizdb/
 
 start:
 	./bin/pserve development.ini
