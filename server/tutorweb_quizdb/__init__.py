@@ -1,4 +1,9 @@
+import datetime
+
+from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
+from pyramid.interfaces import IRendererFactory
 from sqlalchemy import engine_from_config
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.ext.declarative import declarative_base
@@ -25,6 +30,7 @@ class BaseExtensions(object):
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = automap_base(declarative_base=declarative_base(cls=BaseExtensions))
+import tutorweb_quizdb.models
 
 
 def initialize_dbsession(settings):
@@ -37,20 +43,39 @@ def initialize_dbsession(settings):
     Base.prepare(engine, reflect=True)
 
 
+def index(request):
+    return {}
+
+
 def main(global_config, **settings):
     """
     Generate WSGI application
     """
     config = Configurator(settings=settings, route_prefix='/api/')
 
+    tutorweb_quizdb.models.ACTIVE_HOST_DOMAIN = settings['tutorweb.host_domain']
     initialize_dbsession(settings)
+    config.set_authorization_policy(ACLAuthorizationPolicy())  # TODO: Is this what we want?
+    config.set_authentication_policy(AuthTktAuthenticationPolicy(settings.get('pyramid_auth.secret', 'itsaseekreet')))
     config.set_session_factory(SignedCookieSessionFactory(settings.get('pyramid_session.secret', 'itsaseekreet')))
     config.include('pyramid_jinja2')
+    config.include('pyramid_mailer')
+    config.include('pyramid_mako')
+    config.include('pluserable')
+    config.setup_pluserable(global_config['__file__'])
+
     config.include('tutorweb_quizdb.exceptions')
     config.include('tutorweb_quizdb.material.render')
     config.include('tutorweb_quizdb.material.update')
     config.include('tutorweb_quizdb.subscriptions.list')
     config.include('tutorweb_quizdb.stage')
     config.include('tutorweb_quizdb.student')
+
+    json_renderer = config.registry.getUtility(IRendererFactory, name="json")
+    json_renderer.add_adapter(datetime.datetime, lambda obj, request: obj.isoformat())
+
+    # TODO: Only because pluserable's templates depend on it. ditch?
+    config.add_view(index, route_name='index', renderer='json')
+    config.add_route('index', '')
 
     return config.make_wsgi_app()

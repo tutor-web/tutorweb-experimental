@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS answer (
     stage_id                 INTEGER NOT NULL,
     FOREIGN KEY (stage_id) REFERENCES stage(stage_id),
     hostDomain               TEXT,
-    userName                 TEXT,
-    FOREIGN KEY (hostDomain, userName) REFERENCES student(hostDomain, userName),
+    user_id                  INTEGER,
+    FOREIGN KEY (hostDomain, user_id) REFERENCES "user"(hostDomain, user_id),
 
     materialSourceId         SERIAL,
     timeStart                TIMESTAMP WITH TIME ZONE,

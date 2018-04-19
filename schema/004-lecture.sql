@@ -17,11 +17,11 @@ COMMENT ON TABLE  tutorial IS 'Tree structure for all tutorials';
 CREATE TABLE IF NOT EXISTS subscription (
     hostDomain               TEXT,
     FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
-    userName                 TEXT,
-    FOREIGN KEY (hostDomain, userName) REFERENCES student(hostDomain, userName),
+    user_id                  INTEGER,
+    FOREIGN KEY (hostDomain, user_id) REFERENCES "user"(hostDomain, user_id),
     path                     TEXT,
     FOREIGN KEY (hostDomain, path) REFERENCES tutorial(hostDomain, path),
-    PRIMARY KEY (hostDomain, userName, path),
+    PRIMARY KEY (hostDomain, user_id, path),
 
     hidden                   BOOLEAN NOT NULL DEFAULT 'f',
     lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
@@ -82,17 +82,17 @@ CREATE TABLE IF NOT EXISTS stage_setting (
     stage_id                 INTEGER NOT NULL,
     FOREIGN KEY (stage_id) REFERENCES stage(stage_id),
     hostDomain               TEXT,
-    userName                 TEXT,
-    FOREIGN KEY (hostDomain, userName) REFERENCES student(hostDomain, userName),
+    user_id                  INTEGER,
+    FOREIGN KEY (hostDomain, user_id) REFERENCES "user"(hostDomain, user_id),
     key                      TEXT,
-    PRIMARY KEY (stage_id, hostDomain, userName, key),
+    PRIMARY KEY (stage_id, hostDomain, user_id, key),
 
     value                    TEXT,
 
     lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
 COMMENT ON TABLE  stage_setting IS 'All chosen settings for a stage, generic and per-student';
-COMMENT ON COLUMN stage_setting.userName IS 'Student setting is for, or one of the special students:'
+COMMENT ON COLUMN stage_setting.user_id IS 'Student setting is for, or one of the special students:'
      '"(registered)" for a generic registed student,'
      '"(any)" for any student';
 

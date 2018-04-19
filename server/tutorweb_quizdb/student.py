@@ -5,17 +5,16 @@ import re
 import rpy2
 import rpy2.robjects as robjects
 
+from pyramid.httpexceptions import HTTPForbidden
 from pyramid.view import view_config
 
 from tutorweb_quizdb import DBSession, Base
 
 
 def get_current_student(request):
-    # TODO: Hack in me
-    return (DBSession.query(Base.classes.user)
-        .filter_by(hostdomain=request.registry.settings['tutorweb.host_domain'])
-        .filter_by(username='lentinj')
-        .one())
+    if not request.user:
+        raise HTTPForbidden()
+    return request.user
 
 
 def student_details(request):

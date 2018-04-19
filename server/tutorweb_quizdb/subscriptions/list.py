@@ -60,7 +60,7 @@ def view_subscription_list(request):
 
     out = []
     for (db_sub, db_tut) in (DBSession.query(Base.classes.subscription, Base.classes.tutorial)
-            .filter_by(student=student).filter_by(hidden=False)
+            .filter_by(user=student).filter_by(hidden=False)
             .order_by(Base.classes.subscription.path)):
         out.append(dict(
             path=db_tut.path,

@@ -3,9 +3,12 @@ from setuptools import setup, find_packages
 requires = [
     'gitpython',
     'plaster_pastedeploy',
+    'pluserable',
     'psycopg2',
     'pyramid',
     'pyramid_jinja2',
+    'pyramid_mailer',
+    'pyramid_mako',
     'pyramid_debugtoolbar',
     'pyramid_tm',
     'SQLAlchemy',
