@@ -5,9 +5,6 @@ import rpy2.robjects as robjects
 from tutorweb_quizdb import DBSession, Base
 
 
-MATERIAL_BANK = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../../db/material_bank'))  # TODO: This should be configured centrally, somewhere.
-
-
 def rlist_to_dict(a):
     """
     Take R ListVector, turn it into a dict
@@ -15,7 +12,7 @@ def rlist_to_dict(a):
     return dict(zip(a.names, map(list, list(a))))
 
 
-def render(path, permutation):
+def render(path, permutation, material_bank):
     """
     Render a question
     """
@@ -30,7 +27,7 @@ def render(path, permutation):
 
     # TODO: Caching of question objects?
     robjects.r('''question <- function () stop("R question script did not define a question function")''')
-    robjects.r('''setwd''')(os.path.dirname(os.path.join(MATERIAL_BANK, path)))
+    robjects.r('''setwd''')(os.path.dirname(os.path.join(material_bank, path)))
     robjects.r('''source''')(os.path.basename(path))
     # TODO: data.frames support
 
@@ -51,7 +48,11 @@ def render(path, permutation):
 
 
 def view_material_render(request):
-    return render(path=request.params['path'], permutation=int(request.params['permutation']))
+    return render(
+        path=request.params['path'],
+        permutation=int(request.params['permutation']),
+        material_bank=request.registry.settings['tutorweb.material_bank'],
+    )
 
 
 def includeme(config):

@@ -5,14 +5,11 @@ import re
 from tutorweb_quizdb import DBSession, Base
 
 
-MATERIAL_BANK = os.path.normpath(os.path.join(os.path.dirname(__file__), '../../../db/material_bank'))  # TODO: This should be configured centrally, somewhere.
-
-
-def file_md5sum(file):
+def file_md5sum(path):
     """
     MD5-sum of file
     """
-    with open(os.path.join(MATERIAL_BANK, file), 'rb') as f:
+    with open(path, 'rb') as f:
         # TODO: Eugh
         # TODO: Not enough, what if we revert versions?
         content = f.read()
@@ -20,13 +17,13 @@ def file_md5sum(file):
     return(hashlib.md5(content).hexdigest())
 
 
-def file_metadata(file):
+def file_metadata(path):
     """
     Read in all the metadata within the file
     """
     file_metadata = {}
     setting_re = re.compile(r'^[#]\s*TW:(\w+)=(.*)')
-    with open(os.path.join(MATERIAL_BANK, file), 'r') as f:
+    with open(path, 'r') as f:
         for line in f:
             m = setting_re.search(line)
             if m:
@@ -34,17 +31,17 @@ def file_metadata(file):
     return file_metadata
 
 
-def update():
+def update(material_bank):
     """
     Ingest material from a given path and update database on it's existence
     """
     material_paths = {}
-    for root, dirs, files in os.walk(MATERIAL_BANK):
+    for root, dirs, files in os.walk(material_bank):
         if '.git' in root:
             continue
         for f in files:
             if f.endswith('.q.R') or f.endswith('.e.R'):
-                material_paths[os.path.join(os.path.relpath(root, MATERIAL_BANK), f)] = file_md5sum(os.path.join(root, f))
+                material_paths[os.path.join(os.path.relpath(root, material_bank), f)] = file_md5sum(os.path.join(material_bank, root, f))
 
     # TODO: Having to be committed at least once is annoying
     for path, revision in material_paths.items():
@@ -56,7 +53,7 @@ def update():
             else:
                 m.next_revision = revision
         if not already_here:
-            metadata = file_metadata(path)
+            metadata = file_metadata(os.path.join(material_bank, path))
             DBSession.add(Base.classes.materialsource(
                 path=path,
                 revision=revision,
@@ -68,7 +65,9 @@ def update():
 
 
 def view_material_update(request):
-    return update(**request.params)
+    return update(
+        material_bank=request.registry.settings['tutorweb.material_bank'],
+    )
 
 
 def includeme(config):
