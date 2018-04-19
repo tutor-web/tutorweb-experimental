@@ -12,8 +12,8 @@ from tutorweb_quizdb import DBSession, Base
 
 def get_current_student(request):
     # TODO: Hack in me
-    return (DBSession.query(Base.classes.student)
-        .filter_by(hostdomain='ui-tutorweb3.clifford.shuttlethread.com')
+    return (DBSession.query(Base.classes.user)
+        .filter_by(hostdomain=request.registry.settings['tutorweb.host_domain'])
         .filter_by(username='lentinj')
         .one())
 

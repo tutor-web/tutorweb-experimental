@@ -37,14 +37,14 @@ SERVERSIDE_SETTINGS = set((  # These settings have no relevance clientside
 ))
 
 
-def stage_get(path):
+def stage_get(host_domain, path):
     """
     Get the stage object, given a complete path
     """
     path, stage_name = os.path.split(path)
     path, lecture_name = os.path.split(path)
     return (DBSession.query(Base.classes.stage)
-            .filter_by(hostdomain='ui-tutorweb3.clifford.shuttlethread.com')
+            .filter_by(hostdomain=host_domain)
             .filter_by(path=path)
             .filter_by(lecture_name=lecture_name)
             .filter_by(stage_name=stage_name)
@@ -64,7 +64,7 @@ def stage_index(request):
     """
     Get all details for a stage
     """
-    db_stage = stage_get(request.params['path'])
+    db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
     db_student = get_current_student(request)
     settings = stage_settings(db_stage, db_student)
 
