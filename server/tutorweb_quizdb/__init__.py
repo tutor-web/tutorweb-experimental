@@ -5,6 +5,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
+from pyramid.session import SignedCookieSessionFactory
+
 
 class BaseExtensions(object):
     def __json__(self, request):
@@ -42,6 +44,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
 
     initialize_dbsession(settings)
+    config.set_session_factory(SignedCookieSessionFactory(settings.get('pyramid_session.secret', 'itsaseekreet')))
     config.include('pyramid_jinja2')
     config.include('tutorweb_quizdb.material.render')
     config.include('tutorweb_quizdb.material.update')
