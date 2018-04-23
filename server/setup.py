@@ -22,6 +22,7 @@ tests_require = [
     'WebTest >= 1.3.1',  # py3 compat
     'pytest',
     'pytest-cov',
+    'testing.postgresql',
 ]
 
 setup(

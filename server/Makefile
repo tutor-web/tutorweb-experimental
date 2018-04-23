@@ -11,12 +11,13 @@ lib/.requirements: requirements.txt bin/pip
 
 compile: lib/.requirements
 	./bin/pip install -e .
+	./bin/pip install -e . ".[testing]"
 
 test: compile
-	./bin/pytest
+	./bin/pytest tests/
 
 lint: lib/.requirements
-	./bin/flake8 --ignore=E501 tutorweb_quizdb/
+	./bin/flake8 --ignore=E501 tutorweb_quizdb/ tests/
 
 start:
 	./bin/pserve development.ini
