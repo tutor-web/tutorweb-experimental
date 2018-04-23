@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "user" (
     pw_hash                  VARCHAR(256) NOT NULL,
     salt                     VARCHAR(256) NOT NULL,
     activation_id            INTEGER,
-    FOREIGN KEY (activation_id) REFERENCES activation(activation_id),
+    FOREIGN KEY (activation_id) REFERENCES activation(activation_id)
 );
 COMMENT ON TABLE  "user" IS 'All students and administrators';
 COMMENT ON COLUMN "user".hostDomain IS 'The host this user belongs to';

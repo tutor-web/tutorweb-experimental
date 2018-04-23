@@ -1,67 +1,38 @@
-import hashlib
 import os
-import re
 
 from tutorweb_quizdb import DBSession, Base
 
-
-def file_md5sum(path):
-    """
-    MD5-sum of file
-    """
-    with open(path, 'rb') as f:
-        # TODO: Eugh
-        # TODO: Not enough, what if we revert versions?
-        content = f.read()
-
-    return(hashlib.md5(content).hexdigest())
-
-
-def file_metadata(path):
-    """
-    Read in all the metadata within the file
-    """
-    file_metadata = {}
-    setting_re = re.compile(r'^[#]\s*TW:(\w+)=(.*)')
-    with open(path, 'r') as f:
-        for line in f:
-            m = setting_re.search(line)
-            if m:
-                file_metadata[m.group(1)] = m.group(2)
-    return file_metadata
+from tutorweb_quizdb.material.utils import file_md5sum, path_to_materialsource
 
 
 def update(material_bank):
     """
     Ingest material from a given path and update database on it's existence
     """
+    # Generate dict of path => md5sum
     material_paths = {}
     for root, dirs, files in os.walk(material_bank):
         if '.git' in root:
             continue
         for f in files:
             if f.endswith('.q.R') or f.endswith('.e.R'):
-                material_paths[os.path.join(os.path.relpath(root, material_bank), f)] = file_md5sum(os.path.join(material_bank, root, f))
+                material_paths[os.path.normpath(os.path.join(os.path.relpath(root, material_bank), f))] = file_md5sum(os.path.join(root, f))
 
-    # TODO: Having to be committed at least once is annoying
-    for path, revision in material_paths.items():
-        # Is this file/revision already here?
-        already_here = False
-        for m in DBSession.query(Base.classes.materialsource).filter_by(path=path, next_revision=None).all():
-            if m.revision.strip() == revision.strip():
-                already_here = True
-            else:
-                m.next_revision = revision
-        if not already_here:
-            metadata = file_metadata(os.path.join(material_bank, path))
-            DBSession.add(Base.classes.materialsource(
-                path=path,
-                revision=revision,
-                permutationcount=int(metadata.get('QUESTIONS', 1)),
-                materialtags=metadata.get('TAGS', '').split(','),
-                dataframepaths=metadata.get('DATAFRAMES', '').split(','),  # TODO: Should path be relative?
-            ))
-        DBSession.flush()
+    # For all paths in the database...
+    for m in DBSession.query(Base.classes.materialsource).filter_by(next_revision=None):
+        if material_paths.get(m.path, None) != m.md5sum:
+            # MD5sum changed (or file now nonexistant), add new materialsource entry
+            new_m = Base.classes.materialsource(**path_to_materialsource(material_bank, m.path, m.revision), md5sum=material_paths.get(m.path, None))
+            DBSession.add(new_m)
+            m.next_revision = new_m.revision
+
+        # This path considered, remove from dict
+        del material_paths[m.path]
+
+    # For any remaining paths, insert afresh into DB
+    for path, md5sum in material_paths.items():
+        DBSession.add(Base.classes.materialsource(**path_to_materialsource(material_bank, path, None), md5sum=md5sum))
+    DBSession.flush()
 
 
 def view_material_update(request):
