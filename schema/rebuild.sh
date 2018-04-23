@@ -1,7 +1,8 @@
 #!/bin/sh
 set -eu
 
-[ "$1" = "--recreate" ] && { DB_RECREATE="x"; shift; }
+
+[ "${1-}" = "--recreate" ] && { DB_RECREATE="x"; shift; } || DB_RECREATE=""
 DB_NAME=${1-tw_db}
 PSQL="psql -X --set ON_ERROR_STOP=1 --set AUTOCOMMIT=off"
 
