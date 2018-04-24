@@ -8,7 +8,6 @@ def get_current_student(request):
 
 
 def student_details(request):
-    # TODO: This route should also be capable of updating a student
     student = get_current_student(request)
 
     return student
