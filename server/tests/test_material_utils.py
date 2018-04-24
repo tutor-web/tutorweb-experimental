@@ -60,9 +60,9 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
         self.assertEqual(example_qn, dict(
             path='example.q.R',
             revision='(deleted)',
-            permutationcount=0,
-            materialtags=['deleted', 'type.question'],
-            dataframepaths=[],
+            permutation_count=0,
+            material_tags=['deleted', 'type.question'],
+            dataframe_paths=[],
         ))
 
         # We combine existing tags with any derived ones
@@ -75,9 +75,9 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
         self.assertEqual(example_qn, dict(
             path='example.q.R',
             revision='(untracked)+1',
-            permutationcount=100,
-            materialtags=['math099', 'Q-0990t0', 'lec050500', 'type.question'],
-            dataframepaths=['agelength'],
+            permutation_count=100,
+            material_tags=['math099', 'Q-0990t0', 'lec050500', 'type.question'],
+            dataframe_paths=['agelength'],
         ))
 
         # We also understand examples
@@ -90,7 +90,7 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
         self.assertEqual(example_qn, dict(
             path='example.e.R',
             revision='(untracked)+1',
-            permutationcount=2,
-            materialtags=['math099', 'Q-0990t0', 'lec050500', 'type.example'],
-            dataframepaths=['agelength'],
+            permutation_count=2,
+            material_tags=['math099', 'Q-0990t0', 'lec050500', 'type.example'],
+            dataframe_paths=['agelength'],
         ))

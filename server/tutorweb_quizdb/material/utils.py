@@ -80,7 +80,7 @@ def path_to_materialsource(material_bank, path, prev_revision):
     return dict(
         path=os.path.normpath(path),
         revision=revision,
-        permutationcount=int(file_metadata.get('QUESTIONS', 1)),
-        materialtags=list(parse_list(file_metadata.get('TAGS', ''))),
-        dataframepaths=list(parse_list(file_metadata.get('DATAFRAMES', ''))),  # TODO: Should path be relative?
+        permutation_count=int(file_metadata.get('QUESTIONS', 1)),
+        material_tags=list(parse_list(file_metadata.get('TAGS', ''))),
+        dataframe_paths=list(parse_list(file_metadata.get('DATAFRAMES', ''))),  # TODO: Should path be relative?
     )

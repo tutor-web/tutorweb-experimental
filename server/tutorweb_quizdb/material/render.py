@@ -18,10 +18,10 @@ def render(path, permutation, material_bank):
     """
     # Is this permutation even a question?
     ms = DBSession.query(Base.classes.materialsource).filter_by(path=path, next_revision=None).one()
-    if ms.permutationcount > permutation:
+    if ms.permutation_count > permutation:
         raise ValueError("Question %s only has %d permutations, not %d" % (
             path,
-            ms.permutationcount,
+            ms.permutation_count,
             permutation,
         ))
 

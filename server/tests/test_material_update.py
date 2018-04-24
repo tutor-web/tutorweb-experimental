@@ -18,7 +18,7 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
         for ms in DBSession.query(Base.classes.materialsource):
             out[ms.path] = (
                 ms.revision,
-                ms.materialtags,
+                ms.material_tags,
             )
         return out
 
