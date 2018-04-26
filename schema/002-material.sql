@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS dataFrame (
 COMMENT ON TABLE  dataFrame IS 'material repository source for data frame definitions';
 
 
-CREATE TABLE IF NOT EXISTS materialSource (
-    materialSourceId         SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS material_source (
+    material_source_id       SERIAL PRIMARY KEY,
 
     path                     TEXT NOT NULL,
     revision                 TEXT NOT NULL,
@@ -28,12 +28,12 @@ CREATE TABLE IF NOT EXISTS materialSource (
 
     next_revision            TEXT
 );
-COMMENT ON TABLE  materialSource IS 'Source for material, i.e. a file in the material repository';
-COMMENT ON COLUMN materialSource.path     IS 'Path to material file';
-COMMENT ON COLUMN materialSource.revision IS 'Git revision of this material source';
-COMMENT ON COLUMN materialSource.md5sum   IS 'MD5sum of this version';
-COMMENT ON COLUMN materialSource.permutation_count IS 'Number of question permutations';
-COMMENT ON COLUMN materialSource.next_revision IS
+COMMENT ON TABLE  material_source IS 'Source for material, i.e. a file in the material repository';
+COMMENT ON COLUMN material_source.path     IS 'Path to material file';
+COMMENT ON COLUMN material_source.revision IS 'Git revision of this material source';
+COMMENT ON COLUMN material_source.md5sum   IS 'MD5sum of this version';
+COMMENT ON COLUMN material_source.permutation_count IS 'Number of question permutations';
+COMMENT ON COLUMN material_source.next_revision IS
     'Next Git revision of this material, i.e. don''t use this one. Deleted material sources get tagged ''deleted''';
 --TODO: Default "type:question", "type:example" tags
 --TODO: view that gets all unique material_tags

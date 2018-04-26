@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS answer (
     user_id                  INTEGER,
     FOREIGN KEY (hostDomain, user_id) REFERENCES "user"(hostDomain, user_id),
 
-    materialSourceId         SERIAL,
+    material_source_id       INTEGER,
+    permutation              INTEGER,
     timeStart                TIMESTAMP WITH TIME ZONE,
     timeEnd                  TIMESTAMP WITH TIME ZONE,
 

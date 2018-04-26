@@ -19,10 +19,10 @@ def update(material_bank):
                 material_paths[os.path.normpath(os.path.join(os.path.relpath(root, material_bank), f))] = file_md5sum(os.path.join(root, f))
 
     # For all paths in the database...
-    for m in DBSession.query(Base.classes.materialsource).filter_by(next_revision=None):
+    for m in DBSession.query(Base.classes.material_source).filter_by(next_revision=None):
         if material_paths.get(m.path, None) != m.md5sum:
             # MD5sum changed (or file now nonexistant), add new materialsource entry
-            new_m = Base.classes.materialsource(**path_to_materialsource(material_bank, m.path, m.revision), md5sum=material_paths.get(m.path, None))
+            new_m = Base.classes.material_source(**path_to_materialsource(material_bank, m.path, m.revision), md5sum=material_paths.get(m.path, None))
             DBSession.add(new_m)
             m.next_revision = new_m.revision
 
@@ -31,7 +31,7 @@ def update(material_bank):
 
     # For any remaining paths, insert afresh into DB
     for path, md5sum in material_paths.items():
-        DBSession.add(Base.classes.materialsource(**path_to_materialsource(material_bank, path, None), md5sum=md5sum))
+        DBSession.add(Base.classes.material_source(**path_to_materialsource(material_bank, path, None), md5sum=md5sum))
     DBSession.flush()
 
 
