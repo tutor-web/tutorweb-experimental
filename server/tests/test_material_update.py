@@ -31,7 +31,7 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
         # Add a file, becomes available
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
-# TW:QUESTIONS=100
+# TW:PERMUTATIONS=100
 # TW:DATAFRAMES=agelength
         ''')
         self.assertEqual(self.call_view(), {
@@ -48,7 +48,7 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
         # Re-writing first doesn't change anything
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
-# TW:QUESTIONS=100
+# TW:PERMUTATIONS=100
 # TW:DATAFRAMES=agelength
         ''')
         self.assertEqual(self.call_view(), {
@@ -59,7 +59,7 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
         # ...but new content does
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,hello.mum
-# TW:QUESTIONS=100
+# TW:PERMUTATIONS=100
 # TW:DATAFRAMES=agelength
         ''')
         self.assertEqual(self.call_view(), {
@@ -70,7 +70,7 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
         # Reverting back creates another new version
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
-# TW:QUESTIONS=100
+# TW:PERMUTATIONS=100
 # TW:DATAFRAMES=agelength
         ''')
         self.assertEqual(self.call_view(), {

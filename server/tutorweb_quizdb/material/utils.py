@@ -66,7 +66,7 @@ def path_to_materialsource(material_bank, path, prev_revision):
         revision = _file_revision(material_bank, path, prev_revision)
     except FileNotFoundError:
         file_metadata = dict(
-            QUESTIONS=0,
+            PERMUTATIONS=0,
             TAGS='deleted',
         )
         revision = "(deleted)"
@@ -80,7 +80,7 @@ def path_to_materialsource(material_bank, path, prev_revision):
     return dict(
         path=os.path.normpath(path),
         revision=revision,
-        permutation_count=int(file_metadata.get('QUESTIONS', 1)),
+        permutation_count=int(file_metadata.get('PERMUTATIONS', 1)),
         material_tags=list(parse_list(file_metadata.get('TAGS', ''))),
         dataframe_paths=list(parse_list(file_metadata.get('DATAFRAMES', ''))),  # TODO: Should path be relative?
     )

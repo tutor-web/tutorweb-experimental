@@ -68,7 +68,7 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
         # We combine existing tags with any derived ones
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
-# TW:QUESTIONS=100
+# TW:PERMUTATIONS=100
 # TW:DATAFRAMES=agelength
         ''')
         example_qn = path_to_materialsource(self.material_bank.name, 'example.q.R', '')
@@ -83,7 +83,7 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
         # We also understand examples
         self.mb_write_file('example.e.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
-# TW:QUESTIONS=2
+# TW:PERMUTATIONS=2
 # TW:DATAFRAMES=agelength
         ''')
         example_qn = path_to_materialsource(self.material_bank.name, 'example.e.R', '')
