@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 
 requires = [
     'gitpython',
+    'numpy',
     'plaster_pastedeploy',
     'pluserable',
     'psycopg2',

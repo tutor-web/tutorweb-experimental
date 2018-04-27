@@ -7,7 +7,7 @@ from pluserable.data.sqlalchemy.models import (
 
 from tutorweb_quizdb import Base
 
-ACTIVE_HOST_DOMAIN = 'overriden_in_init'
+ACTIVE_HOST_DOMAIN = 'ut'
 
 
 class User(UserBase, Base):

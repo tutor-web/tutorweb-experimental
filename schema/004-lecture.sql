@@ -74,6 +74,7 @@ COMMENT ON COLUMN stage.stage_setting_spec IS 'dict of setting key to a combinat
     '* shape: Shape of gamma curve, if set will choose value for each student from gamma curve'
     '* max: Maximum value, if set will choose value between [0, value_max)'
     '* min: Minimum value, applies a lower bound to anything chosen by max'
+    '...or "variant:registered", and another set of values below it'
     '...or "deleted", if this stage is now removed';
 COMMENT ON COLUMN stage.next_version IS 'If this stage has been replaced by a new version, this field is non-null';
 
@@ -93,7 +94,6 @@ CREATE TABLE IF NOT EXISTS stage_setting (
 );
 COMMENT ON TABLE  stage_setting IS 'All chosen settings for a stage, generic and per-student';
 COMMENT ON COLUMN stage_setting.user_id IS 'Student setting is for, or one of the special students:'
-     '"(registered)" for a generic registed student,'
      '"(any)" for any student';
 
 -- TODO: Answer summary per student

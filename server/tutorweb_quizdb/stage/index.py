@@ -3,31 +3,7 @@ import urllib.parse
 
 from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.student import get_current_student
-
-
-INTEGER_SETTINGS = set((  # These settings have whole-integer values
-    'question_cap',
-    'award_lecture_answered',
-    'award_lecture_aced',
-    'award_tutorial_aced',
-    'award_templateqn_aced',
-    'cap_template_qns',
-    'cap_template_qn_reviews',
-    'cap_template_qn_nonsense',
-    'grade_nmin',
-    'grade_nmax',
-))
-STRING_SETTINGS = set((  # These settings have string values
-    'iaa_mode',
-    'grade_algorithm',
-))
-SERVERSIDE_SETTINGS = set((  # These settings have no relevance clientside
-    'prob_template_eval',
-    'cap_template_qns',
-    'cap_template_qn_reviews',
-    'question_cap',
-    'award_lecture_answered',
-))
+from .setting import getStudentSettings, clientside_settings
 
 
 def stage_get(host_domain, path):
@@ -45,21 +21,13 @@ def stage_get(host_domain, path):
             .one())
 
 
-def stage_settings(db_stage, db_student):
-    """
-    Get / create settings for this student
-    """
-    # TODO:
-    return dict()
-
-
 def stage_index(request):
     """
     Get all details for a stage
     """
     db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
     db_student = get_current_student(request)
-    settings = stage_settings(db_stage, db_student)
+    settings = getStudentSettings(db_stage, db_student)
 
     # TODO: Hard-code question bank for now
     if db_stage.stage_name == '0examples':
@@ -93,7 +61,7 @@ def stage_index(request):
         )),
         user=db_student.username,
         title=db_stage.title,
-        settings=dict((k, v) for k, v in settings.items() if k not in SERVERSIDE_SETTINGS),
+        settings=clientside_settings(settings),
         material_tags=db_stage.material_tags,
         questions=[dict(uri='/api/material/render?%s' % urllib.parse.urlencode(x)) for x in questions],
         answerQueue=[],
