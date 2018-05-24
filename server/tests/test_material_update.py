@@ -10,7 +10,7 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
         from tutorweb_quizdb.material.update import view_material_update
         from tutorweb_quizdb import DBSession, Base
 
-        request = self.request(settings={'tutorweb.material_bank': self.material_bank.name})
+        request = self.request(settings={'tutorweb.material_bank.default': self.material_bank.name})
         out = view_material_update(request)
         self.assertEqual(out, None)
 

@@ -19,7 +19,7 @@ def update(material_bank):
                 material_paths[os.path.normpath(os.path.join(os.path.relpath(root, material_bank), f))] = file_md5sum(os.path.join(root, f))
 
     # For all paths in the database...
-    for m in DBSession.query(Base.classes.material_source).filter_by(next_revision=None):
+    for m in DBSession.query(Base.classes.material_source).filter_by(bank=material_bank, next_revision=None):
         if material_paths.get(m.path, None) != m.md5sum:
             # MD5sum changed (or file now nonexistant), add new materialsource entry
             new_m = Base.classes.material_source(**path_to_materialsource(material_bank, m.path, m.revision), md5sum=material_paths.get(m.path, None))
@@ -37,7 +37,7 @@ def update(material_bank):
 
 def view_material_update(request):
     return update(
-        material_bank=request.registry.settings['tutorweb.material_bank'],
+        material_bank=request.registry.settings['tutorweb.material_bank.default'],
     )
 
 

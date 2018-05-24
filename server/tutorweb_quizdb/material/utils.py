@@ -78,6 +78,7 @@ def path_to_materialsource(material_bank, path, prev_revision):
         file_metadata['TAGS'] += ',type.example'
 
     return dict(
+        bank=material_bank,
         path=os.path.normpath(path),
         revision=revision,
         permutation_count=int(file_metadata.get('PERMUTATIONS', 1)),

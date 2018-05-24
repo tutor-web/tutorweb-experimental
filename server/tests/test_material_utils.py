@@ -58,6 +58,7 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
         # Non-existant files get "deleted" tags
         example_qn = path_to_materialsource(self.material_bank.name, 'example.q.R', '')
         self.assertEqual(example_qn, dict(
+            bank=self.material_bank.name,
             path='example.q.R',
             revision='(deleted)',
             permutation_count=0,
@@ -73,6 +74,7 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
         ''')
         example_qn = path_to_materialsource(self.material_bank.name, 'example.q.R', '')
         self.assertEqual(example_qn, dict(
+            bank=self.material_bank.name,
             path='example.q.R',
             revision='(untracked)+1',
             permutation_count=100,
@@ -88,6 +90,7 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
         ''')
         example_qn = path_to_materialsource(self.material_bank.name, 'example.e.R', '')
         self.assertEqual(example_qn, dict(
+            bank=self.material_bank.name,
             path='example.e.R',
             revision='(untracked)+1',
             permutation_count=2,

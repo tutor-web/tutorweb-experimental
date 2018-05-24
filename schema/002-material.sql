@@ -16,9 +16,10 @@ COMMENT ON TABLE  dataFrame IS 'material repository source for data frame defini
 CREATE TABLE IF NOT EXISTS material_source (
     material_source_id       SERIAL PRIMARY KEY,
 
+    bank                     TEXT NOT NULL,
     path                     TEXT NOT NULL,
     revision                 TEXT NOT NULL,
-    UNIQUE (path, revision),
+    UNIQUE (bank, path, revision),
 
     md5sum                   TEXT,
     permutation_count        INTEGER NOT NULL DEFAULT 1,
