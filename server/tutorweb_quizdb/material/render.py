@@ -17,7 +17,7 @@ def material_render(ms, permutation, obsfucate=False):
     Render a question
     """
     # Is this permutation even a question?
-    if ms.permutation_count > permutation:
+    if ms.permutation_count < permutation:
         raise ValueError("Question %s only has %d permutations, not %d" % (
             ms.path,
             ms.permutation_count,
@@ -40,7 +40,10 @@ def material_render(ms, permutation, obsfucate=False):
                 raise NotImplementedError("TODO:")
             rv[name] = "".join(rob[i])
         elif name == 'correct':
-            rv[name] = rlist_to_dict(rob[i])
+            try:
+                rv[name] = rlist_to_dict(rob[i])
+            except:
+                raise ValueError("Correct object not parsable %s" % rob[i])
         else:
             raise ValueError("Unknown return value from R question %s - %s" % (ms.path, name))
     if 'content' not in rv:
