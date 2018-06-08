@@ -128,6 +128,12 @@ cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
         proxy_set_header X-Forwarded-For \$remote_addr;
     }
 
+    location /auth/ {
+        proxy_pass  http://unix:${UWSGI_SOCKET}:/api/;
+        proxy_set_header Host            \$host;
+        proxy_set_header X-Forwarded-For \$remote_addr;
+    }
+
     location /mathjax/ {
         alias "${PROJECT_PATH}/client/node_modules/mathjax/";
     }
