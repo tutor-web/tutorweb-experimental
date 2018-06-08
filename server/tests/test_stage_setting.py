@@ -51,6 +51,11 @@ class SettingSpecTest(unittest.TestCase):
         with self.assertRaisesRegexp(ValueError, 'iaa_mode'):
             csv(key="iaa_mode", value="fun-size", max=4)
 
+        # We can generate random strings with randstring
+        out = csv(key="iaa_mode", randstring=10)
+        self.assertEqual(len(out), 10)
+        self.assertNotEqual(out, csv(key="iaa_mode", randstring=10))
+
         # Integer settings get rounded, don't have "3.0" at end
         for x in range(LOTS_OF_TESTS):
             self.assertIn(csv(key="grade_nmin", max=9), '0 1 2 3 4 5 6 7 8 9'.split())
@@ -122,6 +127,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # Calling getStudentSettings should add student to stage as a result
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
+            allocation_encryption_key=out['allocation_encryption_key'],
+            allocation_seed=out['allocation_seed'],
             grade_s=out['grade_s'],
             hist_sel='0.5',
         ))
@@ -132,6 +139,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # Can get same values again
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
+            allocation_encryption_key=out['allocation_encryption_key'],
+            allocation_seed=out['allocation_seed'],
             grade_s=out['grade_s'],
             hist_sel='0.5',
         ))
@@ -140,6 +149,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # Another student gets different values
         out = getStudentSettings(db_stage, studs[1])
         self.assertEqual(out, dict(
+            allocation_encryption_key=out['allocation_encryption_key'],
+            allocation_seed=out['allocation_seed'],
             grade_s=out['grade_s'],
             hist_sel='0.5',
         ))
@@ -157,6 +168,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # Students get new value for hist_sel, keep old value of grade_s
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
+            allocation_encryption_key=out['allocation_encryption_key'],
+            allocation_seed=out['allocation_seed'],
             grade_s=out['grade_s'],
             grade_t=out['grade_t'],
             hist_sel='0.9',
@@ -176,6 +189,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # This time we replace s, but keep t
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
+            allocation_encryption_key=out['allocation_encryption_key'],
+            allocation_seed=out['allocation_seed'],
             grade_s=out['grade_s'],
             grade_t=out['grade_t'],
             hist_sel='0.9',
@@ -197,6 +212,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # This time we keep s, but remove t
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
+            allocation_encryption_key=out['allocation_encryption_key'],
+            allocation_seed=out['allocation_seed'],
             grade_s=out['grade_s'],
             hist_sel='0.9',
         ))
@@ -209,6 +226,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         ))
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
+            allocation_encryption_key=out['allocation_encryption_key'],
+            allocation_seed=out['allocation_seed'],
             hist_sel=None,
             grade_s=out['grade_s'],
         ))
@@ -217,9 +236,11 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # Entirely empty spec allowed
         db_stage = self.replace_stage(db_stage, None)
 
-        # This time we got nothing
+        # This time we got nothing bar globals
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
+            allocation_encryption_key=out['allocation_encryption_key'],
+            allocation_seed=out['allocation_seed'],
         ))
 
 

@@ -1,3 +1,4 @@
+import itertools
 import random
 
 import numpy.random
@@ -7,6 +8,7 @@ from tutorweb_quizdb import DBSession, Base
 
 # Randomly-chosen questions that should result in an integer value
 INTEGER_SETTINGS = set((
+    'allocation_seed',
     'question_cap',
     'award_lecture_answered',
     'award_lecture_aced',
@@ -18,14 +20,25 @@ INTEGER_SETTINGS = set((
     'grade_nmin',
     'grade_nmax',
 ))
-STRING_SETTINGS = set(('iaa_mode', 'grade_algorithm'))
-SERVERSIDE_SETTINGS = [
+STRING_SETTINGS = set((
+    'allocation_encryption_key',
+    'iaa_mode',
+    'grade_algorithm',
+))
+SERVERSIDE_SETTINGS = set((
+    'allocation_encryption_key',
+    'allocation_seed',
     'prob_template_eval',
     'cap_template_qns',
     'cap_template_qn_reviews',
     'question_cap',
     'award_lecture_answered',
-]
+))
+# These are applied to every stage, sp there's always an allocation_seed
+GLOBAL_SPECS = dict(
+    allocation_encryption_key=dict(randstring=20),
+    allocation_seed=dict(min=0, max=2**32),
+)
 
 
 class SettingSpec():
@@ -48,11 +61,13 @@ class SettingSpec():
     def is_customised(self):
         """Is this spec customised to a user?"""
         return (self.spec.get('shape', None) is not None or
-                self.spec.get('max', None) is not None)
+                self.spec.get('max', None) is not None or
+                self.spec.get('randstring', None) is not None or
+                False)
 
     def equivalent(self, oth):
         """Is this Spec equivalent to oth?"""
-        for key in ['value', 'shape', 'max', 'min']:
+        for key in ['value', 'shape', 'max', 'min', 'randstring']:
             our_value = self.spec.get(key, None)
             their_value = oth.spec.get(key, None)
 
@@ -76,6 +91,8 @@ class SettingSpec():
             return str(self.spec['value']) if 'value' in self.spec else None
 
         if self.key in STRING_SETTINGS:
+            if self.spec.get('randstring', None) is not None:
+                return "".join(chr(random.randint(32, 127)) for _ in range(self.spec['randstring']))
             raise ValueError("Cannot choose random value for setting %s" % self.key)
 
         if self.spec.get('shape', None) is not None:
@@ -133,7 +150,7 @@ def getStudentSettings(db_stage, db_user):
         raise ValueError("Unknown variant %s" % variant)
 
     # Check all global settings for the lecture
-    for key, spec in (db_stage.stage_setting_spec or {}).items():
+    for key, spec in itertools.chain(GLOBAL_SPECS.items(), (db_stage.stage_setting_spec or {}).items()):
         spec = SettingSpec(key, spec, _variantApplicable)
 
         if key in out:
