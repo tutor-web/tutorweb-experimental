@@ -96,14 +96,5 @@ COMMENT ON TABLE  stage_setting IS 'All chosen settings for a stage, generic and
 COMMENT ON COLUMN stage_setting.user_id IS 'Student setting is for, or one of the special students:'
      '"(any)" for any student';
 
--- TODO: Answer summary per student
--- TODO: Answer summary per-lecture, to use for difficulty
--- TODO: Allocations, how to do it?
--- * GetQuestion based on public ID (which may be out of date)
--- * Get all questions allocated for a lecture
--- * Update/create allocations, return list
---    ==> Ideallyquestion URI:index:version)
---    Encrypt URI:index:version with random AES string for each student?
-
 
 COMMIT;

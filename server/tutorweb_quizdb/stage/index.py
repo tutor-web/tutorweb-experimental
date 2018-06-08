@@ -2,7 +2,9 @@ import os
 import urllib.parse
 
 from tutorweb_quizdb import DBSession, Base
+from tutorweb_quizdb.material.render import material_render
 from tutorweb_quizdb.student import get_current_student
+from .allocation import get_allocation
 from .setting import getStudentSettings, clientside_settings
 
 
@@ -28,32 +30,7 @@ def stage_index(request):
     db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
-
-    # TODO: Hard-code question bank for now
-    if db_stage.stage_name == '0examples':
-        questions = [
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=1),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=2),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=3),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=4),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=5),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=6),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=7),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=8),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.e.R', permutation=9),
-        ]
-    else:
-        questions = [
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=1),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=2),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=3),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=4),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=5),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=6),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=7),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=8),
-            dict(path='math099/Q-0990t0/lec050500/QgenFracNoText.q.R', permutation=9),
-        ]
+    alloc = get_allocation(settings, db_stage, db_student)
 
     return dict(
         uri='/api/stage?%s' % urllib.parse.urlencode(dict(
@@ -63,17 +40,32 @@ def stage_index(request):
         title=db_stage.title,
         settings=clientside_settings(settings),
         material_tags=db_stage.material_tags,
-        questions=[dict(uri='/api/material/render?%s' % urllib.parse.urlencode(x)) for x in questions],
+        questions=None, # TODO: alloc.get_stats(getattr(request, 'json_body', {}).get('questions', None)),  # Get stats for what the client thinks is allocated
         answerQueue=[],
     )
 
 
-def stage_question(request):
+def stage_material(request):
     """
-    Get one, or all questions for a stage
+    Get one, or all material for a stage
     """
-    # TODO:
-    return {}
+    db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
+    db_student = get_current_student(request)
+    settings = getStudentSettings(db_stage, db_student)
+    alloc = get_allocation(settings, db_stage, db_student)
+
+    if (request.params.get('id', None)):
+        requested_material = [alloc.from_public_id(request.params[id])]
+    else:
+        requested_material = alloc.get_material()
+
+    out = {}
+    for m in requested_material:
+        ms = DBSession.query(Base.classes.material_source).filter_by(
+            material_source_id=m[0],
+        ).one()
+        out[alloc.to_public_id(m[0], m[1])] = material_render(ms, m[1], obsfucate=True)
+    return out
 
 
 def stage_review(request):
@@ -86,8 +78,8 @@ def stage_review(request):
 
 def includeme(config):
     config.add_view(stage_index, route_name='stage_index', renderer='json')
-    config.add_view(stage_question, route_name='stage_question', renderer='json')
+    config.add_view(stage_material, route_name='stage_material', renderer='json')
     config.add_view(stage_review, route_name='stage_review', renderer='json')
     config.add_route('stage_index', '/stage')
-    config.add_route('stage_question', '/stage/question')
+    config.add_route('stage_material', '/stage/material')
     config.add_route('stage_review', '/stage/review')

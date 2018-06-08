@@ -17,6 +17,7 @@
 /server/lib64
 /server/local
 /server/share
+/server/src
 /server/.cache
 /server/.pytest_cache
 
