@@ -44,26 +44,26 @@ class BaseAllocation():
         """
         return tuple(int(x) for x in public_id.split(":", 1))
 
-    def get_stats(self, old_stats):
+    def get_stats(self, material):
         """
-        Return updated stats structure, potentially allocating questions in process
+        Return stats for each item in material, (mss_id, permutation) tuples
         """
-        if old_stats is None:
-            material = self.get_material()
-        else:
-            material = self.from_public_id(x['uri'] for x in old_stats)
-
         out = []
         for m in material:
-            # TODO: Should load 'em up in a temporary table
-            (chosen, correct) = DBSession.query(Base.classes.answer_stats.chosen, Base.classes.answer_stats.correct).filter_by(
+            # TODO: Terribly inefficient
+            rs = DBSession.execute(
+                'SELECT chosen, correct'
+                ' FROM answer_stats'
+                ' WHERE stage_id = :stage_id'
+                ' AND material_source_id = :mss_id'
+            , dict(
                 stage_id=self.db_stage.stage_id,
-                material_source_id=m[0],
-            ).one()
+                mss_id=m[0],  # NB: For stats purposes, we consider all permutations equal
+            )).fetchone()
             out.append(dict(
                 uri=self.to_public_id(m[0], m[1]),
-                chosen=chosen,
-                correct=correct,
+                chosen=rs[0] if rs else 0,
+                correct=rs[1] if rs else 0,
                 online_only=False,  # TODO: How do we know?
                 _type='regular',  # TODO: ...or historical?
             ))

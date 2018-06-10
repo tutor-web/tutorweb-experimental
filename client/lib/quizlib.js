@@ -664,38 +664,15 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                     return newLecture;
                 }, opts.ifMissing === 'fetch');
             }).then(function (curLecture) {
-                var missingQns = curLecture.questions.filter(function (q) {
-                    return !q.online_only && (self.ls.getItem(q.uri) === null);
-                });
-
-                if (opts.skipQuestions) {
-                    return;
-                }
-
-                // Operations = sync + questions + overall question sync + tidyup
-                opTotal = missingQns.length + 3;
-                progressFn(1, opTotal, "Fetching questions...");
-
-                if (missingQns.length === 0) {
-                    return;
-                }
-
-                if (missingQns.length < 10) {
-                    // Individually fetch the missing ones
-                    return Promise.all(missingQns.map(function (q) {
-                        return ajaxApi.getJson(q.uri).then(function (qn_data) {
-                            self.ls.setItem(q.uri, qn_data);
-                        }).then(function () {
-                            opSucceeded++;
-                            progressFn(opSucceeded, opTotal, "Fetching questions... (" + opSucceeded + "/" + opTotal + ")");
-                        });
-                    }));
-                }
-
+                curLecture.question_uri = '/api/stage/material?path=' + encodeURIComponent(curLecture.path);
                 // Just fetch the lot
+                progressFn(opSucceeded, opTotal, "Fetching questions... ");  // TODO: Counts right?
                 return ajaxApi.getJson(curLecture.question_uri, {timeout: 60 * 1000}).then(function (data) {
-                    Object.keys(data).map(function (qnUri) {
-                        self.ls.setItem(qnUri, data[qnUri]);
+                    return self._withLecture(lecUri, function (curLecture) {
+                        curLecture.questions = data.stats;
+                        Object.keys(data.data).map(function (qnId) {
+                            self.ls.setItem(qnId, data.data[qnId]);
+                        });
                     });
                 });
             }).then(function () {

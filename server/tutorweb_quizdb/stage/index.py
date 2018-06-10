@@ -36,6 +36,7 @@ def stage_index(request):
         uri='/api/stage?%s' % urllib.parse.urlencode(dict(
             path=request.params['path'],
         )),
+        path=request.params['path'],
         user=db_student.username,
         title=db_stage.title,
         settings=clientside_settings(settings),
@@ -59,12 +60,15 @@ def stage_material(request):
     else:
         requested_material = alloc.get_material()
 
-    out = {}
+    out = dict(
+        stats=alloc.get_stats(requested_material),
+        data={},
+    )
     for m in requested_material:
         ms = DBSession.query(Base.classes.material_source).filter_by(
             material_source_id=m[0],
         ).one()
-        out[alloc.to_public_id(m[0], m[1])] = material_render(ms, m[1])
+        out['data'][alloc.to_public_id(m[0], m[1])] = material_render(ms, m[1])
     return out
 
 
