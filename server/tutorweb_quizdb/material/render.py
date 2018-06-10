@@ -12,7 +12,7 @@ def rlist_to_dict(a):
     return dict(zip(a.names, map(list, list(a))))
 
 
-def material_render(ms, permutation, obsfucate=False):
+def material_render(ms, permutation):
     """
     Render a question
     """
@@ -36,8 +36,6 @@ def material_render(ms, permutation, obsfucate=False):
     rv = {}
     for i, name in enumerate(rob.names):
         if name == 'content':
-            if obsfucate:
-                raise NotImplementedError("TODO:")
             rv[name] = "".join(rob[i])
         elif name == 'correct':
             try:

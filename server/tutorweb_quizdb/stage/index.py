@@ -64,7 +64,7 @@ def stage_material(request):
         ms = DBSession.query(Base.classes.material_source).filter_by(
             material_source_id=m[0],
         ).one()
-        out[alloc.to_public_id(m[0], m[1])] = material_render(ms, m[1], obsfucate=True)
+        out[alloc.to_public_id(m[0], m[1])] = material_render(ms, m[1])
     return out
 
 
