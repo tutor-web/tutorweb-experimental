@@ -261,10 +261,10 @@ QuizView.prototype = new View(jQuery);
         return quiz.setCurrentLecture({lecUri: twView.curUrl.path}).then(function (args) {
             twView.renderStart(args);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
-            if (args.material_tags.indexOf("type:template") > -1) {
+            if (args.material_tags.indexOf("type.template") > -1) {
                 return 'review';
             }
-            if (args.material_tags.indexOf("type:example") > -1) {
+            if (args.material_tags.indexOf("type.example") > -1) {
                 return 'example-load';
             }
             if (args.continuing === 'practice') {

@@ -36,7 +36,7 @@ COMMENT ON COLUMN material_source.md5sum   IS 'MD5sum of this version';
 COMMENT ON COLUMN material_source.permutation_count IS 'Number of question permutations';
 COMMENT ON COLUMN material_source.next_revision IS
     'Next Git revision of this material, i.e. don''t use this one. Deleted material sources get tagged ''deleted''';
---TODO: Default "type:question", "type:example" tags
+--TODO: Default "type.question", "type.example" tags
 --TODO: view that gets all unique material_tags
 --TODO: Index material_tags
 --TODO: Constrain material_tags to something structured?
