@@ -5,6 +5,20 @@ import re
 import git
 
 
+def path_tags(path):
+    """
+    Return tags based on the file (path), read what type it is
+    """
+    if path.endswith('.q.R'):
+        return ['type.question']
+    if path.endswith('.e.R'):
+        return ['type.example']
+    if path.endswith('.t.R'):
+        return ['type.template']
+    return []
+
+
+
 def parse_list(line):
     """
     Turn comma-separated (line) into a sequence of items, ignoring whitespace
@@ -72,10 +86,7 @@ def path_to_materialsource(material_bank, path, prev_revision):
         revision = "(deleted)"
 
     # Add to tags based on file-name
-    if path.endswith('.q.R'):
-        file_metadata['TAGS'] += ',type.question'
-    elif path.endswith('.e.R'):
-        file_metadata['TAGS'] += ',type.example'
+    file_metadata['TAGS'] += ',' + ','.join(path_tags(path))
 
     return dict(
         bank=material_bank,

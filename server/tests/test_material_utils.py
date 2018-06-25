@@ -1,9 +1,17 @@
 import tempfile
 import unittest
 
-from tutorweb_quizdb.material.utils import file_md5sum, path_to_materialsource
+from tutorweb_quizdb.material.utils import path_tags, file_md5sum, path_to_materialsource
 
 from .requires_materialbank import RequiresMaterialBank
+
+
+class PathTagsTest(unittest.TestCase):
+    def test_call(self):
+        self.assertEqual(path_tags('wibble.R'), [])  # Unknown file type, no tags
+        self.assertEqual(path_tags('wibble.q.R'), ['type.question'])
+        self.assertEqual(path_tags('wibble.e.R'), ['type.example'])
+        self.assertEqual(path_tags('wibble.t.R'), ['type.template'])
 
 
 class FileMd5SumTest(unittest.TestCase):

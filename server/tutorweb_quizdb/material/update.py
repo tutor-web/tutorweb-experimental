@@ -2,7 +2,7 @@ import os
 
 from tutorweb_quizdb import DBSession, Base
 
-from tutorweb_quizdb.material.utils import file_md5sum, path_to_materialsource
+from tutorweb_quizdb.material.utils import path_tags, file_md5sum, path_to_materialsource
 
 
 def update(material_bank):
@@ -15,7 +15,7 @@ def update(material_bank):
         if '.git' in root:
             continue
         for f in files:
-            if f.endswith('.q.R') or f.endswith('.e.R'):
+            if len(path_tags(f)) > 0:  # i.e. This file has a recognisable type, not just something to ignore
                 material_paths[os.path.normpath(os.path.join(os.path.relpath(root, material_bank), f))] = file_md5sum(os.path.join(root, f))
 
     # For all paths in the database...
