@@ -1,5 +1,6 @@
 import datetime
 
+import pyramid.httpexceptions as exc
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
@@ -44,7 +45,8 @@ def initialize_dbsession(settings):
 
 
 def index(request):
-    return {}
+    """Redirect pluserable from /api to js-controlled /"""
+    raise exc.HTTPFound("/")
 
 
 def main(global_config, **settings):
@@ -74,7 +76,6 @@ def main(global_config, **settings):
     json_renderer = config.registry.getUtility(IRendererFactory, name="json")
     json_renderer.add_adapter(datetime.datetime, lambda obj, request: obj.isoformat())
 
-    # TODO: Only because pluserable's templates depend on it. ditch?
     config.add_view(index, route_name='index', renderer='json')
     config.add_route('index', '')
 

@@ -308,14 +308,7 @@ module.exports = function View($) {
     this.ajaxApi = new AjaxApi($.ajax);
 
     this.states['go-login'] = function () {
-        var login_url = '/login?came_from=' + encodeURIComponent(window.document.location);
-
-        return twView.ajaxApi.getHtml(login_url).then(function (docString) {
-            var content = $('<div/>').html(docString).find('#content-core');
-
-            twView.updateActions([]);
-            twView.jqQuiz.empty().append(content);
-        });
+        window.location.href = '/auth/login';
     };
 
     this.states['error-quota'] = function () {

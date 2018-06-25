@@ -117,7 +117,7 @@ StartView.prototype = new View(jQuery);
     twView.states.logout = function () {
         if (unsyncedLectures.length === 0 || window.confirm("Your answers to " + unsyncedLectures[0] + " haven't been sent to the Tutor-Web server.\nIf you click okay some answers will be lost")) {
             localStorage.clear();
-            window.location.href = twView.portalRootUrl('logout');
+            window.location.href = '/auth/logout';
         }
     };
 
