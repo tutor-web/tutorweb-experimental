@@ -204,6 +204,43 @@ function RenderTex($) {
     };
 }
 
+/** Place TeX preview box after given element */
+function renderPreviewTeX($, jqParent) {
+    function intelligentText(t) {
+        return t.split(/(\n)/).map(function (part, i) {
+            return i % 2 === 1 ? $('<br/>') : document.createTextNode(part);
+        });
+    }
+
+    return Promise.all(jqParent.find('.preview-as-tex').toArray().map(function (el) {
+        var jqEl = $(el),
+            jqPreview = $('<div class="tex-preview parse-as-tex">');
+
+        console.log(jqPreview);
+        function renderPreview(text) {
+            jqPreview.empty().append(intelligentText(text));
+            jqPreview.removeClass('transformed');
+            module.exports.renderTex($, jqPreview);
+        }
+
+        jqEl.on('keyup paste', function (e) {
+            window.clearTimeout(e.target.renderTimeout);
+            e.target.renderTimeout = window.setTimeout(function () {
+                renderPreview(e.target.value);
+            }, 500);
+        });
+        jqEl.on('change', function (e) {
+            // Render immediately if contents change
+            window.clearTimeout(e.target.renderTimeout);
+            renderPreview(e.target.value);
+        });
+        renderPreview(jqEl.val());
+        jqEl.after(jqPreview);
+    })).then(function () {
+        return jqParent;
+    });
+}
+
 function renderGgb(jqEl) {
     return Promise.all(jqEl.find('.geogebra_applet').toArray().map(function (el, idx) {
         if (!window.GGBApplet) {
@@ -228,7 +265,9 @@ function renderGgb(jqEl) {
             }, true);
             applet.inject('applet' + idx);
         });
-    }));
+    })).then(function () {
+        return jqEl;
+    });
 }
 
 function shuffleElements(jqEl) {
@@ -255,7 +294,7 @@ module.exports.renderTex = function ($, jqEl) {
         throw err;
     }
 
-    return rt.renderTex(jqEl).then(shuffleElements).then(renderGgb).then(function () {
+    return rt.renderTex(jqEl).then(shuffleElements).then(renderGgb).then(renderPreviewTeX.bind(null, $)).then(function () {
         jqEl.removeClass("busy");
     })['catch'](promiseFatalError);
 };

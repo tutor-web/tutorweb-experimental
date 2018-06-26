@@ -152,7 +152,7 @@ function ChatView($) {
             return;
         }
         this.jqChatBox = el('ul').addClass('chatbox');
-        this.jqInputBox = el('textarea').attr('class', "chatinput").attr('placeholder', "Enter your message, shift-enter starts a new line but doesn't send.");
+        this.jqInputBox = el('textarea').attr('class', "chatinput preview-as-tex").attr('placeholder', "Enter your message, shift-enter starts a new line but doesn't send.");
         this.jqInputBox.on('keypress', function (e) {
             if (e.which === 13 && !e.shiftKey) {
                 // Finish processing this event, then send message
@@ -161,9 +161,12 @@ function ChatView($) {
         });
         this.jqQuiz.empty().append([
             this.jqChatBox,
-            this.previewTeX(this.jqInputBox),
+            this.jqInputBox,
         ]);
-        this.jqInputBox.focus();
+
+        return renderTex($, this.jqChatBox).then(function () {
+            this.jqInputBox.focus();
+        });
     };
 
     this.renderTutorSettings = function (data) {

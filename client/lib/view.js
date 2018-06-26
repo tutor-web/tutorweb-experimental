@@ -104,35 +104,6 @@ module.exports = function View($) {
         return renderTex($, this.jqQuiz);
     };
 
-    /** Place TeX preview box after given element */
-    this.previewTeX = function (jqEl) {
-        var jqPreview = el('div').attr('class', 'tex-preview parse-as-tex');
-        function intelligentText(t) {
-            return t.split(/(\n)/).map(function (part, i) {
-                return i % 2 === 1 ? $('<br/>') : document.createTextNode(part);
-            });
-        }
-        function renderPreview(text) {
-            jqPreview.empty().append(intelligentText(text));
-            jqPreview.removeClass('transformed');
-            renderTex($, jqPreview);
-        }
-
-        jqEl.on('keyup paste', function (e) {
-            window.clearTimeout(e.target.renderTimeout);
-            e.target.renderTimeout = window.setTimeout(function () {
-                renderPreview(e.target.value);
-            }, 500);
-        });
-        jqEl.on('change', function (e) {
-            // Render immediately if contents change
-            window.clearTimeout(e.target.renderTimeout);
-            renderPreview(e.target.value);
-        });
-        renderPreview(jqEl.val());
-        return el('div').append([jqEl, jqPreview]);
-    };
-
     /** Add a message to the page */
     this.showAlert = function (state, message, encoding) {
         var jqQuiz = this.jqQuiz,
