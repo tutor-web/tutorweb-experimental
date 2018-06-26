@@ -333,7 +333,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
             // Fetch question off answer queue, add answer
             a.answer_time = curTime();
-            a.form_data = formData;
+            a.student_answer = formData;
             a.synced = false;
 
             // Get question data and mark
@@ -342,76 +342,31 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                                : typeof qn.correct === 'string' ? JSON.parse(window.atob(qn.correct))
                                : qn.correct;
 
-                if (a.question_type === 'template') {
-                    a.student_answer = { "choices": [] };
-                    a.form_data.map(function (val) {
-                        var parts, k = val.name, v = val.value;
-                        if (k === 'text') {
-                            a.student_answer.text = v;
-                        } else if (k === 'explanation') {
-                            a.student_answer.explanation = v;
-                        } else if (k.match(/^choice_\d+/)) {
-                            parts = k.split('_');
-                            if (a.student_answer.choices[parts[1]] === undefined) {
-                                a.student_answer.choices[parts[1]] = { answer: "", correct: false };
-                            }
-                            if (parts.length === 2) {
-                                a.student_answer.choices[parts[1]].answer = v;
-                            } else if (parts[2] === "correct" && v) {
-                                a.student_answer.choices[parts[1]].correct = true;
-                            }
-                        } else {
-                            throw new Error('Unknown form element ' + k);
-                        }
-                    });
-                    // If there's no question, then assume that it's skipped
-                    if (!a.student_answer.text) {
-                        a.student_answer = null;
-                    }
-                    // When re-working a question, don't get graded. Otherwise correct iff they didn't skip
-                    a.correct = qn.student_answer && qn.student_answer.text ? null : a.student_answer !== null;
-                } else if (qn._type === 'usergenerated') {
-                    a.question_id = qn.question_id;
-
-                    // Map question rating into student answer, if available
-                    a.student_answer = {};
-                    a.form_data.map(function (d) {
-                        if (d.name === 'rating') {
-                            a.student_answer.rating = parseInt(d.value, 10);
-                        } else if (d.name === 'comments') {
-                            a.student_answer.comments = d.value;
-                        } else if (d.name === 'answer') {
-                            a.selected_answer = d.value;
-                            a.student_answer.choice = typeof (a.ordering[d.value]) === "number" ? a.ordering[d.value] : null;
-                            //NB: We don't set correct, to weasel out of being graded
-                        }
-                    });
-
-                    if (!a.student_answer.hasOwnProperty('comments')) {
-                        // Not rated yet, so clear answer_time to stop it being synced
-                        delete a.answer_time;
-                    }
-                } else {
-                    // Find student answer in the form_data
-                    a.selected_answer = null;
-                    a.student_answer = null;
-
-                    // Check that all parts of answer are correct
-                    a.correct = true;
-                    Object.keys(answerData).map(function (k) {
-                        if (answerData[k].indexOf(a.form_data[k]) === -1) {
+                // Check that all parts of answer are correct
+                a.correct = true;
+                Object.keys(answerData).map(function (k) {
+                    if (answerData[k].nonempty) {
+                        // Check that the answer is non-empty
+                        if (!a.student_answer[k]) {
                             a.correct = false;
                         }
-                    });
+                    }
 
-                    // Update question with new counts
-                    curLecture.questions.map(function (qn) {
-                        if (a.uri === qn.uri) {
-                            qn.chosen += 1;
-                            qn.correct += a.correct ? 1 : 0;
+                    if (Array.isArray(answerData[k])) {
+                        // Default array case: Check answer contains correct string
+                        if (answerData[k].indexOf(a.student_answer[k]) === -1) {
+                            a.correct = false;
                         }
-                    });
-                }
+                    }
+                });
+
+                // Update question with new counts
+                curLecture.questions.map(function (qn) {
+                    if (a.uri === qn.uri) {
+                        qn.chosen += 1;
+                        qn.correct += a.correct ? 1 : 0;
+                    }
+                });
 
                 // Check how long a student should have spent on this question, delay the explanation by the difference
                 a.explanation_delay = iaalib.questionStudyTime(curLecture.settings, curLecture.answerQueue);

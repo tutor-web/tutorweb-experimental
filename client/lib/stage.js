@@ -86,12 +86,14 @@ function QuizView($) {
             self.jqQuiz.find('#answer_' + a.selected_answer).addClass('selected');
             // Mark all answers as correct / incorrect
             Object.keys(answerData).map(function (k) {
-                // Find any form elements with key/value and mark as correct
-                self.jqQuiz.find('*[name=' + k + ']').each(function () {
-                    var correct = answerData[k].indexOf($(this).val()) > -1;
-                    this.classList.toggle('correct', correct);
-                    this.classList.toggle('incorrect', !correct);
-                });
+                if (Array.isArray(answerData[k])) {
+                    // Find any form elements with key/value and mark as correct
+                    self.jqQuiz.find('*[name=' + k + ']').each(function () {
+                        var correct = answerData[k].indexOf($(this).val()) > -1;
+                        this.classList.toggle('correct', correct);
+                        this.classList.toggle('incorrect', !correct);
+                    });
+                }
             });
 
             if (a.hasOwnProperty('correct')) {
@@ -189,8 +191,8 @@ function QuizView($) {
         }
 
         this.jqQuiz.empty().append([
-            el('h3').text('Questions you have written'),
-            (reviewData.length === 0 ? el('p').text("You haven't written any questions in this lecture") : null),
+            el('h3').text('Material you have written'),
+            (reviewData.length === 0 ? el('p').text("You haven't written anything for this lecture") : null),
         ]);
         this.jqQuiz.append(el('ul').attr('class', 'select-list review').append(reviewData.map(function (qn) {
             var correct = qn.choices.filter(function (ans) { return ans.correct; });
@@ -203,7 +205,7 @@ function QuizView($) {
                     ratingDiv(qn.verdict, 'overall'),
                 ]).focus(function () {
                     self.selectedQn = qn.uri;
-                    self.updateActions(['gohome', 'rewrite-question']);
+                    self.updateActions(['gohome', 'rewrite-material']);
                 }),
                 el('dl').append([
                     el('dt').text("Incorrect answers"),
@@ -307,10 +309,9 @@ QuizView.prototype = new View(jQuery);
         });
     };
 
-    twView.states['quiz-real'] = twView.states['quiz-practice'] = twView.states['rewrite-question'] = function (curState, updateState) {
+    twView.states['quiz-real'] = twView.states['quiz-practice'] = function (curState, updateState) {
         twView.updateActions([]);
         return quiz.getNewQuestion({
-            question_uri: curState === 'rewrite-question' ? twView.selectedQn : null,
             practice: curState.endsWith('-practice')
         }).then(function (args) {
             args.actions = args.qn._type === 'template' ? ['ug-skip', 'ug-submit'] : ['qn-skip', 'qn-submit'];
@@ -331,6 +332,24 @@ QuizView.prototype = new View(jQuery);
             } else {
                 twTimer.reset();
             }
+        });
+    };
+
+    twView.states['write-material'] = twView.states['rewrite-material'] = function (curState, updateState) {
+        twView.updateActions([]);
+        return quiz.getNewQuestion({
+            question_uri: curState === 'rewrite-question' ? twView.selectedQn : null,
+        }).then(function (args) {
+            args.actions = ['ug-skip', 'ug-submit'];
+
+            quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
+            return twView.renderNewQuestion(args.qn, args.a, args.actions).then(function () {
+                return args;
+            });
+        }).then(function (args) {
+            var skipAction = args.actions[0];
+            twView.updateActions([skipAction]);
+            twTimer.reset();
         });
     };
 
@@ -378,7 +397,7 @@ QuizView.prototype = new View(jQuery);
         twView.updateActions([]);
         return quiz.fetchReview().then(function (review) {
             twView.renderReview(review);
-            twView.updateActions(['gohome', null]);
+            twView.updateActions(['gohome', 'review-material', 'write-material']);
         });
     };
 
