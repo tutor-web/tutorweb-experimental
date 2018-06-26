@@ -32,6 +32,12 @@ def stage_index(request):
     settings = getStudentSettings(db_stage, db_student)
     alloc = get_allocation(settings, db_stage, db_student)
 
+    # Parse incoming JSON body
+    incoming = request.json_body if request.body else {}
+
+    # Get material IDs that the client thinks are allocated
+    requested_material = (alloc.from_public_id(x['uri']) for x in incoming.get('questions', []))
+
     return dict(
         uri='/api/stage?%s' % urllib.parse.urlencode(dict(
             path=request.params['path'],
@@ -41,7 +47,7 @@ def stage_index(request):
         title=db_stage.title,
         settings=clientside_settings(settings),
         material_tags=db_stage.material_tags,
-        questions=None, # TODO: alloc.get_stats(getattr(request, 'json_body', {}).get('questions', None)),  # Get stats for what the client thinks is allocated
+        questions=alloc.get_stats(requested_material),
         answerQueue=[],
     )
 
