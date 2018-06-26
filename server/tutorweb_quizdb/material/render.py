@@ -5,11 +5,14 @@ import rpy2.robjects as robjects
 from tutorweb_quizdb import DBSession, Base
 
 
-def rlist_to_dict(a):
+def rob_to_dict(a):
     """
-    Take R ListVector, turn it into a dict
+    Take R Object and turn it into something JSON-parsable
     """
-    return dict(zip(a.names, map(list, list(a))))
+    if isinstance(a, robjects.vectors.ListVector):
+        return dict(zip(a.names, [rob_to_dict(x) for x in a]))
+    else:
+        return list(a)
 
 
 def material_render(ms, permutation):
@@ -32,20 +35,14 @@ def material_render(ms, permutation):
 
     rob = robjects.globalenv['question'](permutation, [])
     # TODO: Stacktraces?
+    try:
+        rv = rob_to_dict(rob)
+    except Exception as e:
+        raise ValueError("R question output not parsable %s\n%s" % (rob, e))
 
-    rv = {}
-    for i, name in enumerate(rob.names):
-        if name == 'content':
-            rv[name] = "".join(rob[i])
-        elif name == 'correct':
-            try:
-                rv[name] = rlist_to_dict(rob[i])
-            except:
-                raise ValueError("Correct object not parsable %s" % rob[i])
-        else:
-            raise ValueError("Unknown return value from R question %s - %s" % (ms.path, name))
     if 'content' not in rv:
         raise ValueError("R question %s did not return 'content'" % ms.path)
+    rv['content'] = "".join(rv['content'])
     return rv
 
 
