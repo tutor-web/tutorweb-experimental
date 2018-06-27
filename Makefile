@@ -9,6 +9,9 @@ test:
 start:
 	for dir in $(SUBDIRS); do make -C $$dir $@; done
 
+lint:
+	for dir in $(SUBDIRS); do make -C $$dir $@; done
+
 fakesmtp:
 	python3 -m smtpd -n -c DebuggingServer localhost:25
 
