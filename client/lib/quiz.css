@@ -223,7 +223,7 @@ div.dropdown{
     color: red;
 }
 
-#tw-quiz .correct div.alert.explanation {
+#tw-quiz .correct div.explanation {
     /* Same as alert-success */
     color: #468847;
     background-color: #dff0d8;
