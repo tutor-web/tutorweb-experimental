@@ -25,3 +25,11 @@ Client-side dependencies:
 apt install \
     make nodejs nodejs-legacy yarn nginx
 ```
+
+## Debugging
+
+### Fake SMTP server for activation e-mails
+
+You can start a fake SMTP server to receive e-mails with:
+
+    sudo make fakesmtp
