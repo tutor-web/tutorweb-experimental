@@ -31,8 +31,6 @@
       ${ user.email }
     </section>
 
-    <p><a href="${request.route_url('forgot_password')}">Forgot your password?</a></p>
-    <p>Don't have an account? <a href="${request.route_url('register')}">Sign up!</a></p>
   </main>
 </body>
 </html>

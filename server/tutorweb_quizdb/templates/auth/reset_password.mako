@@ -30,7 +30,11 @@
       ${form|n}
     </section>
 
-    <p>Don't have an account? <a href="${request.route_url('register')}">Sign up!</a></p>
+    <div class="status">
+      <div id="tw-actions">
+        <a href="${request.route_url('register')}" class="button">Sign up to Tutor-Web</a>
+      </div>
+    </div>
   </main>
 </body>
 </html>

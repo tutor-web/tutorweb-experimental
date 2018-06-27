@@ -18,4 +18,5 @@ main > section {
     background-color: white;
     box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
     padding: 1rem;
+    margin-bottom: 1rem;
 }
