@@ -10,7 +10,13 @@ def get_current_student(request):
 def student_details(request):
     student = get_current_student(request)
 
-    return student
+    return dict(
+        id=student.id,
+        email=student.email,
+        username=student.username,
+        host_domain=student.host_domain,
+        smly=25,  # TODO:
+    )
 
 
 def includeme(config):

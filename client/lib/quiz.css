@@ -148,10 +148,6 @@ div#tw-actions a.disabled {
 	
 }
 
-div.dropdown{
-	width: 100px;
-}
-
 /* Button to Show/hides details about grade for small screens (hidden by default) */
 #tw-quiz .show-grades {
     display: none;

@@ -46,6 +46,10 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
             }
             jqLink.text(state.text || '');
 
+            if (state.smly) {
+                jqLink.append('<span class="smly">' + state.smly + '</span>');
+            }
+
             // Decide what action this state takes
             if (!state.action) {
                 actionType = 'none';
@@ -116,6 +120,7 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
             return quiz.updateUserDetails(null).then(function (user) {
                 var menu = {
                     text: user.username,
+                    smly: user.smly,
                     tooltip: "You are connected to tutor-web",
                     action: []
                 };
@@ -342,6 +347,11 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
             event.preventDefault();
             self.updateState(newState);
         }
+    });
+
+    // Hitting on jqUserMenu toggles menu, anywhere else closes it
+    window.document.body.addEventListener('click', function (event) {
+        jqUserMenu.toggleClass('open', jqUserMenu.is(event.target) || jqUserMenu.has(event.target).length > 0 ? undefined : false);
     });
 
     /** Request a sync to the server */
