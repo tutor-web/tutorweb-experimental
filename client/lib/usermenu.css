@@ -24,7 +24,7 @@
 }
 
 #tw-usermenu {
-    position: absolute;
+    position: fixed;
     top: 0;
     right: 10px;
     min-width: 160px;
