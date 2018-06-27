@@ -26,7 +26,7 @@ class User(UserBase, Base):
     host_domain = sa.Column(
         'hostdomain',
         sa.UnicodeText,
-        default=ACTIVE_HOST_DOMAIN,
+        default=lambda: ACTIVE_HOST_DOMAIN,
         primary_key=True)
     id = sa.Column(
         'user_id',
