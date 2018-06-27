@@ -60,7 +60,7 @@ function CoinView($) {
         } else {
             self.jqQuiz.append([
                 el('h3').text('Redeem coins'),
-                el('img').attr('class', 'coinlogo').attr('src', 'smileycoin.png'),
+                el('img').attr('class', 'coinlogo').attr('src', 'images/smileycoin.png'),
                 el('p').text('You have ' + withUnit(data.coin_available / 1000, 'smileycoin') + ' left to redeem. You have a maximum of 2 years before the offer expires.'),
                 el('p').html('If you do not have a wallet yet to keep them in, you can get one <a href="http://tutor-web.info/smileycoin/download">from here</a>.'),
                 el('p').html('Unused SMLY will be donated to the Education in a Suitcase project. You can also do this now by pressing the donate button below, which will be used to buy tablet computers for students in Kenya.'),
