@@ -18,7 +18,6 @@ def path_tags(path):
     return []
 
 
-
 def parse_list(line):
     """
     Turn comma-separated (line) into a sequence of items, ignoring whitespace

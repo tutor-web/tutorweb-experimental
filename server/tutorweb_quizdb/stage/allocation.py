@@ -4,7 +4,7 @@ import struct
 
 import skippy
 
-from tutorweb_quizdb import DBSession, Base
+from tutorweb_quizdb import DBSession
 
 
 def get_allocation(settings, *args, **kwargs):
@@ -56,10 +56,12 @@ class BaseAllocation():
                 ' FROM answer_stats'
                 ' WHERE stage_id = :stage_id'
                 ' AND material_source_id = :mss_id'
-            , dict(
-                stage_id=self.db_stage.stage_id,
-                mss_id=m[0],  # NB: For stats purposes, we consider all permutations equal
-            )).fetchone()
+                '',
+                dict(
+                    stage_id=self.db_stage.stage_id,
+                    mss_id=m[0],  # NB: For stats purposes, we consider all permutations equal
+                )
+            ).fetchone()
             out.append(dict(
                 uri=self.to_public_id(m[0], m[1]),
                 chosen=rs[0] if rs else 0,
