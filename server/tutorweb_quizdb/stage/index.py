@@ -1,10 +1,12 @@
 import os
+import time
 import urllib.parse
 
 from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.material.render import material_render
 from tutorweb_quizdb.student import get_current_student
 from .allocation import get_allocation
+from .answer_queue import sync_answer_queue
 from .setting import getStudentSettings, clientside_settings
 
 
@@ -35,8 +37,14 @@ def stage_index(request):
     # Parse incoming JSON body
     incoming = request.json_body if request.body else {}
 
+    # Work out how far off client clock is to ours, to nearest 10s (we're interested in clock-setting issues, request-timing)
+    time_offset = round(time.time() - incoming.get('current_time'), -2)
+
     # Get material IDs that the client thinks are allocated
     requested_material = (alloc.from_public_id(x['uri']) for x in incoming.get('questions', []))
+
+    # Sync answer queue
+    answer_queue = sync_answer_queue(alloc, incoming.get('answerQueue', []), time_offset)
 
     return dict(
         uri='/api/stage?%s' % urllib.parse.urlencode(dict(
@@ -48,7 +56,8 @@ def stage_index(request):
         settings=clientside_settings(settings),
         material_tags=db_stage.material_tags,
         questions=alloc.get_stats(requested_material),
-        answerQueue=[],
+        answerQueue=answer_queue,
+        time_offset=time_offset,
     )
 
 

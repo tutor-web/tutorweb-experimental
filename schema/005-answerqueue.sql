@@ -3,25 +3,35 @@ BEGIN;
 
 -- Answers
 CREATE TABLE IF NOT EXISTS answer (
-    answerId                 UUID PRIMARY KEY,
+    answer_id                SERIAL PRIMARY KEY,
 
     stage_id                 INTEGER NOT NULL,
     FOREIGN KEY (stage_id) REFERENCES stage(stage_id),
-    hostDomain               TEXT,
+    host_domain               TEXT,
     user_id                  INTEGER,
-    FOREIGN KEY (hostDomain, user_id) REFERENCES "user"(hostDomain, user_id),
+    FOREIGN KEY (host_domain, user_id) REFERENCES "user"(hostDomain, user_id),
 
     material_source_id       INTEGER,
     permutation              INTEGER,
-    timeStart                TIMESTAMP WITH TIME ZONE,
-    timeEnd                  TIMESTAMP WITH TIME ZONE,
+    client_id                TEXT NOT NULL,
+    time_start               TIMESTAMP WITHOUT TIME ZONE,  -- NB: Always UTC
+    time_end                 TIMESTAMP WITHOUT TIME ZONE,  -- NB: Always UTC
+    time_offset              INTEGER NOT NULL DEFAULT 0,
 
     correct                  BOOLEAN NULL,
     grade                    NUMERIC(4, 3) NOT NULL,
-    coinsAwarded             INTEGER NOT NULL DEFAULT 0,
+    coins_awarded            INTEGER NOT NULL DEFAULT 0,
 
-    detail                   JSONB
+    student_answer           JSONB,
+    review                   JSONB
 );
+COMMENT ON TABLE  answer IS 'Raw answer objects synced from client';
+COMMENT ON COLUMN answer.time_start IS 'When the student started answering, in UTC';
+COMMENT ON COLUMN answer.time_end IS 'When the student finished answering, in UTC';
+COMMENT ON COLUMN answer.time_offset IS 'Difference between server and client UTC time, to nearest 10s';
+COMMENT ON COLUMN answer.coins_awarded IS 'SMLY awarded for this question, in milli-SMLY';
+COMMENT ON COLUMN answer.student_answer IS 'The student_answer object, i.e. the raw form selections';
+COMMENT ON COLUMN answer.review IS 'The students review of the material, if they did one';
 
 
 CREATE OR REPLACE VIEW answer_stats AS
