@@ -475,7 +475,7 @@ module.exports.test_syncLecture = function (test) {
     // Finish the AJAX call
     }).then(function (args) {
         aa.setResponse('POST ut:lecture0 1', {
-            "answerQueue": [ {"camel" : 3, "answer_time": 5, "lec_answered": 8, "lec_correct": 3, "synced" : true} ],
+            "answerQueue": [ {"camel" : 3, "time_end": 5, "lec_answered": 8, "lec_correct": 3, "synced" : true} ],
             "questions": [
                 {"uri": "ut:question0", "chosen": 20, "correct": 100},
                 {"uri": "ut:question2", "chosen": 40, "correct": 100},
@@ -514,7 +514,7 @@ module.exports.test_syncLecture = function (test) {
         var lec = JSON.parse(ls.getItem('ut:lecture0'));
         test.equal(lec.answerQueue.length, 2);
         test.deepEqual(lec.answerQueue[0], {
-            "answer_time": 5,
+            "time_end": 5,
             "camel" : 3,
             "lec_answered": 8,
             "lec_correct": 3,
@@ -611,11 +611,11 @@ module.exports.test_syncLecture = function (test) {
         return aa.waitForQueue(['POST ut:lecture0 5']).then(function (args) {
             aa.setResponse('POST ut:lecture0 5', {
                 "answerQueue": [
-                    {"correct": true,  "practice": false, "synced" : true, "answer_time": 1 },
-                    {"correct": true,  "practice": false, "synced" : true, "answer_time": 2 },
-                    {"correct": false, "practice": true,  "synced" : true, "answer_time": 3 },
-                    {"correct": true,  "practice": true,  "synced" : true, "answer_time": 4 },
-                    {"correct": true,  "practice": false, "synced" : true, "answer_time": 5 },
+                    {"correct": true,  "practice": false, "synced" : true, "time_end": 1 },
+                    {"correct": true,  "practice": false, "synced" : true, "time_end": 2 },
+                    {"correct": false, "practice": true,  "synced" : true, "time_end": 3 },
+                    {"correct": true,  "practice": true,  "synced" : true, "time_end": 4 },
+                    {"correct": true,  "practice": false, "synced" : true, "time_end": 5 },
                 ],
                 "questions": [
                     {"uri": "ut:question0", "chosen": 20, "correct": 100},
@@ -724,7 +724,7 @@ module.exports.test_setQuestionAnswer = function (test) {
     }).then(function (args) {
         var lec = JSON.parse(ls.getItem('ut:lecture0'));
         test.equal(lec.answerQueue.length, 1);
-        test.ok(lec.answerQueue[0].answer_time > startTime);
+        test.ok(lec.answerQueue[0].time_end > startTime);
         test.equal(typeof lec.answerQueue[0].student_answer, "object");
         test.equal(lec.answerQueue[0].student_answer, null);
         test.equal(typeof lec.answerQueue[0].selected_answer, "object");
@@ -894,7 +894,7 @@ module.exports.test_setQuestionAnswer = function (test) {
     }).then(function (args) {
         test.equal(args.answerData.explanation, "It'd be boring otherwise")
         test.ok(!args.a.hasOwnProperty("correct"));
-        test.ok(!args.a.hasOwnProperty("answer_time"));
+        test.ok(!args.a.hasOwnProperty("time_end"));
         test.deepEqual(args.a.student_answer, { choice: 0 });
 
         // Could have only ordered the questions 2 ways
@@ -915,7 +915,7 @@ module.exports.test_setQuestionAnswer = function (test) {
         ]));
     }).then(function (args) {
         test.ok(!args.a.hasOwnProperty("correct")); // NB: Never have correct
-        test.ok(args.a.hasOwnProperty("answer_time"));
+        test.ok(args.a.hasOwnProperty("time_end"));
         test.deepEqual(args.a.student_answer, { choice: 0, comments: "" });
 
     // Start again, fill in everything
@@ -929,7 +929,7 @@ module.exports.test_setQuestionAnswer = function (test) {
         ]));
     }).then(function (args) {
         test.ok(!args.a.hasOwnProperty("correct")); // NB: Never have correct
-        test.ok(args.a.hasOwnProperty("answer_time"));
+        test.ok(args.a.hasOwnProperty("time_end"));
         test.deepEqual(args.a.student_answer, { choice: 1, comments: "Boo!", rating: 50 });
 
     }).then(function (args) {
@@ -1496,7 +1496,7 @@ module.exports.test_getNewQuestion = function (test) {
             a.ordering.slice(0).sort(0),  // NB: Slice first to avoid modifying entry
             fixedOrdering
         );
-        test.ok(a.quiz_time > startTime);
+        test.ok(a.time_start > startTime);
         test.equal(a.allotted_time, 582);
         test.equal(a.allotted_time, a.remaining_time);
 
@@ -1535,7 +1535,7 @@ module.exports.test_getNewQuestion = function (test) {
         test.equal(JSON.parse(ls.getItem('ut:lecture0')).answerQueue.length, 2);
 
         // Time has advanced
-        test.equal(assignedQns[assignedQns.length - 1].quiz_time, a.quiz_time - 3);
+        test.equal(assignedQns[assignedQns.length - 1].time_start, a.time_start - 3);
 
         // Counts have gone up
         test.equal(a.lec_answered, 1);
@@ -2094,7 +2094,7 @@ module.exports.test_syncSubscriptions_upgrade = function (test) {
     ls.setItem('ut:tutorial0', JSON.stringify({ title: "My first tutorial", lectures: [
         {
             "answerQueue": [{
-                "answer_time": 5,
+                "time_end": 5,
                 "camel" : 3,
                 "lec_answered": 8,
                 "lec_correct": 3,
@@ -2162,7 +2162,7 @@ module.exports.test_syncSubscriptions_upgrade = function (test) {
         }).then(function () {
             aa.setResponse("POST ut:t0lecture0 1", {
                 "answerQueue": [{
-                    "answer_time": 5,
+                    "time_end": 5,
                     "camel" : 3,
                     "lec_answered": 8,
                     "lec_correct": 3,

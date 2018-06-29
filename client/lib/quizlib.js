@@ -219,7 +219,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
             return {
                 a: lastAns,
-                continuing: (lastAns && !lastAns.answer_time ? lastAns.practice ? 'practice' : 'real' : false),
+                continuing: (lastAns && !lastAns.time_end ? lastAns.practice ? 'practice' : 'real' : false),
                 lecUri: lecture.uri,
                 lecTitle: lecture.title,
                 material_tags: lecture.material_tags,
@@ -252,7 +252,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             return tryRepeatedly(function () {
                 var a, lastAns = arrayLast(curLecture.answerQueue);
 
-                if (lastAns && !lastAns.answer_time) {
+                if (lastAns && !lastAns.time_end) {
                     // Last question wasn't answered, carry on answering
                     a = lastAns;
                     return self._getQuestionData(a.uri).then(function (qn) {
@@ -282,11 +282,11 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 a.uri = qn.uri; // The fetch question data might be slightly different
                 a.question_type = qn._type; // NB: The alloc has allocType as _type, question type is different.
 
-                a.quiz_time = a.quiz_time || curTime();
+                a.time_start = a.time_start || curTime();
                 a.synced = false;
                 a.remaining_time = a.allotted_time;
-                if (a.allotted_time && a.quiz_time) {
-                    a.remaining_time -= curTime() - a.quiz_time;
+                if (a.allotted_time && a.time_start) {
+                    a.remaining_time -= curTime() - a.time_start;
                 }
 
                 return {qn: qn, a: a};
@@ -332,7 +332,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             var a = arrayLast(curLecture.answerQueue);
 
             // Fetch question off answer queue, add answer
-            a.answer_time = curTime();
+            a.time_end = curTime();
             a.student_answer = formData;
             a.synced = false;
 
@@ -371,7 +371,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 // Check how long a student should have spent on this question, delay the explanation by the difference
                 a.explanation_delay = iaalib.questionStudyTime(curLecture.settings, curLecture.answerQueue);
                 if (a.explanation_delay > 0) {
-                    a.explanation_delay = Math.max(a.explanation_delay - curTime() + a.quiz_time, 0);
+                    a.explanation_delay = Math.max(a.explanation_delay - curTime() + a.time_start, 0);
                 }
 
                 // Set appropriate grade
@@ -470,7 +470,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
         function syncingLength(aq) {
             var l = aq.length;
-            while (l > 0 && !aq[l - 1].answer_time) {
+            while (l > 0 && !aq[l - 1].time_end) {
                 l -= 1;
             }
             return l;
@@ -479,9 +479,9 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         // Queue: server-returned Q + unanswered questions from preQ
         return [].concat(serverQ, currentQ.splice(syncingLength(preQ))).map(function (a) {
             // Update running totals
-            a.lec_answered = runningTotal(a, 'lec_answered', a.answer_time ? 1 : 0);
+            a.lec_answered = runningTotal(a, 'lec_answered', a.time_end ? 1 : 0);
             a.lec_correct  = runningTotal(a, 'lec_correct',  a.correct ? 1 : 0);
-            a.practice_answered = runningTotal(a, 'practice_answered', a.practice && a.answer_time ? 1 : 0);
+            a.practice_answered = runningTotal(a, 'practice_answered', a.practice && a.time_end ? 1 : 0);
             a.practice_correct  = runningTotal(a, 'practice_correct',  a.practice && a.correct ? 1 : 0);
             return a;
         });
@@ -695,7 +695,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
         out.lastEight = [];
         for (i = lecture.answerQueue.length - 1; i >= 0 && out.lastEight.length < 8; i--) {
-            if (lecture.answerQueue[i].answer_time && !lecture.answerQueue[i].practice) {
+            if (lecture.answerQueue[i].time_end && !lecture.answerQueue[i].practice) {
                 out.lastEight.push(lecture.answerQueue[i]);
             }
         }

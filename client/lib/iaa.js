@@ -158,7 +158,7 @@ module.exports = function IAA() {
         // Annotate the last question with your grade at this point
         last = answerQueue[answerQueue.length - 1];
         last.grade_next_right = grade(aq.concat({"correct" : true}));
-        if (last.answer_time) {
+        if (last.time_end) {
             last.grade_after = grade(aq);
         } else {
             last.grade_before = grade(aq);

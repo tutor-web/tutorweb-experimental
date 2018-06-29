@@ -42,7 +42,7 @@ function calculate(calcType) {
         alpha = document.getElementById('alpha').value,
         s = document.getElementById('s').value,
         answerQueue = document.getElementById('answers').value.split("").map(function (x) {
-            return {"correct": parseInt(x, 10) > 0, "answer_time": 1234};
+            return {"correct": parseInt(x, 10) > 0, "time_end": 1234};
         });
     console.log("alpha", alpha);
     console.log("s", s);

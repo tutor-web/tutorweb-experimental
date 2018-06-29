@@ -142,7 +142,7 @@ function QuizView($) {
         jqList.empty().append((summary.lastEight || []).map(function (a) {
             var t = new Date(0),
                 title = '';
-            t.setUTCSeconds(a.answer_time);
+            t.setUTCSeconds(a.time_end);
 
             if (a.selected_answer) {
                 title += 'You chose ' + String.fromCharCode(97 + a.selected_answer) + '\n';

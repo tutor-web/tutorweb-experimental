@@ -54,7 +54,7 @@ module.exports.testItemAllocation = function (test) {
     function aq(correctAnswers) {
         var i, answerQueue = [];
         for (i = 0; i < Math.abs(correctAnswers); i++) {
-            answerQueue.push({"correct": (correctAnswers > 0), "answer_time": 1234});
+            answerQueue.push({"correct": (correctAnswers > 0), "time_end": 1234});
         }
         return answerQueue
     }
@@ -739,37 +739,37 @@ module.exports.testGrading = function (test) {
     // grade_next_right should be consistent with what comes after
     [
         [
-            {"correct": false, "practice": false, "answer_time": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
         ], [
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
         ], [
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
         ], [
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
         ], longGrade
     ].map(function (answerQueue) {
         test.equal(
             grade(answerQueue).grade_next_right,
             grade(answerQueue.concat([
-                {"correct": true, "practice": false, "answer_time": 1234},
+                {"correct": true, "practice": false, "time_end": 1234},
             ])).grade_after);
     });
 
     // Unanswered questions should be ignored
-    test.ok(!grade([{"correct": false, "practice": false, "answer_time": 1234}, {"grade_before": 0}].hasOwnProperty('grade_after')));
-    test.ok(!grade([{"correct": false, "practice": false, "answer_time": 1234}, {}].hasOwnProperty('grade_next_right')));
+    test.ok(!grade([{"correct": false, "practice": false, "time_end": 1234}, {"grade_before": 0}].hasOwnProperty('grade_after')));
+    test.ok(!grade([{"correct": false, "practice": false, "time_end": 1234}, {}].hasOwnProperty('grade_next_right')));
 
     // No answers returns nothing
     (function () {
@@ -780,89 +780,89 @@ module.exports.testGrading = function (test) {
 
     // One incorrect answer should be 0
     test.equal(grade([
-        {"correct": false, "answer_time": 1234},
+        {"correct": false, "time_end": 1234},
     ]).grade_after, 0);
 
     // One or two correct answers give us a higher score, but not the maximum
-    test.ok(grade([{"correct": true, "answer_time": 1234}]).grade_after > 0);
-    test.ok(grade([{"correct": true, "answer_time": 1234}]).grade_after < 10);
-    test.ok(grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}]).grade_after > 0);
-    test.ok(grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}]).grade_after < 10);
+    test.ok(grade([{"correct": true, "time_end": 1234}]).grade_after > 0);
+    test.ok(grade([{"correct": true, "time_end": 1234}]).grade_after < 10);
+    test.ok(grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}]).grade_after > 0);
+    test.ok(grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}]).grade_after < 10);
 
     // Grade shouldn't fall below 0
     test.equal(grade([
-        {"correct": false, "practice": false, "answer_time": 1234},
-        {"correct": false, "practice": false, "answer_time": 1234},
-        {"correct": false, "practice": false, "answer_time": 1234},
-        {"correct": false, "practice": false, "answer_time": 1234},
-        {"correct": false, "practice": false, "answer_time": 1234},
-        {"correct": false, "practice": false, "answer_time": 1234},
-        {"correct": false, "practice": false, "answer_time": 1234},
-        {"correct": false, "practice": false, "answer_time": 1234},
+        {"correct": false, "practice": false, "time_end": 1234},
+        {"correct": false, "practice": false, "time_end": 1234},
+        {"correct": false, "practice": false, "time_end": 1234},
+        {"correct": false, "practice": false, "time_end": 1234},
+        {"correct": false, "practice": false, "time_end": 1234},
+        {"correct": false, "practice": false, "time_end": 1234},
+        {"correct": false, "practice": false, "time_end": 1234},
+        {"correct": false, "practice": false, "time_end": 1234},
     ]).grade_after, 0);
 
     // Unanswered question gets "grade_before" instead
     test.deepEqual(grade([
-        {"correct": true, "practice": false, "answer_time": 1234},
-        {"correct": true, "practice": false, "answer_time": 1234},
+        {"correct": true, "practice": false, "time_end": 1234},
+        {"correct": true, "practice": false, "time_end": 1234},
         {"practice": false},
     ]), {
         "practice": false,
-        "grade_before": grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}]).grade_after,
-        "grade_next_right": grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}]).grade_after,
+        "grade_before": grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}]).grade_after,
+        "grade_next_right": grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}]).grade_after,
     });
 
     
     
     // By default, alpha is 0.3 (which should be your grade with one correct answer)
     test.equal(
-        grade([{"correct": true, "answer_time": 1234}], {}).grade_after,
+        grade([{"correct": true, "time_end": 1234}], {}).grade_after,
         Math.max(Math.round(iaalib.gradeWeighting(1, 0.125, 2, 8, 30)[0] * 40) / 4, 0));
     test.equal(
-        grade([{"correct": true, "answer_time": 1234}], {}).grade_after,
-        grade([{"correct": true, "answer_time": 1234}], {"grade_alpha" : 0.125}).grade_after);
+        grade([{"correct": true, "time_end": 1234}], {}).grade_after,
+        grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.125}).grade_after);
     test.notEqual(
-        grade([{"correct": true, "answer_time": 1234}], {}).grade_after,
-        grade([{"correct": true, "answer_time": 1234}], {"grade_alpha" : 0.5}).grade_after);
+        grade([{"correct": true, "time_end": 1234}], {}).grade_after,
+        grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.5}).grade_after);
     test.equal(
-        grade([{"correct": true, "answer_time": 1234}], {"grade_alpha" : 0.5}).grade_after,
+        grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.5}).grade_after,
         Math.max(Math.round(iaalib.gradeWeighting(1, 0.5, 2, 8, 30)[0] * 40) / 4, 0));
     test.equal(
-        grade([{"correct": true, "answer_time": 1234}], {"grade_alpha" : 0.2}).grade_after,
+        grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.2}).grade_after,
         Math.max(Math.round(iaalib.gradeWeighting(1, 0.2, 2, 8, 30)[0] * 40) / 4, 0));
 
     // By default, s is 2
     test.equal(
-        grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}], {"grade_alpha" : 0.3}).grade_after,
-        grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}], {"grade_alpha" : 0.3, "grade_s" : 2}).grade_after);
+        grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3}).grade_after,
+        grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3, "grade_s" : 2}).grade_after);
     test.notEqual(
-        grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}], {"grade_alpha" : 0.3, "grade_s" : 2}).grade_after,
-        grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}], {"grade_alpha" : 0.3, "grade_s" : 5}).grade_after);
+        grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3, "grade_s" : 2}).grade_after,
+        grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3, "grade_s" : 5}).grade_after);
 
     // Grade generally goes up.
     (function () {
         var i,
             curGrade = 0,
             answers = [
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": false, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
-                {"correct": true, "answer_time": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": false, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
+                {"correct": true, "time_end": 1234},
             ];
         answers.map(function (a, i) {
             var aq = answers.slice(0, i + 1);
@@ -894,98 +894,98 @@ module.exports.testGradingPracticeMode = function (test) {
 
     // All practice mode should leave you with a grade of 0
     test.equal(grade([
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": false, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": false, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": false, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": false, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
         ]).grade_after, 0);
 
     // Practice mode shouldn't affect score
     test.equal(
         grade([
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
         ]).grade_after,
         grade([
-            {"correct": false, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
         ]).grade_after);
 
     test.equal(
         grade([
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": false, "practice": false, "answer_time": 1234},
-            {"correct": false, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
-            {"correct": true, "practice": true, "answer_time": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
+            {"correct": false, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
+            {"correct": true, "practice": true, "time_end": 1234},
         ]).grade_after,
         grade([
-            {"correct": false, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
+            {"correct": false, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
         ]).grade_after);
 
     // If practice question is latest, just rabbit same grade again.
-    test.ok(grade([{"correct": true, "answer_time": 1234}]).grade_after > 0);
+    test.ok(grade([{"correct": true, "time_end": 1234}]).grade_after > 0);
     test.deepEqual(grade([
-        {"correct": true, "practice": false, "answer_time": 1234},
+        {"correct": true, "practice": false, "time_end": 1234},
         {"practice": true},
     ]), {
         "practice": true,
-        "grade_before": grade([{"correct": true, "answer_time": 1234}]).grade_after,
-        "grade_next_right": grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}]).grade_after,
+        "grade_before": grade([{"correct": true, "time_end": 1234}]).grade_after,
+        "grade_next_right": grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}]).grade_after,
     });
     test.deepEqual(grade([
-        {"correct": true, "practice": false, "answer_time": 1234},
-        {"correct": true, "practice": true, "answer_time": 1234},
+        {"correct": true, "practice": false, "time_end": 1234},
+        {"correct": true, "practice": true, "time_end": 1234},
     ]), {
         "correct": true,
         "practice": true,
-        "answer_time": 1234,
-        "grade_after": grade([{"correct": true, "answer_time": 1234}]).grade_after,
-        "grade_next_right": grade([{"correct": true, "answer_time": 1234}, {"correct": true, "answer_time": 1234}]).grade_after,
+        "time_end": 1234,
+        "grade_after": grade([{"correct": true, "time_end": 1234}]).grade_after,
+        "grade_next_right": grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}]).grade_after,
     });
 
     // missing correct shouldn't have any affect on grade either
     test.equal(
         grade([
-            {"correct": null, "answer_time": 1234},
-            {"correct": null, "answer_time": 1234},
-            {"correct": null, "answer_time": 1234},
-            {"correct": null, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": null, "answer_time": 1234},
-            {"correct": null, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
+            {"correct": null, "time_end": 1234},
+            {"correct": null, "time_end": 1234},
+            {"correct": null, "time_end": 1234},
+            {"correct": null, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": null, "time_end": 1234},
+            {"correct": null, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
         ]).grade_after,
         grade([
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
         ]).grade_after);
     test.equal(
         grade([
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": null, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": null, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
             {"correct": null},
             {},
         ]).grade_before,
         grade([
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
-            {"correct": true, "practice": false, "answer_time": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
+            {"correct": true, "practice": false, "time_end": 1234},
         ]).grade_after);
 
     test.done();
