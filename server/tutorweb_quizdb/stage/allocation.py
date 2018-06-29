@@ -11,6 +11,8 @@ def get_allocation(settings, *args, **kwargs):
     name = settings.get('allocation_method', 'original')
     if name == 'original':
         return OriginalAllocation(settings, *args, **kwargs)
+    elif name == 'passthrough':
+        return PassThroughAllocation(settings, *args, **kwargs)
     elif name == 'exam':
         return ExamAllocation(settings, *args, **kwargs)
     else:
@@ -117,6 +119,67 @@ class OriginalAllocation(BaseAllocation):
             local_random = random.Random()
             local_random.seed(self.seed)
             material = local_random.sample(material, self.question_cap)
+        return material
+
+
+class PassThroughAllocation(BaseAllocation):
+    """
+    Public IDs are '(question_path):(permutation)', return all questions.
+    To make things obvious when unit testing.
+
+    Also set allocation_bank_name to the material bank in question
+    """
+    def __init__(self, settings, db_stage, db_student):
+        super(PassThroughAllocation, self).__init__(settings, db_stage, db_student)
+        self.bank = settings['allocation_bank_name']
+
+    def to_public_id(self, mss_id, permutation):
+        """
+        Turn (mss_id, permutation) into a public question ID
+        """
+        (mss_path,) = DBSession.execute(
+            'SELECT path'
+            ' FROM material_source'
+            ' WHERE material_source_id = :mss_id'
+            '   AND next_revision IS NULL',
+            dict(
+                mss_id=mss_id,
+            )
+        ).fetchone()
+
+        return '%s:%d' % (mss_path, permutation)
+
+    def from_public_id(self, public_id):
+        """
+        Turn the public ID back into a (mss_id, permutation) tuple
+        """
+        (mss_path, permutation) = public_id.split(":", 1)
+        (mss_id,) = DBSession.execute(
+            'SELECT material_source_id'
+            ' FROM material_source'
+            ' WHERE bank = :bank'
+            '   AND path = :path'
+            '   AND next_revision IS NULL',
+            dict(
+                bank=self.bank,
+                path=mss_path,
+            )
+        ).fetchone()
+        return (mss_id, int(permutation),)
+
+    def get_material(self, ids=None, stats=False):
+        """
+        Fetch all potential questions, no filter.
+        """
+        material = DBSession.execute(
+            'SELECT material_source_id, permutation'
+            ' FROM stage_material'
+            ' WHERE stage_id = :stage_id'
+            ' ORDER BY stage_id',
+            dict(
+                stage_id=self.db_stage.stage_id
+            )
+        ).fetchall()
         return material
 
 
