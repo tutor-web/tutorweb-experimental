@@ -134,6 +134,19 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         });
     };
 
+    /** Get a random client ID */
+    this._getClientId = function () {
+        var client_id = this.ls.getItem('client_id');
+
+        console.log(this.ls.getItem('client_id'));
+        if (!client_id) {
+            client_id = Math.random().toString(36).slice(2);
+            this.ls.setItem('client_id', client_id);
+        }
+
+        return client_id;
+    };
+
     /** Get the subscriptions table */
     this._getSubscriptions = function (missingOkay) {
         var self = this,
@@ -271,6 +284,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 a.lec_correct = lastAns && lastAns.lec_correct ? lastAns.lec_correct : 0;
                 a.practice_answered = lastAns && lastAns.practice_answered ? lastAns.practice_answered : 0;
                 a.practice_correct = lastAns && lastAns.practice_correct ? lastAns.practice_correct : 0;
+                a.client_id = self._getClientId();
                 return self._getQuestionData(a.uri).then(function (qn) {
                     // Store new allocation in answerQueue
                     curLecture.answerQueue.push(a);
@@ -404,6 +418,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             return self._getSubscriptions(false);
         }).then(function (subscriptions) {
             lsContent._subscriptions++;
+            lsContent.client_id++;
 
             // Extract lecture URIs
             return Promise.all(lectureUrisFromSubscription(subscriptions).map(function (uri) {
@@ -600,6 +615,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             }
             progressFn(0, opTotal, "Fetching lecture...");
 
+            preSyncLecture.current_time = curTime();
             return self.ajaxApi.postJson(preSyncLecture.uri, preSyncLecture, { timeout: 60 * 1000 }).then(function (newLecture) {
                 // Check it's for the same user
                 if (preSyncLecture.user && preSyncLecture.user !== newLecture.user) {
