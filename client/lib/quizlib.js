@@ -23,9 +23,9 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         return 0 < a.length ? a[a.length - 1] : null;
     }
 
-    // Return current time, in seconds
+    // Return current UTC time, in seconds
     function curTime() {
-        return Math.round((new Date()).getTime() / 1000);
+        return Math.floor((new Date()).getTime() / 1000);
     }
 
     // Turn subscription structure into flat list of URIs
