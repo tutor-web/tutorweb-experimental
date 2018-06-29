@@ -7,12 +7,9 @@ from .requires_materialbank import RequiresMaterialBank
 
 class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPostgresql, unittest.TestCase):
     def call_view(self):
-        from tutorweb_quizdb.material.update import view_material_update
         from tutorweb_quizdb import DBSession, Base
 
-        request = self.request(settings={'tutorweb.material_bank.default': self.material_bank.name})
-        out = view_material_update(request)
-        self.assertEqual(out, None)
+        self.assertEqual(self.mb_update(), None)
 
         out = {}
         for ms in DBSession.query(Base.classes.material_source):

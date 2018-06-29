@@ -39,3 +39,15 @@ class RequiresMaterialBank():
         if commit:
             self.git('add', file_path)
             self.git('commit', '-m', file_path)
+
+    def mb_update(self):
+        """
+        Update the material bank, requires RequiresPyramid to be mixed in too
+        """
+        from tutorweb_quizdb.material.update import view_material_update
+
+        if not hasattr(self, 'request'):
+            raise ValueError("request not defined, RequiresPyramid probably missing")
+
+        request = self.request(settings={'tutorweb.material_bank.default': self.material_bank.name})
+        return view_material_update(request)
