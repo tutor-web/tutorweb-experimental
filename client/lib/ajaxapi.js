@@ -64,8 +64,8 @@ module.exports = function AjaxApi(jqAjax) {
             }).fail(function (jqXHR, textStatus, errorThrown) {
                 if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
                     // Response was JSON, so use what's inside
-                    errorThrown = jqXHR.responseJSON.error;
-                    textStatus = jqXHR.responseJSON.message;
+                    errorThrown = jqXHR.responseJSON.error.message;
+                    textStatus = jqXHR.responseJSON.error.stack;
                 }
 
                 if (errorThrown === 'Redirect') {
