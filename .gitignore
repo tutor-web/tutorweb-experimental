@@ -2,6 +2,7 @@
 /client/coverage
 /client/doc
 /client/node_modules/
+/client/www/htmlcov
 /client/www/css/*.min.css
 /client/www/css/*.png
 /client/www/js/*
@@ -20,6 +21,8 @@
 /server/src
 /server/.cache
 /server/.pytest_cache
+/server/.coverage
+/server/htmlcov/
 
 /.local-conf
 
