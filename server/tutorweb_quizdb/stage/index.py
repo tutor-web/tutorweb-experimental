@@ -89,7 +89,7 @@ def stage_material(request):
 
 def stage_review(request):
     """
-    Get all review material for this stage
+    Get the reviews for all questions you have written
     """
     # TODO:
     return []
