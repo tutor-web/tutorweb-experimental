@@ -83,15 +83,17 @@ def path_to_materialsource(material_bank, path, prev_revision):
             TAGS='deleted',
         )
         revision = "(deleted)"
+    file_metadata['TAGS'] = list(parse_list(file_metadata.get('TAGS', '')))
+    file_metadata['PERMUTATIONS'] = int(file_metadata.get('PERMUTATIONS', 1))
 
     # Add to tags based on file-name
-    file_metadata['TAGS'] += ',' + ','.join(path_tags(path))
+    file_metadata['TAGS'].extend(path_tags(path))
 
     return dict(
         bank=material_bank,
         path=os.path.normpath(path),
         revision=revision,
-        permutation_count=int(file_metadata.get('PERMUTATIONS', 1)),
-        material_tags=list(parse_list(file_metadata.get('TAGS', ''))),
+        permutation_count=file_metadata['PERMUTATIONS'],
+        material_tags=file_metadata['TAGS'],
         dataframe_paths=list(parse_list(file_metadata.get('DATAFRAMES', ''))),  # TODO: Should path be relative?
     )
