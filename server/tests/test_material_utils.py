@@ -105,3 +105,26 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
             material_tags=['math099', 'Q-0990t0', 'lec050500', 'type.example'],
             dataframe_paths=['agelength'],
         ))
+
+    def test_templateqns(self):
+        """As a special case, we limit the permutations for template questions"""
+        self.mb_write_file('example.t.R', b'''
+# TW:TAGS=math099,Q-0990t0,lec050500,
+# TW:PERMUTATIONS=2
+        ''')
+        out = path_to_materialsource(self.material_bank.name, 'example.t.R', '')
+        self.assertEqual(out, dict(
+            bank=self.material_bank.name,
+            dataframe_paths=[],
+            material_tags=['math099', 'Q-0990t0', 'lec050500', 'type.template'],
+            path='example.t.R',
+            permutation_count=2,
+            revision='(untracked)+1'
+        ))
+
+        self.mb_write_file('example.t.R', b'''
+# TW:TAGS=math099,Q-0990t0,lec050500,
+# TW:PERMUTATIONS=12
+        ''')
+        with self.assertRaisesRegexp(ValueError, "10 permutations"):
+            out = path_to_materialsource(self.material_bank.name, 'example.t.R', '')

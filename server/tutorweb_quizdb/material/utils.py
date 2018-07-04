@@ -5,6 +5,9 @@ import re
 import git
 
 
+MAX_TEMPLATE_PERMUTATIONS = 10  # After this we consider them ugmaterial
+
+
 def path_tags(path):
     """
     Return tags based on the file (path), read what type it is
@@ -88,6 +91,11 @@ def path_to_materialsource(material_bank, path, prev_revision):
 
     # Add to tags based on file-name
     file_metadata['TAGS'].extend(path_tags(path))
+
+    # Check that templates don't have more than MAX_TEMPLATE_PERMUTATIONS: The rest are for student answers
+    if 'type.template' in file_metadata['TAGS']:
+        if file_metadata['PERMUTATIONS'] > MAX_TEMPLATE_PERMUTATIONS:
+            raise ValueError("Material templates can only have up to %d permutations" % MAX_TEMPLATE_PERMUTATIONS)
 
     return dict(
         bank=material_bank,
