@@ -1,3 +1,4 @@
+import random
 import unittest
 
 from .requires_postgresql import RequiresPostgresql
@@ -27,13 +28,16 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         self.DBSession = DBSession
 
         # Add stage
+        tut_path = '/tut-%d' % random.randint(1000000, 9999999)
+        lec_name = 'lec-%d' % random.randint(1000000, 9999999)
+        stage_id = 'stage-%d' % random.randint(1000000, 9999999)
         DBSession.add(Base.classes.host(hostdomain=models.ACTIVE_HOST_DOMAIN, hostkey='key'))
-        DBSession.add(Base.classes.tutorial(hostdomain=models.ACTIVE_HOST_DOMAIN, path='/tut0'))
-        DBSession.add(Base.classes.lecture(hostdomain=models.ACTIVE_HOST_DOMAIN, path='/tut0', lecture_name='lec0'))
+        DBSession.add(Base.classes.tutorial(hostdomain=models.ACTIVE_HOST_DOMAIN, path=tut_path))
+        DBSession.add(Base.classes.lecture(hostdomain=models.ACTIVE_HOST_DOMAIN, path=tut_path, lecture_name=lec_name))
         self.db_stage = Base.classes.stage(
-            hostdomain=models.ACTIVE_HOST_DOMAIN, path='/tut0', lecture_name='lec0',
-            stage_name='stage0', version=0,
-            title='UT stage',
+            hostdomain=models.ACTIVE_HOST_DOMAIN, path=tut_path, lecture_name=lec_name,
+            stage_name=stage_id, version=0,
+            title='UT %s' % stage_id,
             stage_setting_spec=dict(
                 allocation_method=dict(value='passthrough'),
                 allocation_bank_name=dict(value=self.material_bank.name),
