@@ -34,6 +34,15 @@ COMMENT ON COLUMN answer.student_answer IS 'The student_answer object, i.e. the 
 COMMENT ON COLUMN answer.review IS 'The students review of the material, if they did one';
 
 
+CREATE SEQUENCE IF NOT EXISTS ug_question_id
+    START WITH 10  -- i.e MAX_TEMPLATE_PERMUTATIONS
+    OWNED BY answer.permutation;
+COMMENT ON SEQUENCE ug_question_id IS ''
+    'IDs for user-generated questions, used as permutation values'
+    'Ideally would be one sequence per-template question ID, but this is fine too.'
+    'Start at 10 so 1..9 can be reserved for the template itself';
+
+
 CREATE OR REPLACE VIEW answer_stats AS
     SELECT a.stage_id
          , a.material_source_id

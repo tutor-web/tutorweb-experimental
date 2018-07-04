@@ -1,5 +1,7 @@
 import logging
 
+from sqlalchemy import Sequence
+
 from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.timestamp import timestamp_to_datetime, datetime_to_timestamp
 
@@ -39,6 +41,11 @@ def incoming_to_db(alloc, in_a):
         # Log exception along with real error
         log.exception("Could not parse question ID %s" % in_a['uri'])
         raise ValueError("Could not parse question ID %s" % in_a['uri'])
+    ms = DBSession.query(Base.classes.material_source).filter_by(material_source_id=mss_id).one()
+
+    if 'type.template' in ms.material_tags and permutation < 10:
+        # It's newly-written material, rather than a review. Assign new permutation
+        permutation = DBSession.execute(Sequence("ug_question_id"))
 
     return Base.classes.answer(
         stage_id=alloc.db_stage.stage_id,
