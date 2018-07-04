@@ -27,6 +27,14 @@ def material_render(ms, permutation):
             permutation,
         ))
 
+    # Choose a renderer and render it
+    if ms.path.endswith('.R'):
+        return r_render(ms, permutation)
+    raise ValueError("Don't know how to render %s" % ms.path)
+
+
+def r_render(ms, permutation):
+    """Execute R script to generate content"""
     # TODO: Caching of question objects?
     robjects.r('''question <- function () stop("R question script did not define a question function")''')
     robjects.r('''setwd''')(os.path.dirname(os.path.join(ms.bank, ms.path)))
