@@ -4,6 +4,15 @@ import subprocess
 import tempfile
 
 
+class FakeMaterialSource():
+    """
+    Build a fake material source
+    """
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
 class RequiresMaterialBank():
     """
     Mixin to manage a temporary directory to treat as a material bank.
@@ -39,6 +48,16 @@ class RequiresMaterialBank():
         if commit:
             self.git('add', file_path)
             self.git('commit', '-m', file_path)
+
+    def mb_fake_ms(self, file_path):
+        """Generate a fake MaterialSource object for this file"""
+        from tutorweb_quizdb.material.utils import path_to_materialsource
+
+        return FakeMaterialSource(**path_to_materialsource(
+            self.material_bank.name,
+            file_path,
+            '0'  # Previous revision unknown
+        ))
 
     def mb_update(self):
         """

@@ -19,18 +19,24 @@ def material_render(ms, permutation):
     """
     Render a question
     """
-    # Is this permutation even a question?
     if ms.permutation_count < permutation:
+        # Otherwise, permutation should be in range
         raise ValueError("Question %s only has %d permutations, not %d" % (
             ms.path,
             ms.permutation_count,
             permutation,
         ))
+    elif ms.path.endswith('.R'):
+        out = r_render(ms, permutation)
+    else:
+        raise ValueError("Don't know how to render %s" % ms.path)
 
-    # Choose a renderer and render it
-    if ms.path.endswith('.R'):
-        return r_render(ms, permutation)
-    raise ValueError("Don't know how to render %s" % ms.path)
+    # Add common extra detail to material object
+    if 'tags' not in out:
+        # TODO: Something more sensible to do?
+        out['tags'] = ms.material_tags
+
+    return out
 
 
 def r_render(ms, permutation):
