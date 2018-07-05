@@ -14,6 +14,9 @@ def stage_get(host_domain, path):
     """
     Get the stage object, given a complete path
     """
+    if path.startswith('/api/stage'):
+        # Given a URL instead of a path, due to older client code. Unpack the path within
+        path = urllib.parse.parse_qs(urllib.parse.urlparse(path).query)['path'][0]
     path, stage_name = os.path.split(path)
     path, lecture_name = os.path.split(path)
     return (DBSession.query(Base.classes.stage)
@@ -71,7 +74,7 @@ def stage_material(request):
     alloc = get_allocation(settings, db_stage, db_student)
 
     if (request.params.get('id', None)):
-        requested_material = [alloc.from_public_id(request.params[id])]
+        requested_material = [alloc.from_public_id(request.params['id'])]
     else:
         requested_material = alloc.get_material()
 

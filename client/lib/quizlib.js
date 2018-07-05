@@ -322,7 +322,13 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 promise = Promise.resolve(qn);
             } else {
                 // Fetch via. HTTP
-                promise = self.ajaxApi.getJson(uri);
+                // NB: uri isn't really a URI any more, it's the question ID. Bodge.
+                promise = self.ajaxApi.getJson('/api/stage/material' +
+                                               '?path=' + encodeURIComponent(self.lecUri) +
+                                               '&id=' + encodeURIComponent(uri)).then(function (data) {
+                    // Dig out the rendered material
+                    return data.data[uri];
+                });
             }
         }
 
