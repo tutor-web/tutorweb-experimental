@@ -30,20 +30,20 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         # Add stage
         tut_path = '/tut-%d' % random.randint(1000000, 9999999)
         lec_name = 'lec-%d' % random.randint(1000000, 9999999)
-        stage_id = 'stage-%d' % random.randint(1000000, 9999999)
         DBSession.add(Base.classes.host(hostdomain=models.ACTIVE_HOST_DOMAIN, hostkey='key'))
         DBSession.add(Base.classes.tutorial(hostdomain=models.ACTIVE_HOST_DOMAIN, path=tut_path))
         DBSession.add(Base.classes.lecture(hostdomain=models.ACTIVE_HOST_DOMAIN, path=tut_path, lecture_name=lec_name))
-        self.db_stage = Base.classes.stage(
+        self.db_stages = [Base.classes.stage(
             hostdomain=models.ACTIVE_HOST_DOMAIN, path=tut_path, lecture_name=lec_name,
-            stage_name=stage_id, version=0,
-            title='UT %s' % stage_id,
+            stage_name='stage%d' % i, version=0,
+            title='UT stage %s' % i,
             stage_setting_spec=dict(
                 allocation_method=dict(value='passthrough'),
                 allocation_bank_name=dict(value=self.material_bank.name),
             )
-        )
-        DBSession.add(self.db_stage)
+        ) for i in [0, 1, 2]]
+        for i in [0, 1, 2]:
+            DBSession.add(self.db_stages[i])
         DBSession.flush()
         self.db_studs = [models.User(
             hostdomain=models.ACTIVE_HOST_DOMAIN,
@@ -75,11 +75,11 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
 
     def test_call(self):
         # Can sync empty answer queue with empty
-        out = sync_answer_queue(get_alloc(self.db_stage, self.db_studs[0]), [], 0)
+        out = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [], 0)
         self.assertEqual(out, [])
 
         # Add some items into the queue, get them back again. Entries without time_end are ignored
-        alloc = get_alloc(self.db_stage, self.db_studs[0])
+        alloc = get_alloc(self.db_stages[0], self.db_studs[0])
         out = sync_answer_queue(alloc, [
             dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
             dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
@@ -91,14 +91,14 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         ])
 
         # Questions with invalid URIs are complained about
-        alloc = get_alloc(self.db_stage, self.db_studs[0])
+        alloc = get_alloc(self.db_stages[0], self.db_studs[0])
         with self.assertRaisesRegex(ValueError, 'parpparpparp'):
             out = sync_answer_queue(alloc, [
                 dict(client_id='01', uri='parpparpparp', time_start=1000, time_end=1007, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
             ], 0)
 
         # Can only add reviews to existing items
-        alloc = get_alloc(self.db_stage, self.db_studs[0])
+        alloc = get_alloc(self.db_stages[0], self.db_studs[0])
         out = sync_answer_queue(alloc, [
             dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="ignored"), review=dict(hard="yes")),
         ], 0)
@@ -118,7 +118,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         ])
 
         # Can interleave new material, get back everything
-        alloc = get_alloc(self.db_stage, self.db_studs[0])
+        alloc = get_alloc(self.db_stages[0], self.db_studs[0])
         out = sync_answer_queue(alloc, [
             dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
             dict(client_id='01', uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
@@ -134,7 +134,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         ])
 
         # Templates should get their own sequence ID
-        alloc = get_alloc(self.db_stage, self.db_studs[1])
+        alloc = get_alloc(self.db_stages[0], self.db_studs[1])
         out = sync_answer_queue(alloc, [
             dict(client_id='01', uri='template1.t.R:1', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(text="2")),
             dict(client_id='01', uri='template1.t.R:1', time_start=1010, time_end=1020, correct=True, grade_after=0.1, student_answer=dict(text="3")),
@@ -150,4 +150,24 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None),
             dict(client_id='01', uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None),
             dict(client_id='01', uri='template1.t.R:12', time_start=1020, time_end=1030, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="4"), review=None),
+        ])
+
+        # We can still get student 0's work, after this diversion to student 1
+        alloc = get_alloc(self.db_stages[0], self.db_studs[0])
+        out = sync_answer_queue(alloc, [
+        ], 0)
+        self.assertEqual(out, [
+            dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None),
+            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
+            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None),
+            dict(client_id='01', uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None),
+            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None),
+            dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None),
+        ])
+
+        # ... and no work in second stage
+        alloc = get_alloc(self.db_stages[1], self.db_studs[0])
+        out = sync_answer_queue(alloc, [
+        ], 0)
+        self.assertEqual(out, [
         ])
