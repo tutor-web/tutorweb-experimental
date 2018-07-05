@@ -3,6 +3,7 @@ import os
 import rpy2.robjects as robjects
 
 from tutorweb_quizdb import DBSession, Base
+from .usergenerated import ug_render
 
 
 def rob_to_dict(a):
@@ -19,7 +20,10 @@ def material_render(ms, permutation):
     """
     Render a question
     """
-    if ms.permutation_count < permutation:
+    if 'type.template' in ms.material_tags and permutation > ms.permutation_count:
+        # For templates, permutations > ms.permutation_count are user-generated material
+        out = ug_render(ms, permutation)
+    elif ms.permutation_count < permutation:
         # Otherwise, permutation should be in range
         raise ValueError("Question %s only has %d permutations, not %d" % (
             ms.path,
