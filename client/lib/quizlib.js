@@ -138,7 +138,6 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
     this._getClientId = function () {
         var client_id = this.ls.getItem('client_id');
 
-        console.log(this.ls.getItem('client_id'));
         if (!client_id) {
             client_id = Math.random().toString(36).slice(2);
             this.ls.setItem('client_id', client_id);
