@@ -3,6 +3,10 @@
 /*global Promise */
 var h = require('hyperscript');
 
+/**
+  * - orig_data: Recursive list with items of the form {children: [..inner items..], ..current item..}
+  * - item_fn: Function that, given an item from the list, renders it into HTML
+  */
 function select_list(orig_data, item_fn) {
     var sl_el;
 
