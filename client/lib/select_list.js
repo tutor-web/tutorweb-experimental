@@ -34,7 +34,7 @@ function select_list(orig_data, item_fn) {
         }
 
         // If this link has a sub-list, toggle that instead of being a link
-        if (link_el.nextElementSibling.nodeName === 'UL') {
+        if ((link_el.nextElementSibling || {}).nodeName === 'UL') {
             e.preventDefault();
             e.stopPropagation();
 
