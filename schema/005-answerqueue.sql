@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS answer (
     time_offset              INTEGER NOT NULL DEFAULT 0,
 
     correct                  BOOLEAN NULL,
-    grade                    NUMERIC(4, 3) NOT NULL,
+    grade                    NUMERIC(5, 3) NOT NULL,
     coins_awarded            INTEGER NOT NULL DEFAULT 0,
 
     student_answer           JSONB,
@@ -81,6 +81,6 @@ CREATE OR REPLACE VIEW stage_ugmaterial AS
     --TODO: Strictly should do: AND material_source_id IN (SELECT material_source_id FROM material_source WHERE 'type.template' = ANY(material_tags) AND next_revision IS NULL)
     WHERE correct
     ORDER BY a.material_source_id, a.permutation, a.answer_id;
-COMMENT ON VIEW stage_ugmaterial_review IS 'All user-generated content and reviews against them';
+COMMENT ON VIEW stage_ugmaterial IS 'All user-generated content and reviews against them';
 
 COMMIT;
