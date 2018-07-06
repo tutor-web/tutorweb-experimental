@@ -58,7 +58,7 @@ function QuizView($) {
         return self.renderMath();
     };
 
-      /** Annotate with correct / incorrect selections */
+    /** Annotate with correct / incorrect selections */
     this.renderAnswer = function (a, answerData) {
         var self = this,
             parsedExplanation = $(jQuery.parseHTML(answerData.explanation));
@@ -105,27 +105,27 @@ function QuizView($) {
                 self.jqQuiz.children('form').append(el('div').attr('class', 'alert explanation').html(parsedExplanation));
                 self.renderMath();
             }
-
-            // Add on the extra fields to evaluate the question
-            if (a.question_type === 'usergenerated') {
-                self.jqQuiz.children('form').append([
-                    el('label').text("How did you find the question?"),
-                    el('ul').append(self.ugQnRatings.map(function (rating) {
-                        if (rating[0] < -1) {
-                            // Can't select superseded
-                            return null;
-                        }
-                        return el('li').append([
-                            el('label').attr('class', 'radio').text(rating[1]).prepend([
-                                el('input').attr('type', 'radio').attr('name', 'rating').attr('value', rating[0])
-                            ])
-                        ]);
-                    })),
-                    el('label').text("Any other comments?"),
-                    el('textarea').attr('name', 'comments')
-                ]);
-            }
         }
+    };
+
+    /** Add on form to speak your branes */
+    this.renderReviewForm = function () {
+        this.jqQuiz.append(el('form').append([
+            el('label').text("How did you find the question?"),
+            el('ol').append(this.ugQnRatings.map(function (rating) {
+                if (rating[0] < -1) {
+                    // Can't select superseded
+                    return null;
+                }
+                return el('li').append([
+                    el('label').text(rating[1]).prepend([
+                        el('input').attr('type', 'radio').attr('name', 'rating').attr('value', rating[0])
+                    ])
+                ]);
+            })),
+            el('label').text("Any other comments?"),
+            el('textarea').attr('name', 'comments')
+        ]));
     };
 
     this.renderGradeSummary = function (summary) {
@@ -264,11 +264,14 @@ QuizView.prototype = new View(jQuery);
             twView.renderStart(args);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             if (args.material_tags.indexOf("type.template") > -1) {
+                twView.postQuestionActions = ['gohome', 'review', 'review-material', 'write-material'];
                 return 'review';
             }
             if (args.material_tags.indexOf("type.example") > -1) {
-                return 'example-load';
+                twView.postQuestionActions = ['gohome', 'load-example'];
+                return 'quiz-real';
             }
+            twView.postQuestionActions = ['gohome', 'quiz-practice', 'quiz-real'];
             if (args.continuing === 'practice') {
                 return 'quiz-practice';
             }
@@ -309,12 +312,12 @@ QuizView.prototype = new View(jQuery);
         });
     };
 
-    twView.states['quiz-real'] = twView.states['quiz-practice'] = function (curState, updateState) {
+    twView.states['load-example'] = twView.states['quiz-real'] = twView.states['quiz-practice'] = function (curState, updateState) {
         twView.updateActions([]);
         return quiz.getNewQuestion({
             practice: curState.endsWith('-practice')
         }).then(function (args) {
-            args.actions = args.qn._type === 'template' ? ['ug-skip', 'ug-submit'] : ['qn-skip', 'qn-submit'];
+            args.actions = ['qn-skip', 'qn-submit'];
 
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             return twView.renderNewQuestion(args.qn, args.a, args.actions).then(function () {
@@ -322,6 +325,12 @@ QuizView.prototype = new View(jQuery);
             });
         }).then(function (args) {
             var skipAction = args.actions[0];
+
+            if (args.qn.tags.indexOf("type.example") > -1) {
+                // If it's an example, don't wait for an answer
+                return 'qn-skip';
+            }
+
             twView.updateActions([skipAction]);
             // Once MathJax is finished, start the timer
             if (args.a.remaining_time) {
@@ -340,7 +349,7 @@ QuizView.prototype = new View(jQuery);
         return quiz.getNewQuestion({
             question_uri: curState === 'rewrite-question' ? twView.selectedQn : null,
         }).then(function (args) {
-            args.actions = ['ug-skip', 'ug-submit'];
+            args.actions = ['qn-skip', 'qn-submit'];
 
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             return twView.renderNewQuestion(args.qn, args.a, args.actions).then(function () {
@@ -360,47 +369,52 @@ QuizView.prototype = new View(jQuery);
                 return 'quiz-real';
             }
             twView.showAlert('info', 'There is nothing more ready for review');
-            twView.updateActions(['review', 'write-material']);
+            twView.updateActions(['gohome', 'review', 'write-material']);
         });
     };
 
-    twView.states['example-load'] = function (curState, updateState) {
-        twView.updateActions([]);
-        return quiz.getNewQuestion({
-        }).then(function (args) {
-            args.actions = ['example-load'];
-
-            quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
-            return twView.renderNewQuestion(args.qn, args.a, args.actions);
-        }).then(function (args) {
-            // Mark it as answered, so we move on
-            return quiz.setQuestionAnswer({});
-        }).then(function (args) {
-            twView.updateActions(['gohome', 'example-load']);
-        });
-    };
-
-    twView.states['qn-skip'] = twView.states['qn-submit'] = twView.states['ug-skip'] = twView.states['ug-submit'] = twView.states['ug-rate'] = function (curState) {
+    twView.states['qn-skip'] = twView.states['qn-submit'] = function (curState) {
         // Disable all controls and mark answer
         twView.updateActions([]);
         return quiz.setQuestionAnswer(curState.endsWith('-skip') ? {} : serializeForm(twView.jqQuiz.children('form')[0])).then(function (args) {
-            twView.renderAnswer(args.a, args.answerData);
+            var actions = twView.postQuestionActions;
+            if (args.practiceAllowed > 0) {
+                actions = twView.postQuestionActions.filter(function (a) { return a !== 'quiz-practice'; });
+            }
+
+            twView.renderAnswer(args.a, args.answerData, args.qn);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             twMenu.syncAttempt(false);
-            if (args.a.question_type === 'usergenerated' && !args.a.student_answer.hasOwnProperty('comments')) {
-                // Go round again, to add rating to answerQueue
-                twView.updateActions(['ug-rate']);
-            } else {
-                twView.updateActions([]);
-                if (args.a.explanation_delay) {
-                    twTimer.start(function () {
-                        twTimer.reset();
-                        twView.updateActions(['gohome', (args.practiceAllowed > 0 ? 'quiz-practice' : null), 'quiz-real']);
-                    }, args.a.explanation_delay);
-                } else {
-                    twView.updateActions(['gohome', (args.practiceAllowed > 0 ? 'quiz-practice' : null), 'quiz-real']);
-                }
+
+            if (args.qn.tags.indexOf("review.mandatory") > -1) {
+                return 'qn-startreview';
             }
+
+            twView.updateActions([]);
+            if (args.a.explanation_delay) {
+                twTimer.start(function () {
+                    twTimer.reset();
+                    twView.updateActions(actions);
+                }, args.a.explanation_delay);
+            } else {
+                twView.updateActions(actions);
+            }
+        });
+    };
+
+    twView.states['qn-startreview'] = function (curState) {
+        twView.renderReviewForm();
+        twView.updateActions(['qn-submitreview']);
+    };
+
+    twView.states['qn-submitreview'] = function (curState) {
+        return quiz.setQuestionReview(serializeForm(twView.jqQuiz.children('form')[1])).then(function (args) {
+            var actions = twView.postQuestionActions;
+            if (args.practiceAllowed > 0) {
+                actions = twView.postQuestionActions.filter(function (a) { return a !== 'quiz-practice'; });
+            }
+
+            twView.updateActions(actions);
         });
     };
 
@@ -408,7 +422,7 @@ QuizView.prototype = new View(jQuery);
         twView.updateActions([]);
         return quiz.fetchReview().then(function (review) {
             twView.renderReview(review);
-            twView.updateActions(['gohome', 'review-material', 'write-material']);
+            twView.updateActions(twView.postQuestionActions.filter(function (s) { return s !== 'review'; }));
         });
     };
 

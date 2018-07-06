@@ -423,11 +423,29 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 a.practice_correct = (a.practice_correct || 0) + (a.practice && a.correct ? 1 : 0);
 
                 return {
+                    qn: qn,
                     a: a,
                     answerData: answerData,
                     practiceAllowed: practiceAllowed(curLecture),
                 };
             });
+        });
+    };
+
+    /** User has reviewed current question */
+    this.setQuestionReview = function (formData) {
+        var self = this;
+
+        return self._withLecture(null, function (curLecture) {
+            var a = arrayLast(curLecture.answerQueue);
+
+            // Add review to this answer
+            a.review = formData;
+
+            return {
+                a: a,
+                practiceAllowed: practiceAllowed(curLecture),
+            };
         });
     };
 
