@@ -8,6 +8,8 @@ var AjaxApi = require('lib/ajaxapi.js');
 var Timer = require('lib/timer.js');
 var UserMenu = require('lib/usermenu.js');
 var serializeForm = require('@f/serialize-form');
+var h = require('hyperscript');
+var select_list = require('lib/select_list.js').select_list;
 
 /**
   * View class to translate data into DOM structures
@@ -173,61 +175,17 @@ function QuizView($) {
     };
 
     this.renderReview = function (reviewData) {
-        var self = this;
-
-        function ratingDiv(rating) {
-            if (typeof rating !== "number") {
-                return el('div').addClass('rating').text('(not yet rated)');
-            }
-
-            rating = self.ugQnRatings.filter(function (r) {
-                return r[0] <= rating;
-            })[0];
-
-            return el('div')
-                .addClass('rating')
-                .addClass('rating-' + rating[0])
-                .html(rating[1]);
-        }
-
         this.jqQuiz.empty().append([
             el('h3').text('Material you have written'),
             (reviewData.length === 0 ? el('p').text("You haven't written anything for this lecture") : null),
         ]);
-        this.jqQuiz.append(el('ul').attr('class', 'select-list review').append(reviewData.map(function (qn) {
-            var correct = qn.choices.filter(function (ans) { return ans.correct; });
-            correct = correct.length > 0 ? el('div').attr('class', 'answer').html(correct[0].answer) : null;
-
-            return el('li').append([
-                el('a').attr('tabindex', 0).append([
-                    el('div').html(qn.text),
-                    correct,
-                    ratingDiv(qn.verdict, 'overall'),
-                ]).focus(function () {
-                    self.selectedQn = qn.uri;
-                    self.updateActions(['gohome', 'rewrite-material']);
-                }),
-                el('dl').append([
-                    el('dt').text("Incorrect answers"),
-                ].concat(qn.choices.filter(function (ans) { return !ans.correct; }).map(function (choice) {
-                    return el('dd').append([
-                        el('div').attr('class', 'answer').html(choice.answer)
-                    ]);
-                })).concat([
-                    el('dt').text("Explanation"),
-                    el('dd').append([
-                        el('b'),
-                        el('div').html(qn.explanation),
-                    ]),
-                    el('dt').text("Reviews"),
-                ]).concat(qn.answers.map(function (ans) {
-                    return el('dd').append([
-                        ratingDiv(ans.rating),
-                        el('div').attr('class', 'comments').html(ans.comments),
-                    ]);
-                }))),
+        this.jqQuiz.append(select_list(reviewData.material, function (data) {
+            return h('a', {
+            }, [
+                data.text || data.comments,
+                h('span.grade', data.score || data.rating),
             ]);
-        })));
+        }));
         this.renderMath();
     };
 

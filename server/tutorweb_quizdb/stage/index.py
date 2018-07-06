@@ -94,8 +94,34 @@ def stage_review(request):
     """
     Get the reviews for all questions you have written
     """
-    # TODO:
-    return []
+    db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
+    db_student = get_current_student(request)
+    settings = getStudentSettings(db_stage, db_student)
+    alloc = get_allocation(settings, db_stage, db_student)
+
+    out = []
+    # For all questions that we wrote...
+    for (mss_id, permutation, obj, reviews) in DBSession.execute(
+            "SELECT material_source_id, permutation, student_answer, reviews FROM stage_ugmaterial"
+            " WHERE stage_id = :stage_id"
+            "   AND (host_domain = :host_domain AND user_id = :user_id)"
+            " ORDER BY time_end",
+            dict(
+                stage_id=db_stage.stage_id,
+                host_domain=alloc.db_student.host_domain,
+                user_id=alloc.db_student.id,
+            )):
+
+        score = len(reviews)  # TODO: Better scoring
+
+        out.append(dict(
+            uri=alloc.to_public_id(mss_id, permutation),
+            text=obj.get('text', '') + ' - ' + obj.get('choice_correct', ''),
+            # TODO: Render as HTML?
+            children=[r[2] or {} for r in reviews],
+            score=score,
+        ))
+    return dict(material=out)
 
 
 def stage_request_review(request):

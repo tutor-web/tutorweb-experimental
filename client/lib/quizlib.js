@@ -716,7 +716,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
     this.fetchReview = function () {
         var self = this;
 
-        return self.ajaxApi.getJson('/api/stage/review?stage=' + encodeURIComponent(self.lecUri));
+        return self.ajaxApi.getJson('/api/stage/review?path=' + encodeURIComponent(self.lecUri));
     };
 
     /** Output a selection of summary strings on the given / current lecture */
