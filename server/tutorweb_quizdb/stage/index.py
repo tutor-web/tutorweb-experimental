@@ -98,10 +98,61 @@ def stage_review(request):
     return []
 
 
+def stage_request_review(request):
+    """
+    Request to review some material for this allocation, assuming alloc has
+    template questions
+
+    params:
+    - path: Stage path
+    """
+    db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
+    db_student = get_current_student(request)
+    settings = getStudentSettings(db_stage, db_student)
+    alloc = get_allocation(settings, db_stage, db_student)
+
+    # Find a question that needs a review
+    # Get all questions that we didn't write, ones with least reviews first
+    for (mss_id, permutation, reviews) in DBSession.execute(
+            "SELECT material_source_id, permutation, reviews FROM stage_ugmaterial"
+            " WHERE stage_id = :stage_id"
+            "   AND (host_domain != :host_domain OR user_id != :user_id)"
+            " ORDER BY JSONB_ARRAY_LENGTH(reviews), RANDOM()",
+            dict(
+                stage_id=db_stage.stage_id,
+                host_domain=alloc.db_student.host_domain,
+                user_id=alloc.db_student.id,
+            )):
+
+        # Consider all reviews
+        score = 0
+        for (r_host_domain, r_user_id, r_obj) in reviews:
+            if r_obj is None:
+                # Ignore empty reviews
+                continue
+            if r_host_domain == alloc.db_student.host_domain and r_user_id == alloc.db_student.id:
+                # We reviewed it ourselves, so ignore it
+                score = -99
+                break
+            if r_obj['superseded']:
+                # This question has been replaced, ignore it
+                score = -99
+                break
+
+        if score >= 0:
+            # This one is good enough for reviewing
+            return dict(uri=alloc.to_public_id(mss_id, permutation))
+
+    # No available material to review
+    return dict()
+
+
 def includeme(config):
     config.add_view(stage_index, route_name='stage_index', renderer='json')
     config.add_view(stage_material, route_name='stage_material', renderer='json')
     config.add_view(stage_review, route_name='stage_review', renderer='json')
+    config.add_view(stage_request_review, route_name='stage_request_review', renderer='json')
     config.add_route('stage_index', '/stage')
     config.add_route('stage_material', '/stage/material')
     config.add_route('stage_review', '/stage/review')
+    config.add_route('stage_request_review', '/stage/request-review')

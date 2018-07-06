@@ -72,4 +72,15 @@ CREATE OR REPLACE VIEW stage_material AS
 COMMENT ON VIEW stage_material IS 'All appropriate material for all stages, and their stats';
 
 
+CREATE OR REPLACE VIEW stage_ugmaterial AS
+    SELECT DISTINCT ON (a.material_source_id, a.permutation)
+    a.*
+    , JSONB_AGG(JSONB_BUILD_ARRAY(host_domain, user_id, review))
+      OVER (PARTITION BY a.stage_id, a.material_source_id, a.permutation) AS reviews
+    FROM answer a
+    --TODO: Strictly should do: AND material_source_id IN (SELECT material_source_id FROM material_source WHERE 'type.template' = ANY(material_tags) AND next_revision IS NULL)
+    WHERE correct
+    ORDER BY a.material_source_id, a.permutation, a.answer_id;
+COMMENT ON VIEW stage_ugmaterial_review IS 'All user-generated content and reviews against them';
+
 COMMIT;

@@ -353,6 +353,17 @@ QuizView.prototype = new View(jQuery);
         });
     };
 
+    twView.states['review-material'] = function (curState, updateState) {
+        twView.updateActions([]);
+        return quiz.getReviewMaterial().then(function (material_found) {
+            if (material_found) {
+                return 'quiz-real';
+            }
+            twView.showAlert('info', 'There is nothing more ready for review');
+            twView.updateActions(['review', 'write-material']);
+        });
+    };
+
     twView.states['example-load'] = function (curState, updateState) {
         twView.updateActions([]);
         return quiz.getNewQuestion({

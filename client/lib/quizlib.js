@@ -308,6 +308,28 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         });
     };
 
+    /** Get a new question to review, inject it into the answer queue */
+    this.getReviewMaterial = function () {
+        var self = this;
+
+        return self.ajaxApi.getJson('/api/stage/request-review?path=' + encodeURIComponent(self.lecUri)).then(function (data) {
+            if (!data.uri) {
+                return false;
+            }
+            return self._withLecture(null, function (curLecture) {
+                var a = data, lastAns = arrayLast(curLecture.answerQueue);
+
+                a.lec_answered = lastAns && lastAns.lec_answered ? lastAns.lec_answered : 0;
+                a.lec_correct = lastAns && lastAns.lec_correct ? lastAns.lec_correct : 0;
+                a.practice_answered = lastAns && lastAns.practice_answered ? lastAns.practice_answered : 0;
+                a.practice_correct = lastAns && lastAns.practice_correct ? lastAns.practice_correct : 0;
+                a.client_id = self._getClientId();
+                curLecture.answerQueue.push(a);
+                return true;
+            });
+        });
+    };
+
     /** Returns a promise with the question data, either from localstorage or HTTP */
     this._getQuestionData = function (uri, cachedOkay) {
         var qn, promise, self = this;
