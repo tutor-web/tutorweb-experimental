@@ -10,6 +10,7 @@
     "custom-event-polyfill": "^0.3.0",
     "es6-promise": "~4.2.2",
     "hyperscript": "^2.0.2",
+    "ie-array-find-polyfill": "^1.1.0",
     "istanbul": "^0.4.4",
     "jquery": "~3.3.1",
     "knuth-shuffle": "~1.0.1",

@@ -9,3 +9,5 @@ require('custom-event-polyfill');
 if (!Element.prototype.matches) {
     Element.prototype.matches = Element.prototype.msMatchesSelector;
 }
+
+require('ie-array-find-polyfill');
