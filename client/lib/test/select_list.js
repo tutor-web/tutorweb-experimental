@@ -18,6 +18,10 @@ jQuery(document.getElementById('tw-quiz')).append([
                 {title: "Noise: moo"},
             ]},
             {title: "Freda"},
+            {title: "Bessie", children: [
+                {title: "Legs: 4"},
+                {title: "Noise: moo"},
+            ]},
         ]},
         {title: "Pigs", children: [
             {title: "George"},
