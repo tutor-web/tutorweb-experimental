@@ -6,7 +6,7 @@ NODE != which node || which nodejs
 NODE_CMD = NODE_PATH="$(CURDIR)" $(NODE)
 SHELL=/bin/bash -o pipefail
 
-OUTPUTS := index preview stage
+OUTPUTS := index preview stage test/select_list
 
 OUT_FILES = \
     www/geogebra \
@@ -55,7 +55,7 @@ yarn.lock:
 	touch $@
 
 www/js/libraries.min.js: package.json
-	mkdir -p www/js
+	mkdir -p $(dir $@)
 	(cd www/js && ln -sf ../../node_modules .)
 	$(NODE_CMD) node_modules/browserify/bin/cmd.js \
 	        $(foreach l,$(LIBRARIES_JS),-r $(l)) \
@@ -65,13 +65,13 @@ www/js/libraries.min.js: package.json
 	mv $@.mktmp $@
 
 www/css/libraries.min.css: package.json
-	mkdir -p www/css
+	mkdir -p $(dir $@)
 	(cd www/css && ln -sf ../../lib .)
 	cat $(LIBRARIES_CSS) > $@.mktmp
 	mv $@.mktmp $@
 
 www/js/%.min.js: lib/%.js lib/*.js package.json
-	mkdir -p www/js
+	mkdir -p $(dir $@)
 	(cd www/js && ln -sf ../../lib .)
 	$(NODE_CMD) node_modules/browserify/bin/cmd.js --debug \
 	        $(foreach l,$(LIBRARIES_JS),-x $(l)) \
@@ -84,7 +84,7 @@ www/js/%.min.js: lib/%.js lib/*.js package.json
 	mv $@.mktmp $@
 
 www/css/%.min.css: lib/%.css lib/*.css package.json
-	mkdir -p www/css
+	mkdir -p $(dir $@)
 	(cd www/css && ln -sf ../../lib .)
 	$(NODE_CMD) node_modules/postcss-cli/bin/postcss \
 	    --config postcss.config.js \
@@ -94,6 +94,7 @@ www/css/%.min.css: lib/%.css lib/*.css package.json
 www/%.html: lib/%.html $(filter-out %.html,$(OUT_FILES)) \
     ../.local-conf \
     package.json
+	mkdir -p $(dir $@)
 	cat $< > $@.mktmp
 	mv $@.mktmp $@
 
