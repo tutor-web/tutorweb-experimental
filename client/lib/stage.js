@@ -180,6 +180,9 @@ function QuizView($) {
             (reviewData.length === 0 ? el('p').text("You haven't written anything for this lecture") : null),
         ]);
         this.jqQuiz.append(select_list(reviewData.material, function (data) {
+            if (!(data.text || data.comments)) {
+                return null;
+            }
             return h('a', {
             }, [
                 data.text || data.comments,
