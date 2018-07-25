@@ -21,10 +21,15 @@ function select_list(orig_data, item_fn) {
     }
 
     function toggle(li_el, open_close) {
-        var ul_el = li_el.lastElementChild;
+        var ul_el;
 
+        if (!li_el) {
+            // Recursed too deep, ignore
+            return;
+        }
         li_el.classList.toggle('selected', open_close);
 
+        ul_el = li_el.lastElementChild;
         if (ul_el.tagName === 'UL') {
             if (li_el.classList.contains('selected')) {
                 // NB: 3.5 is the padding around an item, count all possible items
@@ -32,9 +37,7 @@ function select_list(orig_data, item_fn) {
             } else {
                 // Shrink, remove selections below this item
                 ul_el.style['max-height'] = '';
-                Array.prototype.map.call(ul_el.querySelectorAll('.selected'), function (el) {
-                    el.classList.remove('selected');
-                });
+                toggle(ul_el.querySelector('.selected'), false);
             }
         }
     }
