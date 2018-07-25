@@ -9,6 +9,7 @@ SHELL=/bin/bash -o pipefail
 OUTPUTS := index preview stage
 
 OUT_FILES = \
+    www/geogebra \
     www/js/polyfill.min.js \
     www/js/libraries.min.js \
     www/css/libraries.min.css \
@@ -22,6 +23,11 @@ LIBRARIES_CSS = \
     node_modules/bootstrap/dist/css/bootstrap-grid.min.css \
 
 all: test lint compile
+
+www/geogebra:
+	wget -O /tmp/ggb-bundle.zip https://download.geogebra.org/package/geogebra-math-apps-bundle
+	unzip /tmp/ggb-bundle.zip -d $@
+	rm /tmp/ggb-bundle.zip
 
 compile: node_modules/ $(OUT_FILES)
 
