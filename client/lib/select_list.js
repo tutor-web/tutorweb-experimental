@@ -1,13 +1,14 @@
 "use strict";
-/*jslint todo: true, regexp: true, browser: true */
+/*jslint todo: true, regexp: true, browser: true, plusplus: true */
 /*global Promise */
 var h = require('hyperscript');
 
 /**
   * - orig_data: Recursive list with items of the form {children: [..inner items..], ..current item..}
   * - item_fn: Function that, given an item from the list, renders it into HTML
+  * - on_select: Function that is given an array of items in orig_data when something is selected
   */
-function select_list(orig_data, item_fn) {
+function select_list(orig_data, item_fn, on_select) {
     var sl_el;
 
     function select_list_inner(data) {
@@ -42,6 +43,21 @@ function select_list(orig_data, item_fn) {
         }
     }
 
+    function selected_items(data, el) {
+        var i, child_els = el.childNodes;
+
+        for (i = 0; i < data.length; i++) {
+            if (child_els[i].classList.contains('selected')) {
+                // This item is selected, return an array with this concatenated to everything selected within
+                return [data[i]].concat(selected_items(
+                    data[i].children || [],
+                    child_els[i].lastElementChild
+                ));
+            }
+        }
+        return [];
+    }
+
     sl_el = h('ul.select-list', {onclick: function (e) {
         var link_el = e.target;
 
@@ -60,8 +76,13 @@ function select_list(orig_data, item_fn) {
         Array.prototype.map.call(link_el.parentNode.parentNode.childNodes, function (el) {
             toggle(el, link_el.parentNode === el ? undefined : false);
         });
+
+        if (on_select) {
+            on_select(selected_items(orig_data, sl_el));
+        }
     }}, (orig_data || []).map(select_list_inner));
     toggle(sl_el.querySelectorAll('ul.select-list > li:first-child')[0]);
+    on_select(selected_items(orig_data, sl_el));
 
     return sl_el;
 }

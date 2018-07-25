@@ -27,5 +27,7 @@ jQuery(document.getElementById('tw-quiz')).append([
             {title: "George"},
             {title: "Frank"},
         ]},
-    ], renderLink)
+    ], renderLink, function (items) {
+        console.log(items.map(function (d) { return d.title; }));
+    })
 ]);
