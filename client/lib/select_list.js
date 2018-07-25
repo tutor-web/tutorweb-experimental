@@ -20,36 +20,45 @@ function select_list(orig_data, item_fn) {
         ]) : null;
     }
 
-    function toggle(ul_el, open_close) {
-        var parent_el = ul_el.parentNode;
+    function toggle(li_el, open_close) {
+        var ul_el = li_el.lastElementChild;
 
-        parent_el.classList.toggle('open', open_close);
-        // NB: 3.5 is the padding around an item, count all possible items
-        ul_el.style['max-height'] = parent_el.classList.contains('open') ? 3.5 * sl_el.querySelectorAll('li').length + "rem" : '';
+        li_el.classList.toggle('selected', open_close);
+
+        if (ul_el.tagName === 'UL') {
+            if (li_el.classList.contains('selected')) {
+                // NB: 3.5 is the padding around an item, count all possible items
+                ul_el.style['max-height'] = 3.5 * sl_el.querySelectorAll('li').length + "rem";
+            } else {
+                // Shrink, remove selections below this item
+                ul_el.style['max-height'] = '';
+                Array.prototype.map.call(ul_el.querySelectorAll('.selected'), function (el) {
+                    el.classList.remove('selected');
+                });
+            }
+        }
     }
 
     sl_el = h('ul.select-list', {onclick: function (e) {
-        var link_el = e.target,
-            sibling_els = link_el.parentNode.parentNode.childNodes;
-
-        sibling_els = Array.prototype.map.call(sibling_els, function (x) { return x.lastElementChild; });
+        var link_el = e.target;
 
         // Find what was clicked on
         while (link_el.nodeName !== 'A') {
             link_el = link_el.parentNode;
         }
 
-        // If this link has a sub-list, toggle that instead of being a link
-        if ((link_el.nextElementSibling || {}).nodeName === 'UL') {
+        // Don't bother going to empty links
+        if (!link_el.attributes.href || link_el.attributes.href.value === '#') {
             e.preventDefault();
             e.stopPropagation();
-
-            Array.prototype.map.call(sibling_els, function (el) {
-                toggle(el, link_el.nextElementSibling === el ? undefined : false);
-            });
         }
+
+        // Toggle all sibling list litems, we should be the only ones selected
+        Array.prototype.map.call(link_el.parentNode.parentNode.childNodes, function (el) {
+            toggle(el, link_el.parentNode === el ? undefined : false);
+        });
     }}, (orig_data || []).map(select_list_inner));
-    toggle(sl_el.querySelectorAll('ul.select-list > li:first-child > ul')[0]);
+    toggle(sl_el.querySelectorAll('ul.select-list > li:first-child')[0]);
 
     return sl_el;
 }

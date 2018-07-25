@@ -4,9 +4,17 @@
     overflow: hidden;
     cursor: pointer;
 }
-.select-list li {
+
+.select-list > li { /* First level */
+    border-bottom: 1px solid #aaa;
+}
+.select-list > li > ul > li { /* Second level */
     border-bottom: 1px solid rgba(0,0,0,.125);
 }
+.select-list > li > ul > li:last-child { /* Second level, final item */
+    border-bottom: none;
+}
+
 .select-list a {
     display: block;
     position: relative;
@@ -21,13 +29,10 @@
             rgba(240, 220,  78, 0.3) 10px,
             rgba(240, 220,  78, 0.3) 20px);
 }
-.select-list > li { /* i.e. tutorial / class items */
-    border-bottom: 1px solid #aaa;
-}
 .select-list > li > a { /* i.e. tutorial / class items */
     background-color: rgba(0,0,0,0.05);
 }
-.select-list li.open > a {
+.select-list li.selected > a {
     font-weight: bold;
     color: darkred;
 }
@@ -38,9 +43,6 @@
     transition: max-height 0.2s ease-out;
 }
 
-.select-list ul ul li {
-    border-bottom: 0;
-}
 .select-list ul ul a {
     padding-left: 3em;
 }
@@ -64,7 +66,7 @@
     transition: transform 0.3s;
     transform: rotate(90deg);
 }
-.select-list li.has-children:not(.open) > a:after {
+.select-list li.has-children:not(.selected) > a:after {
     transform: rotate(0deg);
     opacity: 1;
 }
