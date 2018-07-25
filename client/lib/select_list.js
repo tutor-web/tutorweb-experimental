@@ -11,22 +11,28 @@ function select_list(orig_data, item_fn) {
     var sl_el;
 
     function select_list_inner(data) {
-        return h('li', [
-            item_fn(data),
-            (data.children || []).length ? h('ul', data.children.map(select_list_inner)) : null,
-        ]);
+        var item = item_fn(data),
+            has_children = (data.children || []).length;
+
+        return item ? h('li' + (has_children ? '.has-children' : ''), [
+            item,
+            has_children ? h('ul', data.children.map(select_list_inner)) : null,
+        ]) : null;
     }
 
-    function toggle(ul_el) {
+    function toggle(ul_el, open_close) {
         var parent_el = ul_el.parentNode;
 
-        parent_el.classList.toggle('open');
+        parent_el.classList.toggle('open', open_close);
         // NB: 3.5 is the padding around an item, count all possible items
-        ul_el.style['max-height'] = parent_el.classList.contains('open') ? 3.5 * sl_el.querySelectorAll('li').length + "rem" : 0;
+        ul_el.style['max-height'] = parent_el.classList.contains('open') ? 3.5 * sl_el.querySelectorAll('li').length + "rem" : '';
     }
 
     sl_el = h('ul.select-list', {onclick: function (e) {
-        var link_el = e.target;
+        var link_el = e.target,
+            sibling_els = link_el.parentNode.parentNode.childNodes;
+
+        sibling_els = Array.prototype.map.call(sibling_els, function (x) { return x.lastElementChild; });
 
         // Find what was clicked on
         while (link_el.nodeName !== 'A') {
@@ -38,7 +44,9 @@ function select_list(orig_data, item_fn) {
             e.preventDefault();
             e.stopPropagation();
 
-            toggle(link_el.nextElementSibling);
+            Array.prototype.map.call(sibling_els, function (el) {
+                toggle(el, link_el.nextElementSibling === el ? undefined : false);
+            });
         }
     }}, (orig_data || []).map(select_list_inner));
     toggle(sl_el.querySelectorAll('ul.select-list > li:first-child > ul')[0]);

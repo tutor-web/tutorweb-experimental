@@ -2,13 +2,16 @@
     padding: 0;
     list-style-type: none;
     overflow: hidden;
+    cursor: pointer;
 }
 .select-list li {
     border-bottom: 1px solid rgba(0,0,0,.125);
 }
 .select-list a {
     display: block;
+    position: relative;
     padding: .75rem 1.25rem;
+    padding-left: 3rem;
 }
 .select-list a:hover {
     background-image: repeating-linear-gradient(
@@ -22,10 +25,15 @@
     border-bottom: 1px solid #aaa;
 }
 .select-list > li > a { /* i.e. tutorial / class items */
-    background-color: rgba(0,0,0,.1);
+    background-color: rgba(0,0,0,0.05);
+}
+.select-list li.open > a {
+    font-weight: bold;
+    color: darkred;
 }
 
 .select-list li > ul {
+    padding-left: 1rem;
     max-height: 0;
     transition: max-height 0.2s ease-out;
 }
@@ -42,3 +50,21 @@
     font-weight: bold;
 }
 .select-list .grade.aced { color: goldenrod; }
+
+/* Plus-minus signs next to expandable sections */
+.select-list li.has-children > a:before,
+.select-list li.has-children > a:after {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    top: 0.95rem;
+    width: 0;
+    height: 1rem;
+    border-right: 2px solid black;
+    transition: transform 0.3s;
+    transform: rotate(90deg);
+}
+.select-list li.has-children:not(.open) > a:after {
+    transform: rotate(0deg);
+    opacity: 1;
+}
