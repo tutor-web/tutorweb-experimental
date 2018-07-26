@@ -64,6 +64,10 @@ function select_list(orig_data, item_fn, on_select) {
         // Find what was clicked on
         while (link_el.nodeName !== 'A') {
             link_el = link_el.parentNode;
+            if (!link_el) {
+                // Fell outside the select-list, so no link
+                return;
+            }
         }
 
         // Don't bother going to empty links
