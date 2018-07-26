@@ -82,7 +82,9 @@ function select_list(orig_data, item_fn, on_select) {
         }
     }}, (orig_data || []).map(select_list_inner));
     toggle(sl_el.querySelectorAll('ul.select-list > li:first-child')[0]);
-    on_select(selected_items(orig_data, sl_el));
+    if (on_select) {
+        on_select(selected_items(orig_data, sl_el));
+    }
 
     return sl_el;
 }
