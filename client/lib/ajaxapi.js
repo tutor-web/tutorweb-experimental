@@ -74,6 +74,10 @@ module.exports = function AjaxApi(jqAjax) {
                 }
 
                 if (jqXHR.status === 401 || jqXHR.status === 403) {
+                    if (errorThrown === "HTTPForbidden: User has not accepted terms") {
+                        reject(new Error("tutorweb::notacceptedterms::You have not accepted the Tutor-Web terms and conditions"));
+                    }
+
                     // Unauth / wrong user
                     reject(new Error("tutorweb::unauth::" + textStatus + ". Please " +
                                      '<a href="' + '//' + window.document.location.host + '/login' +

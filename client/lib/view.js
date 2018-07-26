@@ -3,6 +3,7 @@
 var renderTex = require('./rendertex.js').renderTex;
 require('es6-promise').polyfill();
 var parse_qs = require('../lib/parse_qs.js').parse_qs;
+var view_terms_extend = require('lib/view_terms.js').extend;
 var AjaxApi = require('./ajaxapi.js');
 var isQuotaExceededError = require('./ls_utils.js').isQuotaExceededError;
 
@@ -287,6 +288,9 @@ module.exports = function View($) {
         twView.updateActions(['gohome']);
     };
 
+    // Add in extra modules
+    view_terms_extend(this);
+
     this.stateMachine = function (updateState) {
         var self = this;
 
@@ -396,6 +400,9 @@ module.exports = function View($) {
             if (message.toLowerCase().indexOf('quota') > -1 || message.toLowerCase().indexOf('persistent storage') > -1) {
                 newState = 'error-quota';
                 self.lastError = 'No more local storage available. Please return to the menu and delete some tutorials you are no longer using.';
+            } else if (message.indexOf('tutorweb::notacceptedterms::') > -1) {
+                newState = 'terms-display';
+                self.lastError = 'You need to accept Tutor-Web terms and conditions';
             } else if (message.indexOf('tutorweb::') > -1) {
                 parts = message.split(/\:\:/);
                 newState = 'error-' + parts[1];
