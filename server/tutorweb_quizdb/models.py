@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
 from pluserable.data.models import (
     GroupBase, UserBase)
@@ -37,6 +38,8 @@ class User(UserBase, Base):
     username = sa.Column("user_name", sa.UnicodeText)
     _password = sa.Column('pw_hash', sa.Unicode(256), nullable=False)
 
+    groups = relationship("Group", secondary='user_group')
+
     # Ignore any csrf_token passed through
     @property
     def csrf_token(self):
@@ -65,9 +68,6 @@ class Group(GroupBase, Base):
 
 class UserGroup(Base):
     __tablename__ = 'user_group'
-    __table_args__ = dict(
-        extend_existing=True,
-    )
 
     @declared_attr
     def id(cls):
@@ -77,6 +77,31 @@ class UserGroup(Base):
             sa.Integer,
             autoincrement=True,
             primary_key=True)
+
+    host_domain = sa.Column(
+        'hostdomain',
+        sa.UnicodeText,
+        sa.ForeignKey('host.hostdomain'))
+
+    user_id = sa.Column(
+        'user_id',
+        sa.Integer)
+
+    group_id = sa.Column(
+        'group_id',
+        sa.Integer,
+        sa.ForeignKey('group.group_id')
+    )
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(
+            [host_domain, user_id],
+            [User.host_domain, User.id],
+        ),
+        dict(
+            extend_existing=True,
+        ),
+    )
 
 
 class Activation(ActivationMixin, Base):
