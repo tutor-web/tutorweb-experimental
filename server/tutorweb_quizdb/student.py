@@ -1,6 +1,6 @@
 from pyramid.httpexceptions import HTTPForbidden
 
-from tutorweb_quizdb import DBSession, Base
+from tutorweb_quizdb import DBSession
 from tutorweb_quizdb import models
 
 

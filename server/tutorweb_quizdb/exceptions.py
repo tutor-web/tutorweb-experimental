@@ -3,6 +3,7 @@ from pyramid.httpexceptions import (
     HTTPBadRequest
 )
 
+
 def view_exception(e, request):
     import traceback
 
