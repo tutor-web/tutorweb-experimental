@@ -375,7 +375,7 @@ module.exports = function View($) {
                     data: JSON.stringify(self.lastError),
                     contentType: 'application/json',
                     type: 'POST',
-                    url: '/@@quizdb-logerror',
+                    url: '/api/logerror',
                     timeout: 1000,
                 });
 

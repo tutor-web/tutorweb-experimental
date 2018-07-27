@@ -73,6 +73,7 @@ def main(global_config, **settings):
     config.setup_pluserable(global_config['__file__'])
 
     config.include('tutorweb_quizdb.exceptions')
+    config.include('tutorweb_quizdb.logerror')
     config.include('tutorweb_quizdb.material.render')
     config.include('tutorweb_quizdb.material.update')
     config.include('tutorweb_quizdb.subscriptions.list')
