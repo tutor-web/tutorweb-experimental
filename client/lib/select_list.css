@@ -47,12 +47,6 @@
     padding-left: 3em;
 }
 
-.select-list .grade {
-    float: right;
-    font-weight: bold;
-}
-.select-list .grade.aced { color: goldenrod; }
-
 /* Plus-minus signs next to expandable sections */
 .select-list li.has-children > a:before,
 .select-list li.has-children > a:after {

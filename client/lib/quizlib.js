@@ -112,14 +112,16 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
             return Promise.all(lectureUrisFromSubscription(subscriptions).map(function (uri) {
                 return self._getLecture(uri, true).then(function (l) {
-                    var gradeSummary;
+                    var currentGrade, a;
 
                     // If lecture isn't dummy structure, add stats to object
                     // (lecture might be missing if out of localstorge during sync, e.g.)
                     if (l.questions) {
-                        gradeSummary = self._gradeSummary(l);
+                        a = arrayLast(l.answerQueue) || {};
+                        currentGrade = a.hasOwnProperty('grade_after') ? a.grade_after : (a.grade_before || '-');
                         lectureInfo[uri] = {
-                            "grade": (gradeSummary.stats || '') + (gradeSummary.grade ? '\n' + gradeSummary.grade : ''),
+                            "grade": currentGrade,
+                            "stats": self._gradeSummary(l).stats,
                             "synced": isSynced(l),
                             "offline": isOffline(l),
                         };

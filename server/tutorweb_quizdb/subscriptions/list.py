@@ -17,17 +17,14 @@ def view_subscription_list(request):
             title=db_tut.title,
             children=[],
         ))
-        tut_grade = 0
         for db_lec in (DBSession.query(Base.classes.lecture)
                        .filter_by(tutorial=db_tut)
                        .order_by(Base.classes.lecture.lecture_name)):
             out[-1]['children'].append(dict(
                 name=db_lec.lecture_name,
                 title=db_lec.title,
-                grade=5,
                 children=[],
             ))
-            tut_grade += out[-1]['children'][-1]['grade']
             for db_stage in (DBSession.query(Base.classes.stage)
                              .filter_by(lecture=db_lec)
                              .filter_by(next_version=None)
@@ -35,12 +32,10 @@ def view_subscription_list(request):
                 out[-1]['children'][-1]['children'].append(dict(
                     stage=db_stage.stage_name,
                     title=db_stage.title,
-                    grade=2,
                     href='/api/stage?%s' % urllib.parse.urlencode(dict(
                         path=os.path.normpath(os.path.join(db_tut.path, db_lec.lecture_name, db_stage.stage_name)),
                     )),
                 ))
-        out[-1]['grade'] = tut_grade / len(out[-1]['children'])
 
         return dict(children=out)
 

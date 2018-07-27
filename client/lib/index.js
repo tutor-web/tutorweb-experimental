@@ -14,14 +14,41 @@ var select_list = require('lib/select_list.js').select_list;
 function StartView() {
     /** Generate expanding list for tutorials / lectures */
     this.renderChooseLecture = function (subscriptions) {
+        function grade_for(data) {
+            var i, out;
+
+            if (subscriptions.lectures[data.href]) {
+                return subscriptions.lectures[data.href].grade;
+            }
+
+            if (!data.children || !data.children.length) {
+                return 0;
+            }
+
+            // Grade should be mean of everything within
+            out = 0;
+            for (i = 0; i < data.children.length; i++) {
+                out += grade_for(data.children[i]);
+            }
+            return Math.round(out / data.children.length * 100) / 100;
+        }
+
         this.jqQuiz.empty().append(h('div', [
             h('h2', 'Your lectures'),
             select_list(subscriptions.subscriptions.children, function (data) {
+                var grade = grade_for(data),
+                    grade_class = grade > 9.5 ? 'aced'
+                                : grade > 7.0 ? 'high'
+                                : grade > 3.0 ? 'medium'
+                                : grade > 1.0 ? 'low'
+                                    : 'base',
+                    grade_title = (subscriptions.lectures[data.href] || { stats: "" }).stats;
+
                 return h('a', {
                     href: data.href ? '/stage?path=' + encodeURIComponent(data.href) : '#',
                 }, [
                     data.title,
-                    h('span.grade', data.grade),
+                    h('abbr.grade.' + grade_class, { title: grade_title }, grade),
                 ]);
             }),
         ]));
