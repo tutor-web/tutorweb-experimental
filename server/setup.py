@@ -14,6 +14,7 @@ requires = [
     'pyramid_tm',
     'SQLAlchemy',
     'rpy2',
+    'rst2html5-tools',
     'transaction',
     'waitress',
     'zope.sqlalchemy',

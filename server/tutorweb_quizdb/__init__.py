@@ -78,6 +78,7 @@ def main(global_config, **settings):
     config.include('tutorweb_quizdb.subscriptions.list')
     config.include('tutorweb_quizdb.stage')
     config.include('tutorweb_quizdb.student')
+    config.include('tutorweb_quizdb.rst')
 
     json_renderer = config.registry.getUtility(IRendererFactory, name="json")
     json_renderer.add_adapter(datetime.datetime, lambda obj, request: obj.isoformat())
