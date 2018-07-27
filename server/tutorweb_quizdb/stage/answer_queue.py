@@ -49,7 +49,6 @@ def incoming_to_db(alloc, in_a):
 
     return Base.classes.answer(
         stage_id=alloc.db_stage.stage_id,
-        host_domain=alloc.db_student.host_domain,
         user_id=alloc.db_student.id,
 
         material_source_id=mss_id,
@@ -71,7 +70,6 @@ def sync_answer_queue(alloc, in_queue, time_offset):
     # Lock answer_queue for this student, to stop any concorrent updates
     db_queue = (DBSession.query(Base.classes.answer)
                 .filter(Base.classes.answer.stage_id == alloc.db_stage.stage_id)
-                .filter(Base.classes.answer.host_domain == alloc.db_student.host_domain)
                 .filter(Base.classes.answer.user_id == alloc.db_student.id)
                 .order_by(Base.classes.answer.time_end, Base.classes.answer.time_offset)
                 .with_lockmode('update').all())

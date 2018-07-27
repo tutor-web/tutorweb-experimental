@@ -30,11 +30,11 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         # Add stage
         tut_path = '/tut-%d' % random.randint(1000000, 9999999)
         lec_name = 'lec-%d' % random.randint(1000000, 9999999)
-        DBSession.add(Base.classes.host(hostdomain=models.ACTIVE_HOST_DOMAIN, hostkey='key'))
-        DBSession.add(Base.classes.tutorial(hostdomain=models.ACTIVE_HOST_DOMAIN, path=tut_path))
-        DBSession.add(Base.classes.lecture(hostdomain=models.ACTIVE_HOST_DOMAIN, path=tut_path, lecture_name=lec_name))
+        DBSession.add(Base.classes.host(host_domain=models.ACTIVE_HOST_DOMAIN, host_key='key'))
+        DBSession.add(Base.classes.tutorial(host_domain=models.ACTIVE_HOST_DOMAIN, path=tut_path))
+        DBSession.add(Base.classes.lecture(host_domain=models.ACTIVE_HOST_DOMAIN, path=tut_path, lecture_name=lec_name))
         self.db_stages = [Base.classes.stage(
-            hostdomain=models.ACTIVE_HOST_DOMAIN, path=tut_path, lecture_name=lec_name,
+            host_domain=models.ACTIVE_HOST_DOMAIN, path=tut_path, lecture_name=lec_name,
             stage_name='stage%d' % i, version=0,
             title='UT stage %s' % i,
             stage_setting_spec=dict(
@@ -46,7 +46,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             DBSession.add(self.db_stages[i])
         DBSession.flush()
         self.db_studs = [models.User(
-            hostdomain=models.ACTIVE_HOST_DOMAIN,
+            host_domain=models.ACTIVE_HOST_DOMAIN,
             user_name='user%d' % i,
             email='user%d@example.com' % i,
             password='parp',

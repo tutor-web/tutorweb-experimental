@@ -1,10 +1,10 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS tutorial (
-    hostDomain               TEXT,
-    FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
+    host_domain              TEXT,
+    FOREIGN KEY (host_domain) REFERENCES host(host_domain),
     path                     TEXT,
-    PRIMARY KEY (hostDomain, path),
+    PRIMARY KEY (host_domain, path),
 
     title                    TEXT,
 
@@ -15,13 +15,13 @@ COMMENT ON TABLE  tutorial IS 'Tree structure for all tutorials';
 
 
 CREATE TABLE IF NOT EXISTS subscription (
-    hostDomain               TEXT,
-    FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
+    host_domain              TEXT,
+    FOREIGN KEY (host_domain) REFERENCES host(host_domain),
     user_id                  INTEGER,
-    FOREIGN KEY (hostDomain, user_id) REFERENCES "user"(hostDomain, user_id),
+    FOREIGN KEY (user_id) REFERENCES "user"(user_id),
     path                     TEXT,
-    FOREIGN KEY (hostDomain, path) REFERENCES tutorial(hostDomain, path),
-    PRIMARY KEY (hostDomain, user_id, path),
+    FOREIGN KEY (host_domain, path) REFERENCES tutorial(host_domain, path),
+    PRIMARY KEY (host_domain, user_id, path),
 
     hidden                   BOOLEAN NOT NULL DEFAULT 'f',
     lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
@@ -31,12 +31,12 @@ COMMENT ON TABLE  subscription IS 'Student<->tutorial subscriptions';
 
 
 CREATE TABLE IF NOT EXISTS lecture (
-    hostDomain               TEXT,
-    FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
+    host_domain              TEXT,
+    FOREIGN KEY (host_domain) REFERENCES host(host_domain),
     path                     TEXT,
-    FOREIGN KEY (hostDomain, path) REFERENCES tutorial(hostDomain, path),
+    FOREIGN KEY (host_domain, path) REFERENCES tutorial(host_domain, path),
     lecture_name             TEXT,
-    PRIMARY KEY (hostDomain, path, lecture_name),
+    PRIMARY KEY (host_domain, path, lecture_name),
 
     title                    TEXT,
 
@@ -46,13 +46,13 @@ COMMENT ON TABLE  lecture IS 'Lectures sit within a tutorial';
 
 
 CREATE TABLE IF NOT EXISTS stage (
-    hostDomain               TEXT,
+    host_domain              TEXT,
     path                     TEXT,
     lecture_name             TEXT,
-    FOREIGN KEY (hostDomain, path, lecture_name) REFERENCES lecture(hostDomain, path, lecture_name),
+    FOREIGN KEY (host_domain, path, lecture_name) REFERENCES lecture(host_domain, path, lecture_name),
     stage_name               TEXT,
     version                  INTEGER,
-    PRIMARY KEY (hostDomain, path, lecture_name, stage_name, version),
+    PRIMARY KEY (host_domain, path, lecture_name, stage_name, version),
 
     stage_id                 SERIAL,
     UNIQUE (stage_id),
@@ -62,8 +62,8 @@ CREATE TABLE IF NOT EXISTS stage (
     material_tags            TEXT[] NOT NULL DEFAULT '{}',
 
     next_version             INTEGER NULL,
-    FOREIGN KEY (hostDomain, path, lecture_name, stage_name, next_version)
-        REFERENCES stage(hostDomain, path, lecture_name, stage_name, version),
+    FOREIGN KEY (host_domain, path, lecture_name, stage_name, next_version)
+        REFERENCES stage(host_domain, path, lecture_name, stage_name, version),
 
     lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -82,11 +82,10 @@ COMMENT ON COLUMN stage.next_version IS 'If this stage has been replaced by a ne
 CREATE TABLE IF NOT EXISTS stage_setting (
     stage_id                 INTEGER NOT NULL,
     FOREIGN KEY (stage_id) REFERENCES stage(stage_id),
-    hostDomain               TEXT,
     user_id                  INTEGER,
-    FOREIGN KEY (hostDomain, user_id) REFERENCES "user"(hostDomain, user_id),
+    FOREIGN KEY (user_id) REFERENCES "user"(user_id),
     key                      TEXT,
-    PRIMARY KEY (stage_id, hostDomain, user_id, key),
+    PRIMARY KEY (stage_id, user_id, key),
 
     value                    TEXT,
 

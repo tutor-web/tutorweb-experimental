@@ -7,9 +7,8 @@ CREATE TABLE IF NOT EXISTS answer (
 
     stage_id                 INTEGER NOT NULL,
     FOREIGN KEY (stage_id) REFERENCES stage(stage_id),
-    host_domain               TEXT,
     user_id                  INTEGER,
-    FOREIGN KEY (host_domain, user_id) REFERENCES "user"(hostDomain, user_id),
+    FOREIGN KEY (user_id) REFERENCES "user"(user_id),
 
     material_source_id       INTEGER,
     permutation              INTEGER,
@@ -75,7 +74,7 @@ COMMENT ON VIEW stage_material IS 'All appropriate material for all stages, and 
 CREATE OR REPLACE VIEW stage_ugmaterial AS
     SELECT DISTINCT ON (a.material_source_id, a.permutation)
     a.*
-    , JSONB_AGG(JSONB_BUILD_ARRAY(host_domain, user_id, review))
+    , JSONB_AGG(JSONB_BUILD_ARRAY(user_id, review))
       OVER (PARTITION BY a.stage_id, a.material_source_id, a.permutation) AS reviews
     FROM answer a
     --TODO: Strictly should do: AND material_source_id IN (SELECT material_source_id FROM material_source WHERE 'type.template' = ANY(material_tags) AND next_revision IS NULL)

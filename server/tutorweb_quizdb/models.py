@@ -17,6 +17,13 @@ class User(UserBase, Base):
         extend_existing=True,
     )
 
+    user_id = sa.Column(
+        'user_id',
+        sa.Integer,
+        autoincrement=True,
+        primary_key=True)
+    id = synonym('user_id')
+
     @classmethod
     def active_host_domain(cls):
         """
@@ -25,15 +32,9 @@ class User(UserBase, Base):
         return ACTIVE_HOST_DOMAIN
 
     host_domain = sa.Column(
-        'hostdomain',
+        'host_domain',
         sa.UnicodeText,
-        default=lambda: ACTIVE_HOST_DOMAIN,
-        primary_key=True)
-    id = sa.Column(
-        'user_id',
-        sa.Integer,
-        autoincrement=True,
-        primary_key=True)
+        default=lambda: ACTIVE_HOST_DOMAIN)
 
     user_name = sa.Column("user_name", sa.UnicodeText)
     username = synonym('user_name')
@@ -79,14 +80,11 @@ class UserGroup(Base):
             autoincrement=True,
             primary_key=True)
 
-    host_domain = sa.Column(
-        'hostdomain',
-        sa.UnicodeText,
-        sa.ForeignKey('host.hostdomain'))
-
     user_id = sa.Column(
         'user_id',
-        sa.Integer)
+        sa.Integer,
+        sa.ForeignKey('user.user_id')
+    )
 
     group_id = sa.Column(
         'group_id',
@@ -95,10 +93,6 @@ class UserGroup(Base):
     )
 
     __table_args__ = (
-        sa.ForeignKeyConstraint(
-            [host_domain, user_id],
-            [User.host_domain, User.id],
-        ),
         dict(
             extend_existing=True,
         ),

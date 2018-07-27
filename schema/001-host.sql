@@ -3,14 +3,14 @@ BEGIN;
 
 
 CREATE TABLE IF NOT EXISTS host (
-    hostDomain	             TEXT,
-    PRIMARY KEY (hostDomain),
+    host_domain	             TEXT,
+    PRIMARY KEY (host_domain),
 
-    hostKey	             CHAR(32) NOT NULL
+    host_key	             CHAR(32) NOT NULL
 );
 COMMENT ON TABLE  host IS 'All known hosts for tutor-web data';
-COMMENT ON COLUMN host.hostDomain IS 'Fully-qualified domain name';
-COMMENT ON COLUMN host.hostKey IS 'Secret key for host''s data';
+COMMENT ON COLUMN host.host_domain IS 'Fully-qualified domain name';
+COMMENT ON COLUMN host.host_key IS 'Secret key for host''s data';
 
 
 COMMIT;

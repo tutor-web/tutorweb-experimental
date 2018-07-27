@@ -77,7 +77,7 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         """Replace db_stage with a new version"""
         old_stage = db_stage
         db_stage = db_stage.__class__(
-            hostdomain=db_stage.hostdomain,
+            host_domain=db_stage.host_domain,
             path=db_stage.path,
             lecture_name=db_stage.lecture_name,
             stage_name=db_stage.stage_name,
@@ -99,11 +99,11 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         self.DBSession = DBSession
 
         # Add stage
-        DBSession.add(Base.classes.host(hostdomain=models.ACTIVE_HOST_DOMAIN, hostkey='key'))
-        DBSession.add(Base.classes.tutorial(hostdomain=models.ACTIVE_HOST_DOMAIN, path='/tut0'))
-        DBSession.add(Base.classes.lecture(hostdomain=models.ACTIVE_HOST_DOMAIN, path='/tut0', lecture_name='lec0'))
+        DBSession.add(Base.classes.host(host_domain=models.ACTIVE_HOST_DOMAIN, host_key='key'))
+        DBSession.add(Base.classes.tutorial(host_domain=models.ACTIVE_HOST_DOMAIN, path='/tut0'))
+        DBSession.add(Base.classes.lecture(host_domain=models.ACTIVE_HOST_DOMAIN, path='/tut0', lecture_name='lec0'))
         db_stage = Base.classes.stage(
-            hostdomain=models.ACTIVE_HOST_DOMAIN, path='/tut0', lecture_name='lec0',
+            host_domain=models.ACTIVE_HOST_DOMAIN, path='/tut0', lecture_name='lec0',
             stage_name='stage0', version=0,
             title='UT stage',
             stage_setting_spec=dict(
@@ -114,7 +114,7 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         DBSession.add(db_stage)
         DBSession.flush()
         studs = [models.User(
-            hostdomain=models.ACTIVE_HOST_DOMAIN,
+            host_domain=models.ACTIVE_HOST_DOMAIN,
             user_name='user%d' % i,
             email='user%d@example.com' % i,
             password='parp',

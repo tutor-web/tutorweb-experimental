@@ -167,7 +167,7 @@ def getStudentSettings(db_stage, db_user):
             DBSession.query(Base.classes.stage, Base.classes.stage_setting)
             .filter_by(
                 # All versions of this stage
-                hostdomain=db_stage.hostdomain,
+                host_domain=db_stage.host_domain,
                 path=db_stage.path,
                 lecture_name=db_stage.lecture_name,
                 stage_name=db_stage.stage_name,
@@ -176,7 +176,6 @@ def getStudentSettings(db_stage, db_user):
             .filter(Base.classes.stage_setting.stage_id == Base.classes.stage.stage_id)
             .filter(Base.classes.stage_setting.key == key)
             .filter(Base.classes.stage_setting.user_id == db_user.id)
-            .filter(Base.classes.stage_setting.hostdomain == db_user.host_domain)
             # But not this stage
             .filter(Base.classes.stage.stage_id != db_stage.stage_id)
             # TODO: Assume versions increment, rather than traverse list. Yuck?
@@ -193,7 +192,6 @@ def getStudentSettings(db_stage, db_user):
         out[key] = old_ss.value if equivalent else spec.choose_value()
         DBSession.add(Base.classes.stage_setting(
             stage_id=db_stage.stage_id,
-            hostdomain=db_user.host_domain,
             user_id=db_user.id,
             key=key,
             value=out[key],

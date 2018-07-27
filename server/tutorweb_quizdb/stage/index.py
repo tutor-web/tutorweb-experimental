@@ -20,7 +20,7 @@ def stage_get(host_domain, path):
     path, stage_name = os.path.split(path)
     path, lecture_name = os.path.split(path)
     return (DBSession.query(Base.classes.stage)
-            .filter_by(hostdomain=host_domain)
+            .filter_by(host_domain=host_domain)
             .filter_by(path=path)
             .filter_by(lecture_name=lecture_name)
             .filter_by(stage_name=stage_name)
@@ -104,11 +104,10 @@ def stage_review(request):
     for (mss_id, permutation, obj, reviews) in DBSession.execute(
             "SELECT material_source_id, permutation, student_answer, reviews FROM stage_ugmaterial"
             " WHERE stage_id = :stage_id"
-            "   AND (host_domain = :host_domain AND user_id = :user_id)"
+            "   AND user_id = :user_id"
             " ORDER BY time_end",
             dict(
                 stage_id=db_stage.stage_id,
-                host_domain=alloc.db_student.host_domain,
                 user_id=alloc.db_student.id,
             )):
 
@@ -142,21 +141,20 @@ def stage_request_review(request):
     for (mss_id, permutation, reviews) in DBSession.execute(
             "SELECT material_source_id, permutation, reviews FROM stage_ugmaterial"
             " WHERE stage_id = :stage_id"
-            "   AND (host_domain != :host_domain OR user_id != :user_id)"
+            "   AND user_id != :user_id"
             " ORDER BY JSONB_ARRAY_LENGTH(reviews), RANDOM()",
             dict(
                 stage_id=db_stage.stage_id,
-                host_domain=alloc.db_student.host_domain,
                 user_id=alloc.db_student.id,
             )):
 
         # Consider all reviews
         score = 0
-        for (r_host_domain, r_user_id, r_obj) in reviews:
+        for (r_user_id, r_obj) in reviews:
             if r_obj is None:
                 # Ignore empty reviews
                 continue
-            if r_host_domain == alloc.db_student.host_domain and r_user_id == alloc.db_student.id:
+            if r_user_id == alloc.db_student.id:
                 # We reviewed it ourselves, so ignore it
                 score = -99
                 break

@@ -14,12 +14,14 @@ CREATE TABLE IF NOT EXISTS activation (
 
 
 CREATE TABLE IF NOT EXISTS "user" (
-    hostDomain               TEXT,
-    FOREIGN KEY (hostDomain) REFERENCES host(hostDomain),
-    user_id                  SERIAL,  -- NB: user_id is only unique within a host
-    PRIMARY KEY (hostDomain, user_id),
+    user_id                  SERIAL,
+    PRIMARY KEY (user_id),
 
-    user_name                TEXT NULL, -- NB: We allow NULL for remote hosts
+    host_domain              TEXT,
+    FOREIGN KEY (host_domain) REFERENCES host(host_domain),
+    user_name                TEXT NOT NULL,
+    UNIQUE (host_domain, user_name),
+
     email                    TEXT NULL,
     last_login_date          TIMESTAMP NOT NULL DEFAULT now(),
     registered_date          TIMESTAMP NOT NULL DEFAULT now(),
@@ -29,9 +31,9 @@ CREATE TABLE IF NOT EXISTS "user" (
     FOREIGN KEY (activation_id) REFERENCES activation(activation_id)
 );
 COMMENT ON TABLE  "user" IS 'All students and administrators';
-COMMENT ON COLUMN "user".hostDomain IS 'The host this user belongs to';
-COMMENT ON COLUMN "user".user_id IS 'Numeric ID for user (unique per-host)';
-COMMENT ON COLUMN "user".user_name IS 'Host user name (e.g. "official" e-mail address)';
+COMMENT ON COLUMN "user".host_domain IS 'The host this user belongs to';
+COMMENT ON COLUMN "user".user_id IS 'Numeric ID for user';
+COMMENT ON COLUMN "user".user_name IS 'Host user name (e.g. "official" e-mail address) / Generated ID from remote server';
 
 
 CREATE TABLE IF NOT EXISTS "group" (
@@ -55,10 +57,9 @@ CREATE TABLE IF NOT EXISTS user_group (
     PRIMARY KEY (user_group_id),
 
     group_id                 INTEGER,
-    hostDomain               TEXT,
     user_id                  INTEGER,
     FOREIGN KEY(group_id) REFERENCES "group" (group_id),
-    FOREIGN KEY(hostDomain, user_id) REFERENCES "user"(hostDomain, user_id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY(user_id) REFERENCES "user" (user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 COMMENT ON TABLE  user_group IS 'Many-to-many user:group';
 
