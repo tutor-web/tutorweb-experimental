@@ -6,7 +6,7 @@ NODE != which node || which nodejs
 NODE_CMD = NODE_PATH="$(CURDIR)" $(NODE)
 SHELL=/bin/bash -o pipefail
 
-OUTPUTS := index preview stage test/select_list
+OUTPUTS := coin index preview stage test/select_list
 
 OUT_FILES = \
     www/geogebra \

@@ -1,0 +1,23 @@
+@import "lib/select_list.css";
+@import "lib/usermenu.css";
+@import "lib/alert.css";
+@import "lib/quiz.css";
+
+body {
+    background-color: #f8f9fa;
+}
+
+h1 {
+    text-align: center;
+    margin: 0.5rem;
+}
+h1 img {
+    max-width: 100%;
+}
+
+main > section {
+    background-color: white;
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}

@@ -112,7 +112,7 @@ CoinView.prototype = new View(jQuery);
     var quiz, twView, twMenu, walletAddr;
 
     // Do nothing if not on the right page
-    if ($('body.page-coin').length === 0) { return; }
+    if (!window) { return; }
 
     // Wire up quiz object
     twView = new CoinView($);
