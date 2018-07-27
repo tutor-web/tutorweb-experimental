@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.ext.declarative import declared_attr
 from pluserable.data.models import (
     GroupBase, UserBase)
@@ -35,7 +35,8 @@ class User(UserBase, Base):
         autoincrement=True,
         primary_key=True)
 
-    username = sa.Column("user_name", sa.UnicodeText)
+    user_name = sa.Column("user_name", sa.UnicodeText)
+    username = synonym('user_name')
     _password = sa.Column('pw_hash', sa.Unicode(256), nullable=False)
 
     groups = relationship("Group", secondary='user_group')
