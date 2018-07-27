@@ -1,5 +1,5 @@
 from pyramid.httpexceptions import (
-    HTTPException,
+    HTTPForbidden,
     HTTPBadRequest
 )
 
@@ -17,5 +17,5 @@ def view_exception(e, request):
 
 def includeme(config):
     config.add_exception_view(view_exception, Exception, renderer='json')
-    config.add_exception_view(view_exception, HTTPException, renderer='json')
+    config.add_exception_view(view_exception, HTTPForbidden, renderer='json')
     config.add_exception_view(view_exception, HTTPBadRequest, renderer='json')
