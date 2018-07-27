@@ -3,6 +3,7 @@
 /*global module, MathJax, Promise */
 require('es6-promise').polyfill();
 var shuffle = require('knuth-shuffle').knuthShuffle;
+var AjaxApi = require('./ajaxapi.js');
 
 var ggbCount = 0;
 
@@ -204,23 +205,39 @@ function RenderTex($) {
     };
 }
 
-/** Place TeX preview box after given element */
-function renderPreviewTeX($, jqParent) {
+/** Place preview box after given element */
+function renderPreviewDiv($, jqParent) {
     function intelligentText(t) {
         return t.split(/(\n)/).map(function (part, i) {
             return i % 2 === 1 ? $('<br/>') : document.createTextNode(part);
         });
     }
 
-    return Promise.all(jqParent.find('.preview-as-tex').toArray().map(function (el) {
+    return Promise.all(jqParent.find('.preview-as-tex,.preview-as-rst').toArray().map(function (el) {
         var jqEl = $(el),
-            jqPreview = $('<div class="tex-preview parse-as-tex">');
+            render_mode = el.classList.contains('preview-as-tex') ? 'tex' : 'rst',
+            jqPreview = $('<div class="tex-preview parse-as-"' + render_mode + '>');
 
-        console.log(jqPreview);
         function renderPreview(text) {
-            jqPreview.empty().append(intelligentText(text));
-            jqPreview.removeClass('transformed');
-            module.exports.renderTex($, jqPreview);
+            var p;
+
+            if (render_mode === 'rst') {
+                // Ask server to turn text into HTML
+                p = (new AjaxApi($.ajax)).postJson('/api/rst/render', {data: text}).then(function (out) {
+                    jqPreview[0].innerHTML = out.html;
+                }).catch(function (error) {
+                    jqPreview[0].innerHTML = '(preview not available: ' + error.message + ')';
+                });
+            } else {
+                // Reverse intelligentText operation as part of renderTex
+                p = Promise.resolve();
+                jqPreview.empty().append(intelligentText(text));
+            }
+
+            return p.then(function () {
+                jqPreview.removeClass('transformed');
+                module.exports.renderTex($, jqPreview);
+            });
         }
 
         jqEl.on('keyup paste', function (e) {
@@ -294,7 +311,7 @@ module.exports.renderTex = function ($, jqEl) {
         throw err;
     }
 
-    return rt.renderTex(jqEl).then(shuffleElements).then(renderGgb).then(renderPreviewTeX.bind(null, $)).then(function () {
+    return rt.renderTex(jqEl).then(shuffleElements).then(renderGgb).then(renderPreviewDiv.bind(null, $)).then(function () {
         jqEl.removeClass("busy");
     })['catch'](promiseFatalError);
 };
