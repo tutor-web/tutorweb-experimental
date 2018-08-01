@@ -13,6 +13,8 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 from pyramid.session import SignedCookieSessionFactory
 
+from tutorweb_quizdb import smileycoin
+
 
 class BaseExtensions(object):
     def __json__(self, request):
@@ -72,6 +74,9 @@ def main(global_config, **settings):
         )
     config.setup_pluserable(global_config['__file__'])
 
+    smileycoin.configure(settings, prefix='smileycoin.')
+
+    config.include('tutorweb_quizdb.coin')
     config.include('tutorweb_quizdb.exceptions')
     config.include('tutorweb_quizdb.logerror')
     config.include('tutorweb_quizdb.material.render')
