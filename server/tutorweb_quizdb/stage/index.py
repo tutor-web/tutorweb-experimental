@@ -117,7 +117,7 @@ def stage_review(request):
             uri=alloc.to_public_id(mss_id, permutation),
             text=obj.get('text', '') + ' - ' + obj.get('choice_correct', ''),
             # TODO: Render as HTML?
-            children=[r[2] or {} for r in reviews],
+            children=[r[1] or {} for r in reviews],
             score=score,
         ))
     return dict(material=out)
