@@ -1,4 +1,5 @@
 @import "lib/select_list.css";
+@import "lib/select_list.grade.css";
 @import "lib/usermenu.css";
 @import "lib/alert.css";
 @import "lib/quiz.css";
@@ -21,14 +22,3 @@ main > section {
     padding: 1rem;
     margin-bottom: 1rem;
 }
-
-/* Grades should float to the right, and have a colour matching your score */
-.select-list .grade {
-    float: right;
-    font-weight: bold;
-    color: #666;
-}
-.select-list .grade.aced   { color: hsl( 43, 74%, 49%); }
-.select-list .grade.high   { color: hsl(117, 40%, 49%); }
-.select-list .grade.medium { color: hsl(209, 40%, 49%); }
-.select-list .grade.low    { color: hsl(  0, 40%, 49%); }
