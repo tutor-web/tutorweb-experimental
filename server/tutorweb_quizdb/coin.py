@@ -55,7 +55,7 @@ def view_award(request):
         coinAwarded += row[1]
         history.insert(0, dict(
             lecture=row[2],
-            time=datetime_to_timestamp(row[0].timetuple()) if row[1] else None,
+            time=datetime_to_timestamp(row[0]) if row[1] else None,
             amount=row[1],
             claimed=(coinAwarded <= coinClaimed and row[0] <= lastAwardTime)
         ))
