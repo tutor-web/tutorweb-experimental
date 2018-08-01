@@ -46,8 +46,8 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
             }
             jqLink.text(state.text || '');
 
-            if (state.smly) {
-                jqLink.append('<span class="smly">' + state.smly + '</span>');
+            if (state.millismly) {
+                jqLink.append('<span class="smly">' + (state.millismly / 1000) + '</span>');
             }
 
             // Decide what action this state takes
@@ -120,7 +120,7 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
             return quiz.updateUserDetails(null).then(function (user) {
                 var menu = {
                     text: user.username,
-                    smly: user.smly,
+                    millismly: user.millismly,
                     tooltip: "You are connected to tutor-web",
                     action: []
                 };

@@ -38,12 +38,20 @@ def student_details(request):
     if not request.user:
         raise HTTPForbidden()
 
+    rs = DBSession.execute(
+        'SELECT balance'
+        ' FROM coin_unclaimed'
+        ' WHERE user_id = :user_id'
+        '', dict(
+            user_id=request.user.user_id,
+    )).fetchone()
+
     return dict(
         id=request.user.id,
         email=request.user.email,
         username=request.user.username,
         host_domain=request.user.host_domain,
-        smly=25,  # TODO:
+        millismly=int(rs[0]),
     )
 
 

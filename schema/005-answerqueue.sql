@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS answer (
     review                   JSONB
 );
 CREATE INDEX IF NOT EXISTS answer_stage_id ON answer(stage_id);
+CREATE INDEX IF NOT EXISTS answer_user_id ON answer(user_id);  -- For coin_unclaimed view
 CREATE INDEX IF NOT EXISTS answer_mss_permutation ON answer(material_source_id, permutation);  -- For picking out UG material
 COMMENT ON TABLE  answer IS 'Raw answer objects synced from client';
 COMMENT ON COLUMN answer.time_start IS 'When the student started answering, in UTC';
