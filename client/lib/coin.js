@@ -143,7 +143,7 @@ CoinView.prototype = new View(jQuery);
                          curState === 'coinaward-redeem' ? twView.getWalletId() :
                             null;
 
-            quiz.updateAward(twView.portalRootUrl(), walletAddr, twView.getCaptchaResponse()).then(function (data) {
+            quiz.updateAward(walletAddr, twView.getCaptchaResponse()).then(function (data) {
                 if (data.coin_available > 0) {
                     twView.updateActions(['gohome', 'coinaward-donate', '']);
                 } else {

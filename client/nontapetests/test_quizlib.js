@@ -1961,11 +1961,11 @@ module.exports.test_updateAward = function (test) {
 
     // Fetch without wallet ID
     }).then(function (args) {
-        var promise = quiz.updateAward('ut://tutorial0/', null);
+        var promise = quiz.updateAward(null);
         test.deepEqual(aa.getQueue(), [
-            'POST ut://tutorial0/@@quizdb-student-award 0',
+            'POST /api/coin/award 0',
         ]);
-        aa.setResponse('POST ut://tutorial0/@@quizdb-student-award 0', {"things": true});
+        aa.setResponse('POST /api/coin/award 0', {"things": true});
         return promise;
 
     }).then(function (args) {
@@ -1975,11 +1975,11 @@ module.exports.test_updateAward = function (test) {
 
     // Fetch with wallet ID, no captcha does the same
     }).then(function (args) {
-        var promise = quiz.updateAward('ut://tutorial0/', "WallEt");
+        var promise = quiz.updateAward("WallEt");
         test.deepEqual(aa.getQueue(), [
-            'POST ut://tutorial0/@@quizdb-student-award 1',
+            'POST /api/coin/award 1',
         ]);
-        aa.setResponse('POST ut://tutorial0/@@quizdb-student-award 1', {"things": true});
+        aa.setResponse('POST /api/coin/award 1', {"things": true});
         return promise;
 
     }).then(function (args) {
@@ -1989,15 +1989,15 @@ module.exports.test_updateAward = function (test) {
 
     // Fetch with wallet ID and captcha
     }).then(function (args) {
-        var promise = quiz.updateAward('ut://tutorial0/', "WaLlEt", "12345");
+        var promise = quiz.updateAward("WaLlEt", "12345");
         test.deepEqual(aa.getQueue(), [
-            'POST ut://tutorial0/@@quizdb-student-award 2',
+            'POST /api/coin/award 2',
         ]);
         test.deepEqual(
-            aa.data['POST ut://tutorial0/@@quizdb-student-award 2'],
+            aa.data['POST /api/coin/award 2'],
             {"walletId": 'WaLlEt', captchaResponse: '12345'}
         );
-        aa.setResponse('POST ut://tutorial0/@@quizdb-student-award 2', {"things": false});
+        aa.setResponse('POST /api/coin/award 2', {"things": false});
         return promise;
 
     }).then(function (args) {

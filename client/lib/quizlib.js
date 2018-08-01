@@ -776,7 +776,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
     };
 
     /** Return a promise, returning the current account balance **/
-    this.updateAward = function (portalRootUrl, walletId, captchaResponse) {
+    this.updateAward = function (walletId, captchaResponse) {
         var self = this;
 
         if (walletId && walletId !== '$$DONATE:EIAS' && !captchaResponse) {
@@ -785,7 +785,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         }
 
         return self.ajaxApi.postJson(
-            portalRootUrl + '@@quizdb-student-award',
+            '/api/coin/award',
             { "walletId": walletId, "captchaResponse": captchaResponse }
         );
     };
