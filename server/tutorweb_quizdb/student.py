@@ -50,7 +50,6 @@ def student_details(request):
         id=request.user.id,
         email=request.user.email,
         username=request.user.username,
-        host_domain=request.user.host_domain,
         millismly=int(rs[0]),
     )
 

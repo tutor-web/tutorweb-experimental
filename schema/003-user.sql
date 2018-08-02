@@ -17,10 +17,10 @@ CREATE TABLE IF NOT EXISTS "user" (
     user_id                  SERIAL,
     PRIMARY KEY (user_id),
 
-    host_domain              TEXT,
-    FOREIGN KEY (host_domain) REFERENCES host(host_domain),
+    host_id                  INTEGER,
+    FOREIGN KEY (host_id) REFERENCES host(host_id),
     user_name                TEXT NOT NULL,
-    UNIQUE (host_domain, user_name),
+    UNIQUE (host_id, user_name),
 
     email                    TEXT NULL,
     last_login_date          TIMESTAMP NOT NULL DEFAULT now(),
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS "user" (
     FOREIGN KEY (activation_id) REFERENCES activation(activation_id)
 );
 COMMENT ON TABLE  "user" IS 'All students and administrators';
-COMMENT ON COLUMN "user".host_domain IS 'The host this user belongs to';
+COMMENT ON COLUMN "user".host_id IS 'The host this user belongs to';
 COMMENT ON COLUMN "user".user_id IS 'Numeric ID for user';
 COMMENT ON COLUMN "user".user_name IS 'Host user name (e.g. "official" e-mail address) / Generated ID from remote server';
 

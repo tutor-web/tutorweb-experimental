@@ -17,6 +17,9 @@ from pyramid.session import SignedCookieSessionFactory
 from tutorweb_quizdb import smileycoin
 
 
+ACTIVE_HOST = 1  # The first host should be "us"
+
+
 class BaseExtensions(object):
     def __json__(self, request):
         """
@@ -66,7 +69,6 @@ def main(global_config, **settings):
     """
     config = Configurator(settings=settings, route_prefix='/api/')
 
-    tutorweb_quizdb.models.ACTIVE_HOST_DOMAIN = settings['tutorweb.host_domain']
     initialize_dbsession(global_config['ENV_DB_URL'])
     config.set_authorization_policy(ACLAuthorizationPolicy())
 

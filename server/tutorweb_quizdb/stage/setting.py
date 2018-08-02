@@ -167,7 +167,7 @@ def getStudentSettings(db_stage, db_user):
             DBSession.query(Base.classes.stage, Base.classes.stage_setting)
             .filter_by(
                 # All versions of this stage
-                host_domain=db_stage.host_domain,
+                host_id=db_stage.host_id,
                 path=db_stage.path,
                 lecture_name=db_stage.lecture_name,
                 stage_name=db_stage.stage_name,

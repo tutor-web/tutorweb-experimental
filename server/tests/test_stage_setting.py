@@ -77,7 +77,7 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         """Replace db_stage with a new version"""
         old_stage = db_stage
         db_stage = db_stage.__class__(
-            host_domain=db_stage.host_domain,
+            host_id=db_stage.host_id,
             path=db_stage.path,
             lecture_name=db_stage.lecture_name,
             stage_name=db_stage.stage_name,
@@ -94,16 +94,15 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
 
     def test_getStudentSetting(self):
         """Student settings are stored in DB"""
-        from tutorweb_quizdb import DBSession, Base
+        from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
         from tutorweb_quizdb import models
         self.DBSession = DBSession
 
         # Add stage
-        DBSession.add(Base.classes.host(host_domain=models.ACTIVE_HOST_DOMAIN, host_key='key'))
-        DBSession.add(Base.classes.tutorial(host_domain=models.ACTIVE_HOST_DOMAIN, path='/tut0'))
-        DBSession.add(Base.classes.lecture(host_domain=models.ACTIVE_HOST_DOMAIN, path='/tut0', lecture_name='lec0'))
+        DBSession.add(Base.classes.tutorial(host_id=ACTIVE_HOST, path='/tut0'))
+        DBSession.add(Base.classes.lecture(host_id=ACTIVE_HOST, path='/tut0', lecture_name='lec0'))
         db_stage = Base.classes.stage(
-            host_domain=models.ACTIVE_HOST_DOMAIN, path='/tut0', lecture_name='lec0',
+            host_id=ACTIVE_HOST, path='/tut0', lecture_name='lec0',
             stage_name='stage0', version=0,
             title='UT stage',
             stage_setting_spec=dict(
@@ -114,7 +113,7 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         DBSession.add(db_stage)
         DBSession.flush()
         studs = [models.User(
-            host_domain=models.ACTIVE_HOST_DOMAIN,
+            host_id=ACTIVE_HOST,
             user_name='user%d' % i,
             email='user%d@example.com' % i,
             password='parp',

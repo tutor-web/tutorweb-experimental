@@ -8,8 +8,6 @@ from pluserable.data.sqlalchemy.models import (
 
 from tutorweb_quizdb import Base
 
-ACTIVE_HOST_DOMAIN = 'ut'
-
 
 class User(UserBase, Base):
     __tablename__ = 'user'
@@ -24,17 +22,12 @@ class User(UserBase, Base):
         primary_key=True)
     id = synonym('user_id')
 
-    @classmethod
-    def active_host_domain(cls):
-        """
-        Return the host_domain currently in use
-        """
-        return ACTIVE_HOST_DOMAIN
-
-    host_domain = sa.Column(
-        'host_domain',
-        sa.UnicodeText,
-        default=lambda: ACTIVE_HOST_DOMAIN)
+    host_id = sa.Column(
+        'host_id',
+        sa.Integer,
+        sa.ForeignKey('host.host_id'),
+        autoincrement=True,
+        default=1)
 
     user_name = sa.Column("user_name", sa.UnicodeText)
     username = synonym('user_name')

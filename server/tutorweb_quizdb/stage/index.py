@@ -2,7 +2,7 @@ import os
 import time
 import urllib.parse
 
-from tutorweb_quizdb import DBSession, Base
+from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.material.render import material_render
 from tutorweb_quizdb.student import get_current_student
 from .allocation import get_allocation
@@ -10,7 +10,7 @@ from .answer_queue import sync_answer_queue
 from .setting import getStudentSettings, clientside_settings
 
 
-def stage_get(host_domain, path):
+def stage_get(host_id, path):
     """
     Get the stage object, given a complete path
     """
@@ -20,7 +20,7 @@ def stage_get(host_domain, path):
     path, stage_name = os.path.split(path)
     path, lecture_name = os.path.split(path)
     return (DBSession.query(Base.classes.stage)
-            .filter_by(host_domain=host_domain)
+            .filter_by(host_id=host_id)
             .filter_by(path=path)
             .filter_by(lecture_name=lecture_name)
             .filter_by(stage_name=stage_name)
@@ -32,7 +32,7 @@ def stage_index(request):
     """
     Get all details for a stage
     """
-    db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
+    db_stage = stage_get(ACTIVE_HOST, request.params['path'])
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
     alloc = get_allocation(settings, db_stage, db_student)
@@ -68,7 +68,7 @@ def stage_material(request):
     """
     Get one, or all material for a stage
     """
-    db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
+    db_stage = stage_get(ACTIVE_HOST, request.params['path'])
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
     alloc = get_allocation(settings, db_stage, db_student)
@@ -94,7 +94,7 @@ def stage_review(request):
     """
     Get the reviews for all questions you have written
     """
-    db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
+    db_stage = stage_get(ACTIVE_HOST, request.params['path'])
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
     alloc = get_allocation(settings, db_stage, db_student)
@@ -131,7 +131,7 @@ def stage_request_review(request):
     params:
     - path: Stage path
     """
-    db_stage = stage_get(request.registry.settings['tutorweb.host_domain'], request.params['path'])
+    db_stage = stage_get(ACTIVE_HOST, request.params['path'])
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
     alloc = get_allocation(settings, db_stage, db_student)
