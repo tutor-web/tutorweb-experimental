@@ -6,7 +6,7 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.interfaces import IRendererFactory
-from sqlalchemy import engine_from_config
+from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -45,11 +45,11 @@ def read_machine_id():
         return f.read()
 
 
-def initialize_dbsession(settings):
+def initialize_dbsession(db_url):
     """
     Use Automap to generate class definitions from tables
     """
-    engine = engine_from_config(settings, prefix='sqlalchemy.')
+    engine = create_engine(db_url)
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
     Base.prepare(engine, reflect=True)
@@ -67,7 +67,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings, route_prefix='/api/')
 
     tutorweb_quizdb.models.ACTIVE_HOST_DOMAIN = settings['tutorweb.host_domain']
-    initialize_dbsession(settings)
+    initialize_dbsession(global_config['ENV_DB_URL'])
     config.set_authorization_policy(ACLAuthorizationPolicy())
 
     machine_id = read_machine_id()

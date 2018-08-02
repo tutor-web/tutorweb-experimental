@@ -14,6 +14,13 @@ set -a  # Auto-export for --exec option
 PROJECT_PATH="${PROJECT_PATH-$(dirname "$(readlink -f "$0")")}"  # The full project path, e.g. /srv/tutor-web.beta
 PROJECT_NAME="${PROJECT_NAME-$(basename ${PROJECT_PATH})}"  # The project directory name, e.g. tutor-web.beta
 PROJECT_MODE="${PROJECT_MODE-development}"  # The project mode, development or production
+
+DB_SUDO_USER="${DB_SUDO_USER-postgres}"  # The user that has root access to DB
+DB_NAME="${DB_NAME-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_db}"  # The DB to create
+DB_USER="${DB_USER-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_user}"  # The credentials that the app will use
+DB_PASS="${DB_PASS-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_pass}"  # The credentials that the app will use
+DB_URL=postgresql://${DB_USER}:${DB_PASS}@localhost/${DB_NAME}
+
 SERVER_NAME="${SERVER_NAME-$(hostname --fqdn)}"  # The server_name(s) NGINX responds to
 SERVER_CERT_PATH="${SERVER_CERT_PATH-}"  # e.g. /etc/nginx/ssl/certs
 UWSGI_USER="${UWSGI_USER-nobody}"
@@ -30,14 +37,18 @@ else
 fi
 set +a
 
-set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_'
+set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_|^DB_'
 
 # If just used to execute a server (in development mode, e.g.) do that
 [ $1 = '--exec' ] && { shift; exec $*; }
 
 # ---------------------------
+# (re)create postgresql datbase
+(cd schema && sudo -u "${DB_SUDO_USER}" ./rebuild.sh "${DB_NAME}" "${DB_USER}" "${DB_PASS}"; ) || exit 1
+
+# ---------------------------
 # Systemd unit file to run uWSGI
-set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_' > "/etc/systemd/system/${PROJECT_NAME}.env"
+set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_|^DB_' > "/etc/systemd/system/${PROJECT_NAME}.env"
 chmod 600 -- "/etc/systemd/system/${PROJECT_NAME}.env"
 
 systemctl | grep -q "${PROJECT_NAME}.service" && systemctl stop ${PROJECT_NAME}.service
