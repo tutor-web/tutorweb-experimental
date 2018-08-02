@@ -85,7 +85,7 @@ def main(global_config, **settings):
         )
     config.setup_pluserable(os.path.join(global_config['here'], 'kerno.ini'))
 
-    smileycoin.configure(settings, prefix='smileycoin.')
+    smileycoin.configure(global_config, prefix='ENV_APP_SMILEYCOIN_')
 
     config.include('tutorweb_quizdb.coin')
     config.include('tutorweb_quizdb.exceptions')

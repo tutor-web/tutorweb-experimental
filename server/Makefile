@@ -25,7 +25,7 @@ coverage: compile
 	ln -rs htmlcov ../client/www/htmlcov
 	echo Visit http://...//htmlcov/index.html
 
-start:
-	./bin/pserve development.ini
+start: compile ../install.sh ../.local-conf
+	(cd .. && ./install.sh --exec server/bin/pserve server/application.ini)
 
 .PHONY: compile test start

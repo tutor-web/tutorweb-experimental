@@ -26,6 +26,20 @@ apt install \
     make nodejs nodejs-legacy yarn nginx
 ```
 
+## Production configuration
+
+Create a ``.local-conf`` configuration file, including the smileycoin wallet configuration:
+
+    cat <<EOF > .local-conf
+    SERVICE_MODE=production
+    SERVER_NAME=beta.tutor-web.net
+
+    APP_SMILEYCOIN_rpc_pass=(passphrase)
+    EOF
+
+For more information in service options, see ``install.sh``. For more information on
+smileycoin options, see ``tutorweb_quizdb/smileycoin.py``.
+
 ## Debugging
 
 ### Fake SMTP server for activation e-mails

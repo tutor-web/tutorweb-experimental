@@ -6,50 +6,53 @@ set -ex
 #
 # It is tested on Debian, but should hopefully work on anything systemd-based.
 
-[ -e ".local-conf" ] && . ./.local-conf
-
 # ---------------------------
 # Config options, to override any of these, set them in .local.conf
 
-PROJECT_PATH="${PROJECT_PATH-$(dirname "$(readlink -f "$0")")}"
-SERVICE_MODE="${SERVICE_MODE-development}"
-SERVER_NAME="${SERVER_NAME-$(hostname --fqdn)}"
+set -a  # Auto-export for --exec option
+[ -e ".local-conf" ] && . ./.local-conf
+PROJECT_PATH="${PROJECT_PATH-$(dirname "$(readlink -f "$0")")}"  # The full project path, e.g. /srv/tutor-web.beta
+PROJECT_NAME="${PROJECT_NAME-$(basename ${PROJECT_PATH})}"  # The project directory name, e.g. tutor-web.beta
+PROJECT_MODE="${PROJECT_MODE-development}"  # The project mode, development or production
+SERVER_NAME="${SERVER_NAME-$(hostname --fqdn)}"  # The server_name(s) NGINX responds to
 SERVER_CERT_PATH="${SERVER_CERT_PATH-}"  # e.g. /etc/nginx/ssl/certs
-SERVICE_NAME="${SERVICE_NAME-tutorweb}"
-SERVICE_FILE="${SERVICE_FILE-/etc/systemd/system/${SERVICE_NAME}.service}"
-UWSGI_BIN="${UWSGI_BIN-${PROJECT_PATH}/server/bin/uwsgi}"
 UWSGI_USER="${UWSGI_USER-nobody}"
 UWSGI_GROUP="${UWSGI_GROUP-nogroup}"
-UWSGI_SOCKET="${UWSGI_SOCKET-/tmp/${SERVICE_NAME}_uwsgi.${SERVICE_MODE}.sock}"
-UWSGI_TIMEOUT="${UWSGI_TIMEOUT-5m}"
-UWSGI_PROCESSES="${UWSGI_PROCESSES-4}"
-UWSGI_THREADS="${UWSGI_THREADS-4}"
-UWSGI_API_CACHE_TIME="${UWSGI_API_CACHE_TIME-60m}"
-UWSGI_CACHE_SIZE="${UWSGI_CACHE_SIZE-1g}"
-[ "${SERVICE_MODE}" = "production" ] && UWSGI_CACHE_ZONE="${UWSGI_CACHE_ZONE-api_cache}" || UWSGI_CACHE_ZONE="${UWSGI_CACHE_ZONE-off}"
+UWSGI_SOCKET="${UWSGI_SOCKET-/tmp/${PROJECT_NAME}_uwsgi.${PROJECT_MODE}.sock}"
+UWSGI_MAILSENDER="${UWSGI_MAILSENDER-noreply@$SERVER_NAME}"
 
-set | grep -E 'UWSGI|SERVICE'
+if [ "${PROJECT_MODE}" = "production" ]; then
+    UWSGI_LOGLEVEL_ROOT="${UWSGI_LOGLEVEL_ROOT-INFO}"
+    UWSGI_LOGLEVEL_APP="${UWSGI_LOGLEVEL_APP-DEBUG}"
+else
+    UWSGI_LOGLEVEL_ROOT="${UWSGI_LOGLEVEL_ROOT-WARN}"
+    UWSGI_LOGLEVEL_APP="${UWSGI_LOGLEVEL_APP-WARN}"
+fi
+set +a
+
+set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_'
+
+# If just used to execute a server (in development mode, e.g.) do that
+[ $1 = '--exec' ] && { shift; exec $*; }
 
 # ---------------------------
 # Systemd unit file to run uWSGI
+set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_' > "/etc/systemd/system/${PROJECT_NAME}.env"
+chmod 600 -- "/etc/systemd/system/${PROJECT_NAME}.env"
 
-systemctl | grep -q "${SERVICE_NAME}.service" && systemctl stop ${SERVICE_NAME}.service
-cat <<EOF > ${SERVICE_FILE}
+systemctl | grep -q "${PROJECT_NAME}.service" && systemctl stop ${PROJECT_NAME}.service
+cat <<EOF > /etc/systemd/system/${PROJECT_NAME}.service
 [Unit]
-Description=uWSGI daemon for ${SERVICE_NAME}
+Description=uWSGI daemon for ${PROJECT_NAME}
 After=network.target
 
 [Service]
-ExecStart=${UWSGI_BIN} \
-    --master \
-    --processes=${UWSGI_PROCESSES} --threads=${UWSGI_THREADS} \
-    --enable-threads --thunder-lock \
-    --mount /=tutorweb_quizdb.web:app \
-    --chmod-socket=666 \
-    -s ${UWSGI_SOCKET}
+ExecStart=${PROJECT_PATH}/server/bin/pserve \
+    ${PROJECT_PATH}/server/application.ini
 WorkingDirectory=${PROJECT_PATH}/server
 User=${UWSGI_USER}
 Group=${UWSGI_GROUP}
+EnvironmentFile=/etc/systemd/system/${PROJECT_NAME}.env
 Restart=on-failure
 RestartSec=5s
 KillSignal=SIGQUIT
@@ -61,21 +64,21 @@ NotifyAccess=all
 WantedBy=multi-user.target
 EOF
 
-if [ "${SERVICE_MODE}" = "production" ]; then
+if [ "${PROJECT_MODE}" = "production" ]; then
     [ -f "${UWSGI_SOCKET}" ] && chown ${UWSGI_USER}:${UWSGI_GROUP} "${UWSGI_SOCKET}"
-    systemctl enable ${SERVICE_NAME}.service
-    systemctl start ${SERVICE_NAME}.service
+    systemctl enable ${PROJECT_NAME}.service
+    systemctl start ${PROJECT_NAME}.service
 else
-    systemctl disable ${SERVICE_NAME}.service
-    systemctl stop ${SERVICE_NAME}.service
+    systemctl disable ${PROJECT_NAME}.service
+    systemctl stop ${PROJECT_NAME}.service
 fi
 
 # ---------------------------
 # NGINX config for serving clientside
-echo -n "" > /etc/nginx/sites-available/${SERVICE_NAME}
+echo -n "" > /etc/nginx/sites-available/${PROJECT_NAME}
 
 if [ -n "${SERVER_CERT_PATH}" ]; then
-    cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
+    cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
 server {
     listen      80;
     server_name ${SERVER_NAME};
@@ -107,14 +110,14 @@ server {
 
 EOF
 else
-    cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
+    cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
 server {
     listen      80;
     server_name ${SERVER_NAME};
 EOF
 fi
 
-cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
+cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
     charset     utf-8;
     root "${PROJECT_PATH}/client/www";
     gzip        on;
@@ -145,6 +148,6 @@ cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
     }
 }
 EOF
-ln -fs /etc/nginx/sites-available/${SERVICE_NAME} /etc/nginx/sites-enabled/${SERVICE_NAME}
+ln -fs /etc/nginx/sites-available/${PROJECT_NAME} /etc/nginx/sites-enabled/${PROJECT_NAME}
 nginx -t
 systemctl reload nginx.service
