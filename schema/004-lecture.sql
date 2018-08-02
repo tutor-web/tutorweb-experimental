@@ -8,9 +8,9 @@ CREATE TABLE IF NOT EXISTS tutorial (
 
     title                    TEXT,
 
-    lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
+    lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
-SELECT ddl_lastUpdate_trigger('tutorial');
+SELECT ddl_lastupdate_trigger('tutorial');
 COMMENT ON TABLE  tutorial IS 'Tree structure for all tutorials';
 
 
@@ -24,9 +24,9 @@ CREATE TABLE IF NOT EXISTS subscription (
     PRIMARY KEY (host_id, user_id, path),
 
     hidden                   BOOLEAN NOT NULL DEFAULT 'f',
-    lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
+    lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
-SELECT ddl_lastUpdate_trigger('subscription');
+SELECT ddl_lastupdate_trigger('subscription');
 COMMENT ON TABLE  subscription IS 'Student<->tutorial subscriptions';
 
 
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS lecture (
 
     title                    TEXT,
 
-    lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
+    lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
 COMMENT ON TABLE  lecture IS 'Lectures sit within a tutorial';
 
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS stage (
     FOREIGN KEY (host_id, path, lecture_name, stage_name, next_version)
         REFERENCES stage(host_id, path, lecture_name, stage_name, version),
 
-    lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
+    lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
 COMMENT ON TABLE  stage IS 'An individual stage in this lecture, and the tags for relevant content within';
 COMMENT ON COLUMN stage.stage_id IS 'A shorthand to avoid refering to the entire compound key';
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS stage_setting (
 
     value                    TEXT,
 
-    lastUpdate               TIMESTAMP NOT NULL DEFAULT NOW()
+    lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
 COMMENT ON TABLE  stage_setting IS 'All chosen settings for a stage, generic and per-student';
 COMMENT ON COLUMN stage_setting.user_id IS 'Student setting is for, or one of the special students:'

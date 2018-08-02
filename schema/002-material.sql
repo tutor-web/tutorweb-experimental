@@ -3,14 +3,14 @@
 BEGIN;
 
 
-CREATE TABLE IF NOT EXISTS dataFrame (
+CREATE TABLE IF NOT EXISTS dataframe (
     path                     TEXT NOT NULL,
     revision                 CHAR(40) NOT NULL,
     PRIMARY KEY (path, revision),
 
     next_revision         CHAR(40)
 );
-COMMENT ON TABLE  dataFrame IS 'material repository source for data frame definitions';
+COMMENT ON TABLE  dataframe IS 'material repository source for data frame definitions';
 
 
 CREATE TABLE IF NOT EXISTS material_source (
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS material_source (
     md5sum                   TEXT,
     permutation_count        INTEGER NOT NULL DEFAULT 1,
     material_tags            TEXT[] NOT NULL DEFAULT '{}',
-    dataFrame_paths          TEXT[] NOT NULL DEFAULT '{}',
+    dataframe_paths          TEXT[] NOT NULL DEFAULT '{}',
     -- NB: Can't have a FOREIGN KEY on array types
 
     next_revision            TEXT
