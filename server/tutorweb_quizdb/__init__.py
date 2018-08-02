@@ -1,4 +1,5 @@
 import datetime
+import os.path
 
 import pyramid.httpexceptions as exc
 from pyramid.authentication import AuthTktAuthenticationPolicy
@@ -72,7 +73,7 @@ def main(global_config, **settings):
             to_override='pluserable:templates/%s.mako' % template,
             override_with='tutorweb_quizdb:templates/auth/%s.mako' % template
         )
-    config.setup_pluserable(global_config['__file__'])
+    config.setup_pluserable(os.path.join(global_config['here'], 'kerno.ini'))
 
     smileycoin.configure(settings, prefix='smileycoin.')
 
