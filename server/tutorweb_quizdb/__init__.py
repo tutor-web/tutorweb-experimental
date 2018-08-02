@@ -37,6 +37,14 @@ Base = automap_base(declarative_base=declarative_base(cls=BaseExtensions))
 import tutorweb_quizdb.models  # noqa
 
 
+def read_machine_id():
+    """
+    Get contents of /etc/machine-id
+    """
+    with open('/etc/machine-id', 'r') as f:
+        return f.read()
+
+
 def initialize_dbsession(settings):
     """
     Use Automap to generate class definitions from tables
@@ -61,8 +69,10 @@ def main(global_config, **settings):
     tutorweb_quizdb.models.ACTIVE_HOST_DOMAIN = settings['tutorweb.host_domain']
     initialize_dbsession(settings)
     config.set_authorization_policy(ACLAuthorizationPolicy())
-    config.set_authentication_policy(AuthTktAuthenticationPolicy(settings.get('pyramid_auth.secret', 'itsaseekreet')))
-    config.set_session_factory(SignedCookieSessionFactory(settings.get('pyramid_session.secret', 'itsaseekreet')))
+
+    machine_id = read_machine_id()
+    config.set_authentication_policy(AuthTktAuthenticationPolicy(machine_id + '-auth'))
+    config.set_session_factory(SignedCookieSessionFactory(machine_id + '-session'))
     config.include('pyramid_jinja2')
     config.include('pyramid_mailer')
     config.include('pyramid_mako')
