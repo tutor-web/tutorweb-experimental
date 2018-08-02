@@ -139,6 +139,8 @@ cat <<EOF >> /etc/nginx/sites-available/${SERVICE_NAME}
     }
 
     location / {
+        # Old Plone URL that we told coin explorers to use
+        rewrite /@@quizdb-coin-totalcoins /api/coin/totalcoin permanent;
         try_files \$uri \$uri.html /index.html;
     }
 }
