@@ -171,10 +171,10 @@ def getStudentSettings(db_stage, db_user):
                 path=db_stage.path,
                 lecture_name=db_stage.lecture_name,
                 stage_name=db_stage.stage_name,
-                # For this student
             )
             .filter(Base.classes.stage_setting.stage_id == Base.classes.stage.stage_id)
             .filter(Base.classes.stage_setting.key == key)
+            # For this student
             .filter(Base.classes.stage_setting.user_id == db_user.id)
             # But not this stage
             .filter(Base.classes.stage.stage_id != db_stage.stage_id)
