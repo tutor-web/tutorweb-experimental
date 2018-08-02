@@ -9,10 +9,7 @@ class RequiresPyramid():
 
         self.config = testing.setUp()
         if self.postgresql:
-            initialize_dbsession({
-                'sqlalchemy.url': self.postgresql.url(),
-                'sqlalchemy.echo': False,  # Set to true to log SQL statements
-            })
+            initialize_dbsession(self.postgresql.url())
 
     def tearDown(self):
         testing.tearDown()
