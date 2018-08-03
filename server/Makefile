@@ -5,13 +5,16 @@ all: compile test lint
 bin/pip:
 	python3 -m venv .
 
-lib/.requirements: requirements.txt bin/pip
+lib/.requirements: requirements.txt requirements-to-freeze.txt setup.py bin/pip
+	# Install frozen requirements
 	./bin/pip install -r requirements.txt
+	# Make sure any new requirements are available
+	./bin/pip install -r requirements-to-freeze.txt
+	# Freeze the output at current state
+	./bin/pip freeze | grep -v egg=tutorweb_quizdb > requirements.txt
 	touch lib/.requirements
 
 compile: lib/.requirements
-	./bin/pip install -e .
-	./bin/pip install -e . ".[testing]"
 
 test: compile
 	./bin/pytest tests/
