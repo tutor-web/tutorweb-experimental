@@ -21,6 +21,12 @@ class RobToDictTest(unittest.TestCase):
             dict(poop=[12], parp=[49])
         )
 
+        # Lists without names produce another list
+        self.assertEqual(
+            rob_to_dict(robjects.r('''list(12, 49)''')),
+            [12, 49]
+        )
+
         # It's recursive
         self.assertEqual(
             rob_to_dict(robjects.r('''list(poop = list(pop=list(pam="moo")), parp = 49)''')),
