@@ -6,17 +6,19 @@ from tutorweb_quizdb import DBSession, Base
 
 
 UG_QUESTION = Template("""
-<pre class="parse-as-tex">${text | h}</pre>
+<%! from tutorweb_quizdb.rst import to_rst %>
+<div>${text | h}</div>
 <ol class="shuffle">
-  <li><label><input type="radio" name="answer" value="${digest_correct | h}" />${choice_correct | h}</label></li>
+  <li><label><input type="radio" name="answer" value="${digest_correct | h}" />${choice_correct | to_rst}</label></li>
 % for c in choice_incorrect:
-  <li><label><input type="radio" name="answer" value="${digest_incorrect[loop.index] | h}" />${c | h}</label></li>
+  <li><label><input type="radio" name="answer" value="${digest_incorrect[loop.index] | h}" />${c | to_rst}</label></li>
 % endfor
 </ol>
 """)
 
 UG_EXAMPLE = Template("""
-<pre class="parse-as-rst">${text | h}</pre>
+<%! from tutorweb_quizdb.rst import to_rst %>
+<div>${text | to_rst}</div>
 """)
 
 
