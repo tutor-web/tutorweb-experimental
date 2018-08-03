@@ -130,12 +130,12 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
                     );
                 }
 
-                if (curUrl.hasOwnProperty('lecUri')) {
+                if (curUrl.hasOwnProperty('path')) {
                     menu.action.unshift(
                         { text: "Sync with server", action: "menustate:sync-force" },
                         { text: "Get some help on this lecture", action: "popup:chat.html#!lecUri=" + encodeURIComponent(curUrl.lecUri) }
                     );
-                } else if (document.location.pathname.match(/start.html$/)) {
+                } else if (document.location.pathname === '/') {
                     menu.action.unshift(
                         { text: "Sync all subscriptions", action: "twstate:subscription-sync-force" },
                         { text: "Become a tutor", action: "popup:chat.html" }
