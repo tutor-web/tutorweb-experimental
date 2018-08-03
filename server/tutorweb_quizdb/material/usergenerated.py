@@ -15,6 +15,10 @@ UG_QUESTION = Template("""
 </ol>
 """)
 
+UG_EXAMPLE = Template("""
+<pre class="parse-as-rst">${text | h}</pre>
+""")
+
 
 def ug_render(ms, permutation):
     (data,) = DBSession.query(Base.classes.answer.student_answer).filter_by(
@@ -36,7 +40,8 @@ def ug_render_data(data):
             correct=dict(answer=[str(data['digest_correct'])]),
             tags=['type.question', 'review.mandatory'],
         )
+    # TODO: Use outputtype tags instead
     return dict(
-        content="<p>TODO:</p>",
+        content=UG_EXAMPLE.render(**data).strip(),
         tags=['type.example', 'review.mandatory'],
     )
