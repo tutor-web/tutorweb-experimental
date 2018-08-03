@@ -180,13 +180,17 @@ function QuizView($) {
             (reviewData.material.length === 0 ? el('p').text("You haven't written anything yet") : null),
         ]);
         this.jqQuiz.append(select_list(reviewData.material, function (data) {
+            var content_el = h('div');
+
             if (!(data.text || data.comments)) {
                 return null;
             }
+            content_el.innerHTML = data.text || data.comments;
+
             return h('a', {
             }, [
-                data.text || data.comments,
                 h('span.grade', data.score || data.rating),
+                content_el,
             ]);
         }));
         this.renderMath();

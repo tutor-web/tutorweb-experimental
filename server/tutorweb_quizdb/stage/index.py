@@ -5,6 +5,7 @@ import urllib.parse
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.material.render import material_render
 from tutorweb_quizdb.student import get_current_student
+from tutorweb_quizdb.rst import to_rst
 from .allocation import get_allocation
 from .answer_queue import sync_answer_queue
 from .setting import getStudentSettings, clientside_settings
@@ -94,6 +95,17 @@ def stage_review(request):
     """
     Get the reviews for all questions you have written
     """
+    def format_review(user_id, reviewer_user_id, review):
+        """Format incoming review object from stage_ugmaterial"""
+        if not review:
+            return {}
+        review['is_self'] = user_id == reviewer_user_id
+
+        # rst-ize comments
+        if review.get('comments', None):
+            review['comments'] = to_rst(review['comments'])
+        return review
+
     db_stage = stage_get(ACTIVE_HOST, request.params['path'])
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
@@ -115,9 +127,8 @@ def stage_review(request):
 
         out.append(dict(
             uri=alloc.to_public_id(mss_id, permutation),
-            text=obj.get('text', '') + ' - ' + obj.get('choice_correct', ''),
-            # TODO: Render as HTML?
-            children=[r[1] or {} for r in reviews],
+            text=to_rst(obj.get('text', '')),
+            children=[format_review(alloc.db_student.id, *r) for r in reviews],
             score=score,
         ))
     return dict(material=out)
