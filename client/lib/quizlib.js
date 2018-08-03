@@ -14,9 +14,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
     "use strict";
     this.lecUri = null;
     this.ajaxApi = ajaxApi;
-    this.ls = new JSONLocalStorage(rawLocalStorage, function (k) {
-        return k.indexOf('quizdb-get-question') > -1;
-    });
+    this.ls = new JSONLocalStorage(rawLocalStorage);
 
     // Return last member of array, or null
     function arrayLast(a) {
