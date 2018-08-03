@@ -177,7 +177,7 @@ function QuizView($) {
     this.renderReview = function (reviewData) {
         this.jqQuiz.empty().append([
             el('h3').text('Material you have written'),
-            (reviewData.length === 0 ? el('p').text("You haven't written anything for this lecture") : null),
+            (reviewData.material.length === 0 ? el('p').text("You haven't written anything yet") : null),
         ]);
         this.jqQuiz.append(select_list(reviewData.material, function (data) {
             if (!(data.text || data.comments)) {
