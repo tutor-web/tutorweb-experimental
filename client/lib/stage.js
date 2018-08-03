@@ -52,6 +52,10 @@ function QuizView($) {
         jqForm.on('change', function () {
             self.updateActions(actionsOnChange);
         });
+        jqForm.on('keypress', function () {
+            // Typing in a textarea should also change actions
+            self.updateActions(actionsOnChange);
+        });
 
         self.jqQuiz.empty().append([
             qn._type === 'usergenerated' ? el('div').attr('class', 'usergenerated alert alert-info').text('This question is written by a fellow student. Your answer to this question will not count towards your grade.') : null,
