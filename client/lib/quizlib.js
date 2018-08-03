@@ -118,7 +118,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                     // (lecture might be missing if out of localstorge during sync, e.g.)
                     if (l.questions) {
                         a = arrayLast(l.answerQueue) || {};
-                        currentGrade = a.hasOwnProperty('grade_after') ? a.grade_after : (a.grade_before || '-');
+                        currentGrade = a.hasOwnProperty('grade_after') ? a.grade_after : (a.grade_before || 0);
                         lectureInfo[uri] = {
                             "grade": currentGrade,
                             "stats": self._gradeSummary(l).stats,
