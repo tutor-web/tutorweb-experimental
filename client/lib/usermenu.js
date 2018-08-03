@@ -205,7 +205,7 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
             var ac = window.applicationCache;
             if (!ac) {
                 // No appcache available, move on
-                return Promise.resolve('appcache-error');
+                return Promise.resolve('appcache-missing');
             }
 
             if (ac.status === ac.CHECKING || ac.status === ac.DOWNLOADING) {
@@ -218,7 +218,7 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
                     ac.update();
                 } catch (e) {
                     console.log("Failed to trigger appcache update(" + ac.status + "): " + e.message);
-                    return Promise.resolve('appcache-error');
+                    return Promise.resolve(e.message.indexOf('there is no application cache') > -1 ? 'appcache-missing' : 'appcache-error');
                 }
             }
         },
@@ -228,6 +228,14 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
                 action: 'twstate:reload',
             });
             return Promise.resolve();
+        },
+        'appcache-missing': function () {
+            renderMenu({
+                text: 'Appcache Missing',
+                tooltip: "You will not be able to use tutor-web offline",
+                action: null,
+            });
+            window.setTimeout(self.updateState.bind(self, 'connect'), 1000);
         },
         'appcache-error': function () {
             renderMenu({
