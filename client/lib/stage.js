@@ -382,6 +382,7 @@ QuizView.prototype = new View(jQuery);
             if (args.practiceAllowed > 0) {
                 actions = twView.postQuestionActions.filter(function (a) { return a !== 'quiz-practice'; });
             }
+            twMenu.syncAttempt(false);
 
             twView.updateActions(actions);
         });

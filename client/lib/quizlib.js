@@ -442,6 +442,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
             // Add review to this answer
             a.review = formData;
+            a.synced = false;
 
             return {
                 a: a,
