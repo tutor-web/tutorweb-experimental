@@ -30,6 +30,7 @@ def db_to_incoming(alloc, db_a):
 
         student_answer=db_a.student_answer,
         review=db_a.review,
+        synced=True,
     )
 
 
