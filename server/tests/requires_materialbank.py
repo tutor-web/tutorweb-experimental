@@ -29,6 +29,8 @@ class RequiresMaterialBank():
     def tearDown(self):
         self.material_bank.cleanup()
 
+        super(RequiresMaterialBank, self).tearDown()
+
     def git(self, *args):
         cp = subprocess.run((
             'git',

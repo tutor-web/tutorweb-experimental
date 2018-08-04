@@ -23,15 +23,18 @@ def initDatabase(postgresql):
         runSqlScript(postgresql, os.path.join(dir, s))
 
 
-Postgresql = testing.postgresql.PostgresqlFactory(cache_initialized_db=True)
+Postgresql = testing.postgresql.PostgresqlFactory(
+    cache_initialized_db=True,
+    on_initialized=initDatabase,
+)
 
 
 class RequiresPostgresql():
     def setUp(self):
         super(RequiresPostgresql, self).setUp()
 
-        self.postgresql = testing.postgresql.Postgresql()
-        initDatabase(self.postgresql)  # TODO: In theory we can use on_initialized, but the results get rolled back somewhere?
+        self.postgresql = Postgresql()
+        initDatabase(self.postgresql)
 
     def tearDown(self):
         self.postgresql.stop()
