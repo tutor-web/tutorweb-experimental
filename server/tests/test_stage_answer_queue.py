@@ -85,8 +85,8 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example1.q.R:9', time_start=1090),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None),
+            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
         ])
 
         # Questions with invalid URIs are complained about
@@ -102,8 +102,8 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="ignored"), review=dict(hard="yes")),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None),
+            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes"), synced=True),
+            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
         ])
 
         # Can add items with differing time_offsets
@@ -111,9 +111,9 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None),
         ], 300)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
-            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None),
+            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes"), synced=True),
+            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
         ])
 
         # Can interleave new material, get back everything
@@ -124,12 +124,12 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None),
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
-            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None),
-            dict(client_id='01', uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None),
-            dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None),
+            dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes"), synced=True),
+            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
         ])
 
         # Templates should get their own sequence ID
@@ -139,16 +139,16 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='template1.t.R:1', time_start=1010, time_end=1020, correct=True, grade_after=0.1, student_answer=dict(text="3")),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None),
-            dict(client_id='01', uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None),
+            dict(client_id='01', uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None, synced=True),
+            dict(client_id='01', uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None, synced=True),
         ])
         out = sync_answer_queue(alloc, [
             dict(client_id='01', uri='template1.t.R:1', time_start=1020, time_end=1030, correct=True, grade_after=0.1, student_answer=dict(text="4")),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None),
-            dict(client_id='01', uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None),
-            dict(client_id='01', uri='template1.t.R:12', time_start=1020, time_end=1030, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="4"), review=None),
+            dict(client_id='01', uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None, synced=True),
+            dict(client_id='01', uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None, synced=True),
+            dict(client_id='01', uri='template1.t.R:12', time_start=1020, time_end=1030, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="4"), review=None, synced=True),
         ])
 
         # We can still get student 0's work, after this diversion to student 1
@@ -156,12 +156,12 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         out = sync_answer_queue(alloc, [
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None),
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
-            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None),
-            dict(client_id='01', uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None),
-            dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None),
+            dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes"), synced=True),
+            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
+            dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
         ])
 
         # ... and no work in second stage
