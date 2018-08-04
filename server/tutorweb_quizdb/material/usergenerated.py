@@ -7,7 +7,7 @@ from tutorweb_quizdb import DBSession, Base
 
 UG_QUESTION = Template("""
 <%! from tutorweb_quizdb.rst import to_rst %>
-<div>${text | h}</div>
+<div>${text | to_rst}</div>
 <ol class="shuffle">
   <li><label><input type="radio" name="answer" value="${digest_correct | h}" />${choice_correct | to_rst}</label></li>
 % for c in choice_incorrect:
