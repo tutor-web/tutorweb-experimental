@@ -17,7 +17,10 @@ lib/.requirements: requirements.txt requirements-to-freeze.txt setup.py bin/pip
 compile: lib/.requirements
 
 test: compile
-	./bin/pytest tests/test_*.py
+	# NB: Ideally this would be ./bin/pytest tests/test_*.py
+	# But we have a global DBSession object that gets shared between tests
+	# which refers to the now-dead postgresql
+	for f in tests/test_*.py; do ./bin/py.test $$f || break; done
 
 lint: lib/.requirements
 	./bin/flake8 --ignore=E501 tutorweb_quizdb/ tests/
