@@ -17,7 +17,7 @@ lib/.requirements: requirements.txt requirements-to-freeze.txt setup.py bin/pip
 compile: lib/.requirements
 
 test: compile
-	./bin/pytest tests/
+	./bin/pytest tests/test_*.py
 
 lint: lib/.requirements
 	./bin/flake8 --ignore=E501 tutorweb_quizdb/ tests/
