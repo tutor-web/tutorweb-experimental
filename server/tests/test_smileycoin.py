@@ -11,6 +11,7 @@ from tutorweb_quizdb import smileycoin
 class TestSmileyCoin(unittest.TestCase):
     def tearDown(self):
         chooseOpener()
+        super(TestSmileyCoin, self).tearDown()
 
     def test_utTransactions(self):
         """Unit-test transactions do nothing"""
