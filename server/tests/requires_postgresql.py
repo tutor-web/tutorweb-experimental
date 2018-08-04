@@ -12,15 +12,17 @@ def runSqlScript(postgresql, script):
         '-p', str(postgresql.settings['port']),
         '-U', 'postgres', '-w',
         'test',
-    ), check=True, stdout=subprocess.PIPE)
+    ), check=True, stdout=subprocess.PIPE).stdout
 
 
 def initDatabase(postgresql):
     dir = '../schema'
+    out = []
     for s in sorted(os.listdir(dir)):
         if not s.endswith('.sql'):
             continue
-        runSqlScript(postgresql, os.path.join(dir, s))
+        out.append(runSqlScript(postgresql, os.path.join(dir, s)))
+    return b''.join(out)
 
 
 Postgresql = testing.postgresql.PostgresqlFactory(
