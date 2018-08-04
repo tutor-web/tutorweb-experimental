@@ -8,7 +8,7 @@ class RequiresPyramid():
         super(RequiresPyramid, self).setUp()
 
         self.config = testing.setUp()
-        if self.postgresql:
+        if hasattr(self, 'postgresql'):
             initialize_dbsession(self.postgresql.url())
 
     def tearDown(self):
