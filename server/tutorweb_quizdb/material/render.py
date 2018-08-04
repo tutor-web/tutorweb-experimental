@@ -53,22 +53,26 @@ def material_render(ms, permutation):
 def r_render(ms, permutation):
     """Execute R script to generate content"""
     # TODO: Caching of question objects?
-    robjects.r('''question <- function () stop("R question script did not define a question function")''')
-    robjects.r('''setwd''')(os.path.dirname(os.path.join(ms.bank, ms.path)))
-    robjects.r('''source''')(os.path.basename(ms.path))
-    # TODO: data.frames support
-
-    rob = robjects.globalenv['question'](permutation, [])
-    # TODO: Stacktraces?
+    old_wd = os.getcwd()
     try:
-        rv = rob_to_dict(rob)
-    except Exception as e:
-        raise ValueError("R question output not parsable %s\n%s" % (rob, e))
+        robjects.r('''question <- function () stop("R question script did not define a question function")''')
+        robjects.r('''setwd''')(os.path.dirname(os.path.join(ms.bank, ms.path)))
+        robjects.r('''source''')(os.path.basename(ms.path))
+        # TODO: data.frames support
 
-    if 'content' not in rv:
-        raise ValueError("R question %s did not return 'content'" % ms.path)
-    rv['content'] = "".join(rv['content'])
-    return rv
+        rob = robjects.globalenv['question'](permutation, [])
+        # TODO: Stacktraces?
+        try:
+            rv = rob_to_dict(rob)
+        except Exception as e:
+            raise ValueError("R question output not parsable %s\n%s" % (rob, e))
+
+        if 'content' not in rv:
+            raise ValueError("R question %s did not return 'content'" % ms.path)
+        rv['content'] = "".join(rv['content'])
+        return rv
+    finally:
+        os.chdir(old_wd)
 
 
 def view_material_render(request):
