@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS coin_award (
     tx                       VARCHAR(100) NOT NULL,
     award_time               TIMESTAMP NOT NULL DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS answer_user_id ON answer(user_id);  -- For coin_unclaimed view
+CREATE INDEX IF NOT EXISTS coin_award_user_id ON coin_award(user_id);  -- For coin_unclaimed view
 COMMENT ON COLUMN coin_award.amount IS 'Amount reclaimed, in milliSMLY';
 
 
