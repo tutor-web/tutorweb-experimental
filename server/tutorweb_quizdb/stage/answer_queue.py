@@ -7,13 +7,6 @@ from tutorweb_quizdb.timestamp import timestamp_to_datetime, datetime_to_timesta
 
 log = logging.getLogger(__name__)
 
-# TODO: A SHA challenge based on (question_id:time_end) https://www.savjee.be/2017/09/Implementing-proof-of-work-javascript-blockchain/
-#   - More blockchain-y
-#   - Faking loads of entries becomes expensive
-#   - Actually unique? Still have to use question_id:time_end:nonce
-#   - How would you set difficulty in this case?
-# ===> This is a (later) add-on, sealing the answer dict
-
 
 def db_to_incoming(alloc, db_a):
     """Turn db entry back to wire-format"""
