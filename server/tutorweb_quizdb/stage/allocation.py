@@ -73,12 +73,34 @@ class BaseAllocation():
             ))
         return out
 
+    def should_refresh_questions(self, aq, old_aq):
+        """
+        Has enough time passed between 2 answer queues that we should refresh
+        the student's question bank?
+        """
+        return False
+
 
 class OriginalAllocation(BaseAllocation):
+    def _aq_length(self):
+        # Get length of answerQueue
+        return DBSession.execute(
+            'SELECT COUNT(*)'
+            ' FROM answer'
+            ' WHERE stage_id = :stage_id'
+            '   AND user_id = :user_id'
+            '',
+            dict(
+                stage_id=self.db_stage.stage_id,
+                user_id=self.db_student.user_id,
+            )
+        ).fetchone()[0]
+
     def __init__(self, settings, db_stage, db_student):
         super(OriginalAllocation, self).__init__(settings, db_stage, db_student)
-        self.seed = settings['allocation_seed']
+        self.seed = int(settings['allocation_seed'])
         self.cipher = skippy.Skippy(settings['allocation_encryption_key'].encode('ascii'))
+        self.refresh_int = int(self.settings.get('allocation_refresh_interval', 20))
         self.question_cap = 100
 
     def to_public_id(self, mss_id, permutation):
@@ -107,12 +129,19 @@ class OriginalAllocation(BaseAllocation):
             )
         ).fetchall()
 
-        # If there are enough, sample based on our seed
+        # If there are enough, sample based on our seed & how many questions student has answered
         if self.question_cap < len(material):
             local_random = random.Random()
-            local_random.seed(self.seed)
+            local_random.seed(self.seed + (self._aq_length() // self.refresh_int))
             material = local_random.sample(material, self.question_cap)
         return material
+
+    def should_refresh_questions(self, aq, additions):
+        """
+        Has enough time passed between 2 answer queues that we should refresh
+        the student's question bank?
+        """
+        return len(aq) // self.refresh_int != (len(aq) - additions) // self.refresh_int
 
 
 class PassThroughAllocation(BaseAllocation):

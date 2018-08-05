@@ -44,11 +44,14 @@ def stage_index(request):
     # Work out how far off client clock is to ours, to nearest 10s (we're interested in clock-setting issues, request-timing)
     time_offset = round(time.time() - incoming.get('current_time'), -2)
 
-    # Get material IDs that the client thinks are allocated
-    requested_material = (alloc.from_public_id(x['uri']) for x in incoming.get('questions', []))
-
     # Sync answer queue
-    answer_queue = sync_answer_queue(alloc, incoming.get('answerQueue', []), time_offset)
+    (answer_queue, additions) = sync_answer_queue(alloc, incoming.get('answerQueue', []), time_offset)
+
+    # If we've gone over a refresh interval, tell client to throw away questions
+    if alloc.should_refresh_questions(answer_queue, additions):
+        requested_material = []
+    else:
+        requested_material = (alloc.from_public_id(x['uri']) for x in incoming.get('questions', []))
 
     return dict(
         uri='/api/stage?%s' % urllib.parse.urlencode(dict(
