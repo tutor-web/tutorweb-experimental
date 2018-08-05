@@ -1,6 +1,6 @@
 import unittest
 
-from tutorweb_quizdb.material.usergenerated import ug_render_data
+from tutorweb_quizdb.material.renderer.usergenerated import ug_render_data
 
 
 class UgRenderDataTest(unittest.TestCase):

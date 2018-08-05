@@ -2,7 +2,8 @@ import unittest
 
 import rpy2.robjects as robjects
 
-from tutorweb_quizdb.material.render import rob_to_dict, material_render
+from tutorweb_quizdb.material.render import material_render
+from tutorweb_quizdb.material.renderer.r import rob_to_dict
 
 from .requires_materialbank import RequiresMaterialBank
 
