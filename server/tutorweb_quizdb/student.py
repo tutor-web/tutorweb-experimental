@@ -44,7 +44,8 @@ def student_details(request):
         ' WHERE user_id = :user_id'
         '', dict(
             user_id=request.user.user_id,
-    )).fetchone()
+        )
+    ).fetchone()
 
     return dict(
         id=request.user.id,
