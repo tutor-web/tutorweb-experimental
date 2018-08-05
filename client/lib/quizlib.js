@@ -644,9 +644,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
     /** Return promise that lecture is synced */
     this.syncLecture = function (lecUri, opts, progressFn) {
-        var self = this,
-            opSucceeded = 0,
-            opTotal = 3;
+        var self = this;
 
         if (!progressFn) {
             progressFn = function () { return; };
@@ -660,7 +658,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 // Nothing to do
                 return;
             }
-            progressFn(0, opTotal, "Fetching lecture...");
+            progressFn(0, 3, "Fetching lecture...");
 
             preSyncLecture.current_time = curTime();
             return self.ajaxApi.postJson(preSyncLecture.uri, preSyncLecture, { timeout: 60 * 1000 }).then(function (newLecture) {
@@ -684,7 +682,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             }).then(function (curLecture) {
                 curLecture.question_uri = '/api/stage/material?path=' + encodeURIComponent(curLecture.path);
                 // Just fetch the lot
-                progressFn(opSucceeded, opTotal, "Fetching questions... ");  // TODO: Counts right?
+                progressFn(1, 3, "Fetching questions... ");
                 return ajaxApi.getJson(curLecture.question_uri, {timeout: 60 * 1000}).then(function (data) {
                     return self._withLecture(lecUri, function (curLecture) {
                         curLecture.questions = data.stats;
@@ -694,10 +692,10 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                     });
                 });
             }).then(function () {
-                progressFn(opTotal - 1, opTotal, "Tidying up...");
+                progressFn(2, 3, "Tidying up...");
                 return opts.skipCleanup ? null : self.removeUnusedObjects();
             }).then(function () {
-                progressFn(opTotal, opTotal, "Done");
+                progressFn(3, 3, "Done");
             });
         });
     };
