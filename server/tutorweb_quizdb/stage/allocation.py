@@ -96,13 +96,6 @@ class OriginalAllocation(BaseAllocation):
         )
 
     def get_material(self, ids=None, stats=False):
-        # Is this a hist_sel lecture?
-        hist_sel = 0  # TODO: float(settings.get('hist-sel', 0))
-        if hist_sel > 0.00001:
-            raise NotImplementedError("TODO: How do we do stage0 or stage1 or ...?")
-        else:
-            pass
-
         # Fetch all potential questions
         material = DBSession.execute(
             'SELECT material_source_id, permutation'
@@ -110,7 +103,7 @@ class OriginalAllocation(BaseAllocation):
             ' WHERE stage_id = :stage_id'
             ' ORDER BY stage_id',
             dict(
-                stage_id=self.db_stage.stage_id  # TODO: Or the historical ones
+                stage_id=self.db_stage.stage_id
             )
         ).fetchall()
 
