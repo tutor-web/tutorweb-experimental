@@ -80,6 +80,7 @@ def sync_answer_queue(alloc, in_queue, time_offset):
 
     db_i = 0
     in_i = 0
+    additions = 0
     out = []
     while True:
         if db_i >= len(db_queue):
@@ -110,6 +111,7 @@ def sync_answer_queue(alloc, in_queue, time_offset):
             db_entry = incoming_to_db(alloc, in_queue[in_i])
             db_entry.time_offset = time_offset
             DBSession.add(db_entry)
+            additions += 1
             out.append(db_to_incoming(alloc, db_entry))
             in_i += 1
 
@@ -124,5 +126,5 @@ def sync_answer_queue(alloc, in_queue, time_offset):
     # TODO: getCoinAward?
     # TODO: Review points for reviewed material?
 
-    # Return combination of answer queues
-    return out
+    # Return combination of answer queues, and how many new entries we found
+    return (out, additions)

@@ -74,12 +74,13 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
 
     def test_call(self):
         # Can sync empty answer queue with empty
-        out = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [], 0)
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [], 0)
         self.assertEqual(out, [])
+        self.assertEqual(additions, 0)
 
         # Add some items into the queue, get them back again. Entries without time_end are ignored
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
-        out = sync_answer_queue(alloc, [
+        (out, additions) = sync_answer_queue(alloc, [
             dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
             dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
             dict(client_id='01', uri='example1.q.R:9', time_start=1090),
@@ -88,26 +89,28 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
             dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
         ])
+        self.assertEqual(additions, 2)
 
         # Questions with invalid URIs are complained about
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
         with self.assertRaisesRegex(ValueError, 'parpparpparp'):
-            out = sync_answer_queue(alloc, [
+            (out, additions) = sync_answer_queue(alloc, [
                 dict(client_id='01', uri='parpparpparp', time_start=1000, time_end=1007, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
             ], 0)
 
         # Can only add reviews to existing items
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
-        out = sync_answer_queue(alloc, [
+        (out, additions) = sync_answer_queue(alloc, [
             dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="ignored"), review=dict(hard="yes")),
         ], 0)
         self.assertEqual(out, [
             dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes"), synced=True),
             dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
         ])
+        self.assertEqual(additions, 0)
 
         # Can add items with differing time_offsets
-        out = sync_answer_queue(alloc, [
+        (out, additions) = sync_answer_queue(alloc, [
             dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None),
         ], 300)
         self.assertEqual(out, [
@@ -115,10 +118,11 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None, synced=True),
             dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
         ])
+        self.assertEqual(additions, 1)
 
         # Can interleave new material, get back everything
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
-        out = sync_answer_queue(alloc, [
+        (out, additions) = sync_answer_queue(alloc, [
             dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
             dict(client_id='01', uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
             dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
@@ -131,10 +135,11 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
             dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
         ])
+        self.assertEqual(additions, 3)
 
         # Templates should get their own sequence ID
         alloc = get_alloc(self.db_stages[0], self.db_studs[1])
-        out = sync_answer_queue(alloc, [
+        (out, additions) = sync_answer_queue(alloc, [
             dict(client_id='01', uri='template1.t.R:1', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(text="2")),
             dict(client_id='01', uri='template1.t.R:1', time_start=1010, time_end=1020, correct=True, grade_after=0.1, student_answer=dict(text="3")),
         ], 0)
@@ -142,7 +147,8 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None, synced=True),
             dict(client_id='01', uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None, synced=True),
         ])
-        out = sync_answer_queue(alloc, [
+        self.assertEqual(additions, 2)
+        (out, additions) = sync_answer_queue(alloc, [
             dict(client_id='01', uri='template1.t.R:1', time_start=1020, time_end=1030, correct=True, grade_after=0.1, student_answer=dict(text="4")),
         ], 0)
         self.assertEqual(out, [
@@ -150,10 +156,11 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None, synced=True),
             dict(client_id='01', uri='template1.t.R:12', time_start=1020, time_end=1030, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="4"), review=None, synced=True),
         ])
+        self.assertEqual(additions, 1)
 
         # We can still get student 0's work, after this diversion to student 1
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
-        out = sync_answer_queue(alloc, [
+        (out, additions) = sync_answer_queue(alloc, [
         ], 0)
         self.assertEqual(out, [
             dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
@@ -163,10 +170,12 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
             dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
         ])
+        self.assertEqual(additions, 0)
 
         # ... and no work in second stage
         alloc = get_alloc(self.db_stages[1], self.db_studs[0])
-        out = sync_answer_queue(alloc, [
+        (out, additions) = sync_answer_queue(alloc, [
         ], 0)
         self.assertEqual(out, [
         ])
+        self.assertEqual(additions, 0)
