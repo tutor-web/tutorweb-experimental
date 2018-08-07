@@ -32,7 +32,7 @@ def material_render(ms, permutation):
 
 def view_material_render(request):
     ms = DBSession.query(Base.classes.material_source).filter_by(
-        material_bank=request.params.get('material_bank', request.registry.settings['tutorweb.material_bank.default']),
+        bank=request.params.get('material_bank', request.registry.settings['tutorweb.material_bank.default']),
         path=request.params['path'],
         next_revision=None
     ).one()
