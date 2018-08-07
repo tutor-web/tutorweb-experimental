@@ -1,6 +1,9 @@
 import os
+import threading
 
 import rpy2.robjects as robjects
+
+R_INTERPRETER_LOCK = threading.Lock()
 
 
 def rob_to_dict(a):
@@ -25,21 +28,22 @@ def r_render(ms, permutation):
     # TODO: Caching of question objects?
     old_wd = os.getcwd()
     try:
-        robjects.r('''question <- function () stop("R question script did not define a question function")''')
-        robjects.r('''setwd''')(os.path.dirname(os.path.join(ms.bank, ms.path)))
-        robjects.r('''source''')(os.path.basename(ms.path))
-        # TODO: data.frames support
+        with R_INTERPRETER_LOCK:
+            robjects.r('''question <- function () stop("R question script did not define a question function")''')
+            robjects.r('''setwd''')(os.path.dirname(os.path.join(ms.bank, ms.path)))
+            robjects.r('''source''')(os.path.join(ms.bank, ms.path))
+            # TODO: data.frames support
 
-        rob = robjects.globalenv['question'](permutation, [])
-        # TODO: Stacktraces?
-        try:
-            rv = rob_to_dict(rob)
-        except Exception as e:
-            raise ValueError("R question output not parsable %s\n%s" % (rob, e))
+            rob = robjects.globalenv['question'](permutation, [])
+            # TODO: Stacktraces?
+            try:
+                rv = rob_to_dict(rob)
+            except Exception as e:
+                raise ValueError("R question output not parsable %s\n%s" % (rob, e))
 
-        if 'content' not in rv:
-            raise ValueError("R question %s did not return 'content'" % ms.path)
-        rv['content'] = "".join(rv['content'])
-        return rv
+            if 'content' not in rv:
+                raise ValueError("R question %s did not return 'content'" % ms.path)
+            rv['content'] = "".join(rv['content'])
+            return rv
     finally:
         os.chdir(old_wd)

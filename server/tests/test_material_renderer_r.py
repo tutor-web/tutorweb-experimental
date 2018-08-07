@@ -1,4 +1,6 @@
+import concurrent.futures
 import unittest
+import time
 
 import rpy2.robjects as robjects
 
@@ -59,3 +61,32 @@ question <- function(permutation, data_frames) {
         # We fall over if permutation count is too high
         with self.assertRaisesRegexp(ValueError, r'100 permutations'):
             out = material_render(self.mb_fake_ms('example.q.R'), 101)
+
+    def test_multithread_safe(self):
+        """Make sure we can make multiple calls to the the render concurrently"""
+        self.mb_write_file('example.q.R', b'''
+# TW:TAGS=math099,Q-0990t0,lec050500,
+# TW:PERMUTATIONS=100
+# TW:DATAFRAMES=agelength
+question <- function(permutation, data_frames) {
+    return(list(
+        content = paste0('<p class="hints">You should write question ', permutation, '</p>'),
+        correct = list('choice_correct' = list(nonempty = TRUE))
+    ))
+}
+        ''')
+
+        def test_thread(perm):
+            time.sleep(0.2)
+            out = material_render(self.mb_fake_ms('example.q.R'), perm % 100)
+            self.assertEqual(out['content'], '<p class="hints">You should write question %d</p>' % perm)
+            return out
+
+        thread_count = 100
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+            futures = executor.map(test_thread, range(thread_count))
+            executor.shutdown(wait=True)
+        self.assertEqual(
+            [x['content'] for x in futures],
+            ['<p class="hints">You should write question %d</p>' % i for i in range(thread_count)],
+        )
