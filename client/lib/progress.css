@@ -1,0 +1,47 @@
+.progress {
+    height: 1.5rem;
+    border: 1px solid #AAA;
+    border-radius: 3px;
+    box-shadow: 0 0 3px #CCC;
+    margin: 1rem 0;
+
+    /* Contain the bar */
+    overflow: hidden;
+}
+
+.progress > .bar {
+    height: 100%;
+    background: #08C;
+    box-shadow: -10px 0 5px 10px #08C;
+
+    /* Contain the bar highlight */
+    position: relative;
+    overflow: hidden;
+}
+
+.progress > .bar:before,
+.progress > .bar:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -50%;
+    width: 50%;
+    background: linear-gradient(to right, rgba(0,0,0,0) 0%, #85cee9 50%, rgba(0,0,0,0) 100%);
+
+    animation: progress-bar-swipe 3s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+.progress > .bar:after {
+    animation-delay: -1.5s;
+}
+
+@keyframes progress-bar-swipe {
+    from {
+        left: -50%;
+    }
+    to {
+        left: 100%;
+    }
+}
