@@ -8,7 +8,6 @@ from pyramid.config import Configurator
 from pyramid.interfaces import IRendererFactory
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
@@ -36,7 +35,7 @@ class BaseExtensions(object):
 
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-Base = automap_base(declarative_base=declarative_base(cls=BaseExtensions))
+Base = automap_base(cls=BaseExtensions)
 import tutorweb_quizdb.models  # noqa
 
 
