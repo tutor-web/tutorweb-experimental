@@ -2,6 +2,8 @@ import os
 import time
 import urllib.parse
 
+from sqlalchemy_utils import Ltree
+
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.material.render import material_render
 from tutorweb_quizdb.student import get_current_student

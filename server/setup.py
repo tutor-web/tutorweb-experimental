@@ -13,6 +13,7 @@ requires = [
     'pyramid_debugtoolbar',
     'pyramid_tm',
     'SQLAlchemy',
+    'sqlalchemy-utils',
     'rpy2',
     'rst2html5-tools',
     'transaction',

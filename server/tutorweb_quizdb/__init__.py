@@ -9,6 +9,7 @@ from pyramid.interfaces import IRendererFactory
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy_utils import Ltree
 from zope.sqlalchemy import ZopeTransactionExtension
 
 from pyramid.session import SignedCookieSessionFactory
@@ -37,6 +38,7 @@ class BaseExtensions(object):
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = automap_base(cls=BaseExtensions)
 import tutorweb_quizdb.models  # noqa
+from sqlalchemy_utils import LtreeType  # noqa
 
 
 def read_machine_id():
@@ -100,6 +102,7 @@ def main(global_config, **settings):
 
     json_renderer = config.registry.getUtility(IRendererFactory, name="json")
     json_renderer.add_adapter(datetime.datetime, lambda obj, request: obj.isoformat())
+    json_renderer.add_adapter(Ltree, lambda obj, request: str(obj))
 
     config.add_view(index, route_name='index', renderer='json')
     config.add_route('index', '')
