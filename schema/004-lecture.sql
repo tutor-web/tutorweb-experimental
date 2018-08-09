@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS stage_setting (
 
     lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
+SELECT ddl_lastupdate_trigger('stage_setting');
 COMMENT ON TABLE  stage_setting IS 'All chosen settings for a stage, generic and per-student';
 COMMENT ON COLUMN stage_setting.user_id IS 'Student setting is for, or one of the special students:'
      '"(any)" for any student';
