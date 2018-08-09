@@ -47,17 +47,17 @@ from sqlalchemy_utils import Ltree
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 
 
-def upsert_lec(path, title, requires_group):
-    """Fetch / insert from the lecture table something with path"""
+def upsert_syllabus(path, title, requires_group):
+    """Fetch / insert from the syllabus table something with path"""
     try:
-        dbl = (DBSession.query(Base.classes.lecture)
+        dbl = (DBSession.query(Base.classes.syllabus)
                         .filter_by(host_id=ACTIVE_HOST, path=path)
                         .one())
         dbl.title = title
         dbl.requires_group_id = func.public.get_group_id(requires_group)
         return dbl
     except NoResultFound:
-        dbl = Base.classes.lecture(
+        dbl = Base.classes.syllabus(
             host_id=ACTIVE_HOST,
             path=path,
             title=title,
@@ -86,15 +86,15 @@ def lec_import(tut_struct):
     path = Ltree(tut_struct['path'])
     requires_group = tut_struct['requires_group'] or 'accept_terms'
     for i in range(len(path)):
-        upsert_lec(path[:i + 1], tut_struct['titles'][i], requires_group)
+        upsert_syllabus(path[:i + 1], tut_struct['titles'][i], requires_group)
 
     # Add all lectures & stages
     for (lec_name, lec_title) in tut_struct['lectures']:
-        db_lec = upsert_lec(path + Ltree(lec_name), lec_title, requires_group)
+        db_lec = upsert_syllabus(path + Ltree(lec_name), lec_title, requires_group)
 
         # Get all current stages, put in dict
         db_stages = dict()
-        for s in DBSession.query(Base.classes.stage).filter_by(lecture=db_lec):
+        for s in DBSession.query(Base.classes.stage).filter_by(syllabus=db_lec):
             db_stages[s.stage_name] = s
 
         for stage_tmpl in tut_struct['stage_template']:
@@ -114,7 +114,7 @@ def lec_import(tut_struct):
                     continue
             # Add it, let the database worry about bumping version
             DBSession.add(Base.classes.stage(
-                lecture=db_lec,
+                syllabus=db_lec,
                 stage_name=stage_tmpl['name'],
                 title=stage_tmpl['title'],
                 material_tags=material_tags,

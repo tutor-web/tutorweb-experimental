@@ -33,7 +33,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         # Add lectures
         self.db_lecs = {}
         for l in lecture_paths:
-            self.db_lecs[l] = Base.classes.lecture(host_id=ACTIVE_HOST, path=Ltree(l), title="UT Lecture %s" % l)
+            self.db_lecs[l] = Base.classes.syllabus(host_id=ACTIVE_HOST, path=Ltree(l), title="UT Lecture %s" % l)
             DBSession.add(self.db_lecs[l])
         DBSession.flush()
 
@@ -43,7 +43,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
             if '.lec' not in l:
                 continue
             self.db_stages[l] = Base.classes.stage(
-                lecture=self.db_lecs[l],
+                syllabus=self.db_lecs[l],
                 stage_name='stage0',
                 version=0,
                 title='UT stage %s.stage0' % l,
@@ -74,11 +74,11 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
 
         # make some subscriptions
         self.db_studs[0].subscription_collection.extend([
-            Base.classes.subscription(lecture=self.db_lecs['dept0.tut0']),
-            Base.classes.subscription(lecture=self.db_lecs['dept0.tut1.lec1']),
+            Base.classes.subscription(syllabus=self.db_lecs['dept0.tut0']),
+            Base.classes.subscription(syllabus=self.db_lecs['dept0.tut1.lec1']),
         ])
         self.db_studs[1].subscription_collection.extend([
-            Base.classes.subscription(lecture=self.db_lecs['dept0.tut1']),
+            Base.classes.subscription(syllabus=self.db_lecs['dept0.tut1']),
         ])
         DBSession.flush()
 

@@ -24,9 +24,9 @@ def stage_get(host_id, path):
     return (DBSession.query(Base.classes.stage)
             .filter_by(stage_name=str(path[-1]))
             .filter_by(next_version=None)
-            .join(Base.classes.lecture)
-            .filter(Base.classes.lecture.host_id == host_id)
-            .filter(Base.classes.lecture.path == path[:-1])
+            .join(Base.classes.syllabus)
+            .filter(Base.classes.syllabus.host_id == host_id)
+            .filter(Base.classes.syllabus.path == path[:-1])
             .one())
 
 

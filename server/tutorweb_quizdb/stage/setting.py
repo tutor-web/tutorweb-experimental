@@ -170,7 +170,7 @@ def getStudentSettings(db_stage, db_user):
             # For this student
             .filter(Base.classes.stage_setting.user_id == db_user.id)
             # For this lecture
-            .filter_by(lecture_id=db_stage.lecture_id)
+            .filter_by(syllabus_id=db_stage.syllabus_id)
             # But not this stage
             .filter(Base.classes.stage.stage_id != db_stage.stage_id)
             # NB: Ideally we traverse list, but instead we assume versions increment

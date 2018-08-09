@@ -54,7 +54,7 @@ setup(
             'main = tutorweb_quizdb:main',
         ],
         'console_scripts': [
-            'lecture_import=tutorweb_quizdb.lecture.import:script',
+            'syllabus_import=tutorweb_quizdb.syllabus.import:script',
         ],
     },
 )

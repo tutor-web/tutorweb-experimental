@@ -80,7 +80,7 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         """Replace db_stage with a new version"""
         old_stage = db_stage
         db_stage = db_stage.__class__(
-            lecture_id=db_stage.lecture_id,
+            syllabus_id=db_stage.syllabus_id,
             stage_name=db_stage.stage_name,
             title=db_stage.title,
             stage_setting_spec=setting_spec,
@@ -98,10 +98,10 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
 
         # Add stage
         lec_name = 'lec_%d' % random.randint(1000000, 9999999)
-        db_lec = Base.classes.lecture(host_id=ACTIVE_HOST, path=Ltree(lec_name), title=lec_name)
+        db_lec = Base.classes.syllabus(host_id=ACTIVE_HOST, path=Ltree(lec_name), title=lec_name)
         DBSession.add(db_lec)
         db_stage = Base.classes.stage(
-            lecture=db_lec,
+            syllabus=db_lec,
             stage_name='stage%d' % 0, version=0,
             title='UT stage %s' % 0,
             stage_setting_spec=dict(

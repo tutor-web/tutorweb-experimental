@@ -1,10 +1,9 @@
 BEGIN;
 
 
--- TODO: A better name that encompasses dept/tutorial/lecture/class
 CREATE EXTENSION IF NOT EXISTS ltree;
-CREATE TABLE IF NOT EXISTS lecture (
-    lecture_id               SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS syllabus (
+    syllabus_id              SERIAL PRIMARY KEY,
 
     host_id                  INTEGER NOT NULL,
     FOREIGN KEY (host_id) REFERENCES host(host_id),
@@ -18,23 +17,23 @@ CREATE TABLE IF NOT EXISTS lecture (
 
     lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
-SELECT ddl_lastupdate_trigger('lecture');
-CREATE INDEX IF NOT EXISTS lecture_path ON lecture USING GIST(path);
-COMMENT ON TABLE  lecture IS 'Lecture/department/tutorial tree sturcture';
-COMMENT ON COLUMN lecture.host_id IS 'The host this lecture is from ()';
-COMMENT ON COLUMN lecture.path IS 'Path to lecture in short terms, e.g. math.099.lec001';
-COMMENT ON COLUMN lecture.title IS 'Full title visible to student';
-COMMENT ON COLUMN lecture.requires_group_id IS 'Group ID student has to have before visible, defaults to accept_terms';
+SELECT ddl_lastupdate_trigger('syllabus');
+CREATE INDEX IF NOT EXISTS syllabus_path ON syllabus USING GIST(path);
+COMMENT ON TABLE  syllabus IS 'Lecture/department/tutorial tree sturcture';
+COMMENT ON COLUMN syllabus.host_id IS 'The host this syllabus item is from ()';
+COMMENT ON COLUMN syllabus.path IS 'Path to syllabus item in short name terms, e.g. math.099.lec001';
+COMMENT ON COLUMN syllabus.title IS 'Full syllabus item title visible to student';
+COMMENT ON COLUMN syllabus.requires_group_id IS 'Group ID student has to have before visible, defaults to accept_terms';
 
 
 CREATE TABLE IF NOT EXISTS stage (
     stage_id                 SERIAL PRIMARY KEY,
 
-    lecture_id               INTEGER NOT NULL,
-    FOREIGN KEY (lecture_id) REFERENCES lecture(lecture_id),
+    syllabus_id              INTEGER NOT NULL,
+    FOREIGN KEY (syllabus_id) REFERENCES syllabus(syllabus_id),
     stage_name               TEXT NOT NULL,
     version                  INTEGER,
-    UNIQUE (lecture_id, stage_name, version),
+    UNIQUE (syllabus_id, stage_name, version),
 
     title                    TEXT NOT NULL,
     stage_setting_spec       JSONB,
@@ -46,8 +45,8 @@ CREATE TABLE IF NOT EXISTS stage (
     lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
 SELECT ddl_lastupdate_trigger('stage');
-COMMENT ON TABLE  stage IS 'An individual stage in this lecture, and the tags for relevant content within';
-COMMENT ON COLUMN stage.lecture_id IS 'Lecture this stage is part of';
+COMMENT ON TABLE  stage IS 'An individual stage in this syllabus item, and the tags for relevant content within';
+COMMENT ON COLUMN stage.syllabus_id IS 'Syllabus item this stage is part of';
 COMMENT ON COLUMN stage.stage_setting_spec IS 'dict of setting key to a combination of:'
     '* value: Fixed value / mean value for gamma distribution'
     '* shape: Shape of gamma curve, if set will choose value for each student from gamma curve'
@@ -58,17 +57,17 @@ COMMENT ON COLUMN stage.stage_setting_spec IS 'dict of setting key to a combinat
 COMMENT ON COLUMN stage.next_version IS 'If this stage has been replaced by a new version, this field is non-null';
 CREATE OR REPLACE FUNCTION stage_next_version_insert_fn() RETURNS TRIGGER AS $$
 BEGIN
-   IF NOT EXISTS(SELECT * FROM stage WHERE lecture_id = NEW.lecture_id AND stage_name = NEW.stage_name) THEN
+   IF NOT EXISTS(SELECT * FROM stage WHERE syllabus_id = NEW.syllabus_id AND stage_name = NEW.stage_name) THEN
        -- It's not there, version should be 1.
        NEW.version := 1;
        NEW.next_version := NULL;
        RETURN NEW;
    END IF;
    -- Otherwise, update the existing entry and bump version
-   NEW.version := MAX(version) + 1 FROM stage WHERE lecture_id = NEW.lecture_id AND stage_name = NEW.stage_name;
+   NEW.version := MAX(version) + 1 FROM stage WHERE syllabus_id = NEW.syllabus_id AND stage_name = NEW.stage_name;
    NEW.stage_id = NEXTVAL(pg_get_serial_sequence('stage', 'stage_id'));
    UPDATE stage SET next_version = NEW.stage_id
-       WHERE lecture_id = NEW.lecture_id
+       WHERE syllabus_id = NEW.syllabus_id
        AND stage_name = NEW.stage_name
        AND next_version = NULL;
    RETURN NEW;
@@ -100,15 +99,15 @@ COMMENT ON COLUMN stage_setting.user_id IS 'Student setting is for, or one of th
 CREATE TABLE IF NOT EXISTS subscription (
     user_id                  INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES "user"(user_id),
-    lecture_id               INTEGER NOT NULL,
-    FOREIGN KEY (lecture_id) REFERENCES lecture(lecture_id),
-    PRIMARY KEY (user_id, lecture_id),
+    syllabus_id              INTEGER NOT NULL,
+    FOREIGN KEY (syllabus_id) REFERENCES syllabus(syllabus_id),
+    PRIMARY KEY (user_id, syllabus_id),
 
     hidden                   BOOLEAN NOT NULL DEFAULT 'f',
     lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
 SELECT ddl_lastupdate_trigger('subscription');
-COMMENT ON TABLE  subscription IS 'Student<->tutorial subscriptions';
+COMMENT ON TABLE  subscription IS 'Student<->syllabus item subscriptions';
 COMMENT ON COLUMN subscription.hidden IS 'Hide this from the student''s main menu';  -- TODO: Really necessary now?
 
 

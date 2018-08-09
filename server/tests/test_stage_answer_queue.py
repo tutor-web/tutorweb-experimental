@@ -31,10 +31,10 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
 
         # Add stage
         lec_name = 'lec_%d' % random.randint(1000000, 9999999)
-        db_lec = Base.classes.lecture(host_id=ACTIVE_HOST, path=Ltree(lec_name), title=lec_name)
+        db_lec = Base.classes.syllabus(host_id=ACTIVE_HOST, path=Ltree(lec_name), title=lec_name)
         DBSession.add(db_lec)
         self.db_stages = [Base.classes.stage(
-            lecture=db_lec,
+            syllabus=db_lec,
             stage_name='stage%d' % i, version=0,
             title='UT stage %s' % i,
             stage_setting_spec=dict(
