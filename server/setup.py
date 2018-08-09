@@ -53,5 +53,8 @@ setup(
         'paste.app_factory': [
             'main = tutorweb_quizdb:main',
         ],
+        'console_scripts': [
+            'lecture_import=tutorweb_quizdb.lecture.import:script',
+        ],
     },
 )

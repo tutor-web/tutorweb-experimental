@@ -1,4 +1,7 @@
+import random
 import unittest
+
+from sqlalchemy_utils import Ltree
 
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
@@ -77,18 +80,13 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         """Replace db_stage with a new version"""
         old_stage = db_stage
         db_stage = db_stage.__class__(
-            host_id=db_stage.host_id,
-            path=db_stage.path,
-            lecture_name=db_stage.lecture_name,
+            lecture_id=db_stage.lecture_id,
             stage_name=db_stage.stage_name,
-            version=db_stage.version + 1,
             title=db_stage.title,
             stage_setting_spec=setting_spec,
         )
 
         self.DBSession.add(db_stage)
-        self.DBSession.flush()
-        old_stage.next_version = db_stage.version
         self.DBSession.flush()
         return db_stage
 
@@ -99,12 +97,13 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         self.DBSession = DBSession
 
         # Add stage
-        DBSession.add(Base.classes.tutorial(host_id=ACTIVE_HOST, path='/tut0'))
-        DBSession.add(Base.classes.lecture(host_id=ACTIVE_HOST, path='/tut0', lecture_name='lec0'))
+        lec_name = 'lec_%d' % random.randint(1000000, 9999999)
+        db_lec = Base.classes.lecture(host_id=ACTIVE_HOST, path=Ltree(lec_name), title=lec_name)
+        DBSession.add(db_lec)
         db_stage = Base.classes.stage(
-            host_id=ACTIVE_HOST, path='/tut0', lecture_name='lec0',
-            stage_name='stage0', version=0,
-            title='UT stage',
+            lecture=db_lec,
+            stage_name='stage%d' % 0, version=0,
+            title='UT stage %s' % 0,
             stage_setting_spec=dict(
                 hist_sel=dict(value=0.5),
                 grade_s=dict(min=1, max=100),

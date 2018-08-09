@@ -1,4 +1,3 @@
-import os
 import time
 import urllib.parse
 
@@ -20,14 +19,14 @@ def stage_get(host_id, path):
     if path.startswith('/api/stage'):
         # Given a URL instead of a path, due to older client code. Unpack the path within
         path = urllib.parse.parse_qs(urllib.parse.urlparse(path).query)['path'][0]
-    path, stage_name = os.path.split(path)
-    path, lecture_name = os.path.split(path)
+    path = Ltree(path)
+
     return (DBSession.query(Base.classes.stage)
-            .filter_by(host_id=host_id)
-            .filter_by(path=path)
-            .filter_by(lecture_name=lecture_name)
-            .filter_by(stage_name=stage_name)
+            .filter_by(stage_name=str(path[-1]))
             .filter_by(next_version=None)
+            .join(Base.classes.lecture)
+            .filter(Base.classes.lecture.host_id == host_id)
+            .filter(Base.classes.lecture.path == path[:-1])
             .one())
 
 

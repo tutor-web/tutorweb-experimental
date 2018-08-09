@@ -64,4 +64,7 @@ CREATE TABLE IF NOT EXISTS user_group (
 COMMENT ON TABLE  user_group IS 'Many-to-many user:group';
 
 
+CREATE OR REPLACE FUNCTION get_group_id(name TEXT) RETURNS INTEGER LANGUAGE SQL AS
+$$ SELECT group_id FROM "group" WHERE "group".name = name; $$;
+
 COMMIT;

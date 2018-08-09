@@ -165,20 +165,15 @@ def getStudentSettings(db_stage, db_user):
         # Find any previous settings for this stage/student
         x = (
             DBSession.query(Base.classes.stage, Base.classes.stage_setting)
-            .filter_by(
-                # All versions of this stage
-                host_id=db_stage.host_id,
-                path=db_stage.path,
-                lecture_name=db_stage.lecture_name,
-                stage_name=db_stage.stage_name,
-            )
             .filter(Base.classes.stage_setting.stage_id == Base.classes.stage.stage_id)
             .filter(Base.classes.stage_setting.key == key)
             # For this student
             .filter(Base.classes.stage_setting.user_id == db_user.id)
+            # For this lecture
+            .filter_by(lecture_id=db_stage.lecture_id)
             # But not this stage
             .filter(Base.classes.stage.stage_id != db_stage.stage_id)
-            # TODO: Assume versions increment, rather than traverse list. Yuck?
+            # NB: Ideally we traverse list, but instead we assume versions increment
             .order_by(Base.classes.stage.version.desc())
         ).all()
         if len(x) > 0:

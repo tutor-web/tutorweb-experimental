@@ -1,6 +1,8 @@
 import random
 import unittest
 
+from sqlalchemy_utils import Ltree
+
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
 from .requires_materialbank import RequiresMaterialBank
@@ -28,12 +30,11 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         self.DBSession = DBSession
 
         # Add stage
-        tut_path = '/tut-%d' % random.randint(1000000, 9999999)
-        lec_name = 'lec-%d' % random.randint(1000000, 9999999)
-        DBSession.add(Base.classes.tutorial(host_id=ACTIVE_HOST, path=tut_path))
-        DBSession.add(Base.classes.lecture(host_id=ACTIVE_HOST, path=tut_path, lecture_name=lec_name))
+        lec_name = 'lec_%d' % random.randint(1000000, 9999999)
+        db_lec = Base.classes.lecture(host_id=ACTIVE_HOST, path=Ltree(lec_name), title=lec_name)
+        DBSession.add(db_lec)
         self.db_stages = [Base.classes.stage(
-            host_id=ACTIVE_HOST, path=tut_path, lecture_name=lec_name,
+            lecture=db_lec,
             stage_name='stage%d' % i, version=0,
             title='UT stage %s' % i,
             stage_setting_spec=dict(
