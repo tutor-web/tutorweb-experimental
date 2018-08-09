@@ -16,7 +16,9 @@ class RequiresPyramid():
 
         super(RequiresPyramid, self).tearDown()
 
-    def request(self, settings={}):
+    def request(self, settings={}, user=None):
         request = testing.DummyRequest()
         request.registry.settings.update(settings)
+        if user:
+            request.user = user
         return request
