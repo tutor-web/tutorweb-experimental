@@ -32,7 +32,7 @@
         {
             "name": "stage0",
             "title": "write and review Examples",
-            "material_tags": [{"path_tags": 1}, "type.template", "outputtype.example"],
+            "material_tags": [{"path": 1}, "type.template", "outputtype.example"],
             "setting_spec": {}
         }
     ]
@@ -72,12 +72,13 @@ def resolve_material_tags(stage_tmpl, db_lec):
     out = []
 
     for t in stage_tmpl['material_tags']:
-        if not isinstance(t, dict):
-            out.append(t)
-        elif t.get('path_tags', None):
-            out.extend(['path.%s' % db_lec.path[:i + 1] for i in range(len(db_lec.path))])
+        if isinstance(t, dict):
+            if 'path' in t:
+                out.append('path.%s' % str(db_lec.path))
+            if 'outputpath' in t:
+                out.append('outputpath.%s' % str(db_lec.path))
         else:
-            raise ValueError("Unknown tag function: %s" % t)
+            out.append(t)
     return out
 
 
