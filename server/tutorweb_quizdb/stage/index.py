@@ -23,7 +23,7 @@ def stage_get(host_id, path):
 
     return (DBSession.query(Base.classes.stage)
             .filter_by(stage_name=str(path[-1]))
-            .filter_by(next_version=None)
+            .filter_by(next_stage_id=None)
             .join(Base.classes.syllabus)
             .filter(Base.classes.syllabus.host_id == host_id)
             .filter(Base.classes.syllabus.path == path[:-1])

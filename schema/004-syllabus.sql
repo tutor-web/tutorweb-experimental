@@ -39,8 +39,8 @@ CREATE TABLE IF NOT EXISTS stage (
     stage_setting_spec       JSONB,
     material_tags            TEXT[] NOT NULL DEFAULT '{}',  -- TODO: JSONB it?
 
-    next_version             INTEGER NULL,
-    FOREIGN KEY (next_version) REFERENCES stage(stage_id),
+    next_stage_id            INTEGER NULL,
+    FOREIGN KEY (next_stage_id) REFERENCES stage(stage_id),
 
     lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -54,27 +54,31 @@ COMMENT ON COLUMN stage.stage_setting_spec IS 'dict of setting key to a combinat
     '* min: Minimum value, applies a lower bound to anything chosen by max'
     '...or "variant:registered", and another set of values below it'
     '...or "deleted", if this stage is now removed';
-COMMENT ON COLUMN stage.next_version IS 'If this stage has been replaced by a new version, this field is non-null';
-CREATE OR REPLACE FUNCTION stage_next_version_insert_fn() RETURNS TRIGGER AS $$
+COMMENT ON COLUMN stage.next_stage_id IS 'The replacement stage_id, or NULL if this field is current';
+CREATE OR REPLACE FUNCTION stage_next_stage_id_before_insert_fn() RETURNS TRIGGER AS $$
 BEGIN
-   IF NOT EXISTS(SELECT * FROM stage WHERE syllabus_id = NEW.syllabus_id AND stage_name = NEW.stage_name) THEN
-       -- It's not there, version should be 1.
-       NEW.version := 1;
-       NEW.next_version := NULL;
-       RETURN NEW;
-   END IF;
-   -- Otherwise, update the existing entry and bump version
-   NEW.version := MAX(version) + 1 FROM stage WHERE syllabus_id = NEW.syllabus_id AND stage_name = NEW.stage_name;
-   NEW.stage_id = NEXTVAL(pg_get_serial_sequence('stage', 'stage_id'));
-   UPDATE stage SET next_version = NEW.stage_id
-       WHERE syllabus_id = NEW.syllabus_id
-       AND stage_name = NEW.stage_name
-       AND next_version = NULL;
+   NEW.next_stage_id := NULL;
+   -- Version should be one greater than the maximum, or start at 1
+   NEW.version := COALESCE(MAX(version), 0) + 1 FROM stage WHERE syllabus_id = NEW.syllabus_id AND stage_name = NEW.stage_name;
    RETURN NEW;
 END;
 $$ LANGUAGE 'plpgsql';
-DROP TRIGGER IF EXISTS stage_next_version_insert on stage;
-CREATE TRIGGER stage_next_version_insert BEFORE INSERT ON stage FOR EACH ROW EXECUTE PROCEDURE stage_next_version_insert_fn();
+DROP TRIGGER IF EXISTS stage_next_stage_id_before_insert on stage;
+CREATE TRIGGER stage_next_stage_id_before_insert BEFORE INSERT ON stage FOR EACH ROW EXECUTE PROCEDURE stage_next_stage_id_before_insert_fn();
+CREATE OR REPLACE FUNCTION stage_next_stage_id_after_insert_fn() RETURNS TRIGGER AS $$
+BEGIN
+   -- Any now-old versions should point at us
+   UPDATE stage
+       SET next_stage_id = NEW.stage_id
+       WHERE syllabus_id = NEW.syllabus_id
+       AND stage_name = NEW.stage_name
+       AND stage_id != NEW.stage_id
+       AND next_stage_id IS NULL;
+   RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
+DROP TRIGGER IF EXISTS stage_next_stage_id_after_insert on stage;
+CREATE TRIGGER stage_next_stage_id_after_insert AFTER INSERT ON stage FOR EACH ROW EXECUTE PROCEDURE stage_next_stage_id_after_insert_fn();
 
 
 

@@ -57,7 +57,7 @@ def view_subscription_list(request):
     # Using the id->dict lookup, decorate structure with all available stages
     for db_stage in (DBSession.query(Base.classes.stage)
                      .filter(Base.classes.stage.syllabus_id.in_(out_syllabus.keys()))
-                     .filter_by(next_version=None)
+                     .filter_by(next_stage_id=None)
                      .order_by(Base.classes.stage.stage_name)):
         out_syllabus[db_stage.syllabus_id]['children'].append(dict(
             stage=db_stage.stage_name,

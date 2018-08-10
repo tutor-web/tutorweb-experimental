@@ -68,7 +68,7 @@ CREATE OR REPLACE VIEW stage_material AS
            ON ms.material_source_id = stats.material_source_id
           AND s.stage_id = stats.stage_id
     WHERE ms.next_revision IS NULL
-      AND s.next_version IS NULL;
+      AND s.next_stage_id IS NULL;
 COMMENT ON VIEW stage_material IS 'All appropriate material for all stages, and their stats';
 
 
