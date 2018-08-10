@@ -75,8 +75,6 @@ def resolve_material_tags(stage_tmpl, db_lec):
         if isinstance(t, dict):
             if 'path' in t:
                 out.append('path.%s' % str(db_lec.path))
-            if 'outputpath' in t:
-                out.append('outputpath.%s' % str(db_lec.path))
         else:
             out.append(t)
     return out
