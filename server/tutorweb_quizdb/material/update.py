@@ -27,7 +27,10 @@ def update(material_bank):
             m.next_revision = new_m.revision
 
         # This path considered, remove from dict
-        del material_paths[m.path]
+        try:
+            del material_paths[m.path]
+        except KeyError:
+            pass  # File doesn't exist, so nothing to remove
 
     # For any remaining paths, insert afresh into DB
     for path, md5sum in material_paths.items():

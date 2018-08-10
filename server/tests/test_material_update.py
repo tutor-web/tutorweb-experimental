@@ -74,3 +74,10 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
             'example.q.R': ('(untracked)+3', ['math099', 'Q-0990t0', 'lec050500', 'type.question']),
             'extra/another.q.R': ('(untracked)+1', ['math1234', 'type.question']),
         })
+
+        # Removing files entirely replaces it with a deleted placeholder
+        self.mb_remove_file('extra/another.q.R')
+        self.assertEqual(self.call_view(), {
+            'example.q.R': ('(untracked)+3', ['math099', 'Q-0990t0', 'lec050500', 'type.question']),
+            'extra/another.q.R': ('(deleted)', ['deleted', 'type.question']),
+        })

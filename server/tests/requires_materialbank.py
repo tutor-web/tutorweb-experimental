@@ -51,6 +51,17 @@ class RequiresMaterialBank():
             self.git('add', file_path)
             self.git('commit', '-m', file_path)
 
+    def mb_remove_file(self, file_path, commit=None):
+        """
+        Remove (file_path)
+        If (commit) supplied, commit to git with the commit message
+        """
+        full_path = os.path.join(self.material_bank.name, file_path)
+        os.remove(full_path)
+        if commit:
+            self.git('rm', '-f', file_path)
+            self.git('commit', '-m', file_path)
+
     def mb_fake_ms(self, file_path):
         """Generate a fake MaterialSource object for this file"""
         from tutorweb_quizdb.material.utils import path_to_materialsource
