@@ -72,6 +72,8 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
             permutation_count=0,
             material_tags=['deleted', 'type.question'],
             dataframe_paths=[],
+            initial_answered=0,
+            initial_correct=0,
         ))
 
         # We combine existing tags with any derived ones
@@ -88,6 +90,8 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
             permutation_count=100,
             material_tags=['math099', 'Q-0990t0', 'lec050500', 'type.question'],
             dataframe_paths=['agelength'],
+            initial_answered=0,
+            initial_correct=0,
         ))
 
         # We also understand examples
@@ -104,6 +108,28 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
             permutation_count=2,
             material_tags=['math099', 'Q-0990t0', 'lec050500', 'type.example'],
             dataframe_paths=['agelength'],
+            initial_answered=0,
+            initial_correct=0,
+        ))
+
+        # And initial values
+        self.mb_write_file('example.q.R', b'''
+# TW:TAGS=math099,Q-0990t0,lec050500,
+# TW:PERMUTATIONS=100
+# TW:DATAFRAMES=agelength
+# TW:TIMESANSWERED=22
+# TW:TIMESCORRECT=11
+        ''')
+        example_qn = path_to_materialsource(self.material_bank.name, 'example.q.R', '')
+        self.assertEqual(example_qn, dict(
+            bank=self.material_bank.name,
+            path='example.q.R',
+            revision='(untracked)+1',
+            permutation_count=100,
+            material_tags=['math099', 'Q-0990t0', 'lec050500', 'type.question'],
+            dataframe_paths=['agelength'],
+            initial_answered=22,
+            initial_correct=11,
         ))
 
     def test_templateqns(self):
@@ -117,6 +143,8 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
             bank=self.material_bank.name,
             dataframe_paths=[],
             material_tags=['math099', 'Q-0990t0', 'lec050500', 'type.template'],
+            initial_answered=0,
+            initial_correct=0,
             path='example.t.R',
             permutation_count=2,
             revision='(untracked)+1'

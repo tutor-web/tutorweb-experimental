@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS material_source (
     dataframe_paths          TEXT[] NOT NULL DEFAULT '{}',
     -- NB: Can't have a FOREIGN KEY on array types
 
+    initial_answered         INTEGER NOT NULL DEFAULT 0,
+    initial_correct          INTEGER NOT NULL DEFAULT 0,
     next_revision            TEXT
 );
 CREATE INDEX IF NOT EXISTS material_source_material_tags ON material_source USING GIN (material_tags);
@@ -35,6 +37,8 @@ COMMENT ON COLUMN material_source.path     IS 'Path to material file';
 COMMENT ON COLUMN material_source.revision IS 'Git revision of this material source';
 COMMENT ON COLUMN material_source.md5sum   IS 'MD5sum of this version';
 COMMENT ON COLUMN material_source.permutation_count IS 'Number of question permutations';
+COMMENT ON COLUMN material_source.initial_answered IS 'Initial value for # of times this question has been answered';
+COMMENT ON COLUMN material_source.initial_correct IS 'Initial value for # of times this question has been correctly answered';
 COMMENT ON COLUMN material_source.next_revision IS
     'Next Git revision of this material, i.e. don''t use this one. Deleted material sources get tagged ''deleted''';
 
