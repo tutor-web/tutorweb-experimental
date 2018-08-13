@@ -59,8 +59,8 @@ CREATE OR REPLACE VIEW stage_material AS
     SELECT s.stage_id
          , ms.material_source_id
          , GENERATE_SERIES(1, ms.permutation_count) "permutation"
-         , COALESCE(stats.chosen, 0) chosen
-         , COALESCE(stats.correct, 0) correct
+         , ms.initial_answered + COALESCE(stats.answered, 0) answered
+         , ms.initial_correct + COALESCE(stats.correct, 0) correct
     FROM stage s
     JOIN material_source ms
       ON s.material_tags <@ ms.material_tags
