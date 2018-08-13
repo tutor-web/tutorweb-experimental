@@ -78,7 +78,6 @@ class SettingSpecTest(unittest.TestCase):
 class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase):
     def replace_stage(self, db_stage, setting_spec):
         """Replace db_stage with a new version"""
-        old_stage = db_stage
         db_stage = db_stage.__class__(
             syllabus_id=db_stage.syllabus_id,
             stage_name=db_stage.stage_name,
