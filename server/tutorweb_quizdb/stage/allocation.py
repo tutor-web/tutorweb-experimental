@@ -163,7 +163,7 @@ class PassThroughAllocation(BaseAllocation):
             'SELECT path'
             ' FROM material_source'
             ' WHERE material_source_id = :mss_id'
-            '   AND next_revision IS NULL',
+            '   AND next_material_source_id IS NULL',
             dict(
                 mss_id=mss_id,
             )
@@ -181,7 +181,7 @@ class PassThroughAllocation(BaseAllocation):
             ' FROM material_source'
             ' WHERE bank = :bank'
             '   AND path = :path'
-            '   AND next_revision IS NULL',
+            '   AND next_material_source_id IS NULL',
             dict(
                 bank=self.bank,
                 path=mss_path,

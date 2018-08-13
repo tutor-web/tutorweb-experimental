@@ -34,7 +34,7 @@ def view_material_render(request):
     ms = DBSession.query(Base.classes.material_source).filter_by(
         bank=request.params.get('material_bank', request.registry.settings['tutorweb.material_bank.default']),
         path=request.params['path'],
-        next_revision=None
+        next_material_source_id=None
     ).one()
 
     return material_render(

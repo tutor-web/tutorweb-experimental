@@ -12,7 +12,7 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
         self.assertEqual(self.mb_update(), None)
 
         out = {}
-        for ms in DBSession.query(Base.classes.material_source):
+        for ms in DBSession.query(Base.classes.material_source).filter_by(next_material_source_id=None):
             out[ms.path] = (
                 ms.revision,
                 ms.material_tags,

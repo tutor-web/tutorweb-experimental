@@ -67,7 +67,7 @@ CREATE OR REPLACE VIEW stage_material AS
     LEFT JOIN answer_stats stats
            ON ms.material_source_id = stats.material_source_id
           AND s.stage_id = stats.stage_id
-    WHERE ms.next_revision IS NULL
+    WHERE ms.next_material_source_id IS NULL
       AND s.next_stage_id IS NULL;
 COMMENT ON VIEW stage_material IS 'All appropriate material for all stages, and their stats';
 
@@ -78,7 +78,7 @@ CREATE OR REPLACE VIEW stage_ugmaterial AS
     , JSONB_AGG(JSONB_BUILD_ARRAY(user_id, review))
       OVER (PARTITION BY a.stage_id, a.material_source_id, a.permutation) AS reviews
     FROM answer a
-    --TODO: Strictly should do: AND material_source_id IN (SELECT material_source_id FROM material_source WHERE 'type.template' = ANY(material_tags) AND next_revision IS NULL)
+    --TODO: Strictly should do: AND material_source_id IN (SELECT material_source_id FROM material_source WHERE 'type.template' = ANY(material_tags) AND next_material_source_id IS NULL)
     WHERE correct
     ORDER BY a.material_source_id, a.permutation, a.answer_id;
 COMMENT ON VIEW stage_ugmaterial IS 'All user-generated content and reviews against them';
