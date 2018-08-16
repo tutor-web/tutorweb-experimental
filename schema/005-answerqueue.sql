@@ -48,19 +48,20 @@ COMMENT ON SEQUENCE ug_question_id IS ''
 CREATE OR REPLACE VIEW answer_stats AS
     SELECT a.stage_id
          , a.material_source_id
-         , COUNT(*) chosen
-         , COUNT(a.correct) correct
+         , a.permutation
+         , COUNT(*) answered
+         , COUNT(NULLIF(a.correct, false)) correct
     FROM answer a
-    GROUP BY 1, 2;
-COMMENT ON VIEW answer_stats IS 'Answer stats for each stage/material_source combo';
+    GROUP BY 1, 2, 3;
+COMMENT ON VIEW answer_stats IS 'Answer stats for each stage/material_source/permutation combo';
 
 
 CREATE OR REPLACE VIEW stage_material AS
     SELECT s.stage_id
          , ms.material_source_id
          , GENERATE_SERIES(1, ms.permutation_count) "permutation"
-         , ms.initial_answered + COALESCE(stats.answered, 0) answered
-         , ms.initial_correct + COALESCE(stats.correct, 0) correct
+         , ms.initial_answered
+         , ms.initial_correct
     FROM stage s
     JOIN material_source ms
       ON s.material_tags <@ ms.material_tags

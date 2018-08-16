@@ -12,6 +12,13 @@ from .answer_queue import sync_answer_queue
 from .setting import getStudentSettings, clientside_settings
 
 
+def update_stats(alloc, questions):
+    """Update answered / correct counts for this question array before sending out"""
+    for q, s in zip(questions, alloc.get_stats([x['uri'] for x in questions])):
+        q['chosen'] = q['initial_answered'] + s['stage_answered']
+        q['correct'] = q['initial_correct'] + s['stage_correct']
+
+
 def stage_get(host_id, path):
     """
     Get the stage object, given a complete path
@@ -50,9 +57,11 @@ def stage_index(request):
 
     # If we've gone over a refresh interval, tell client to throw away questions
     if alloc.should_refresh_questions(answer_queue, additions):
-        requested_material = []
+        questions = []
     else:
-        requested_material = (alloc.from_public_id(x['uri']) for x in incoming.get('questions', []))
+        # Get new stats for each question, update
+        questions = incoming.get('questions', [])
+        update_stats(alloc, questions)
 
     return dict(
         uri='/api/stage?%s' % urllib.parse.urlencode(dict(
@@ -63,7 +72,7 @@ def stage_index(request):
         title=db_stage.title,
         settings=clientside_settings(settings),
         material_tags=db_stage.material_tags,
-        questions=alloc.get_stats(requested_material),
+        questions=questions,
         answerQueue=answer_queue,
         time_offset=time_offset,
     )
@@ -82,16 +91,28 @@ def stage_material(request):
         requested_material = [alloc.from_public_id(request.params['id'])]
     else:
         requested_material = alloc.get_material()
+    # Turn into ms / permutation tuple
+    requested_material = [
+        (DBSession.query(Base.classes.material_source).filter_by(material_source_id=mss_id).one(), permutation)
+        for mss_id, permutation in requested_material
+    ]
 
     out = dict(
-        stats=alloc.get_stats(requested_material),
+        stats=[
+            dict(
+                uri=alloc.to_public_id(ms.material_source_id, permutation),
+                initial_answered=ms.initial_answered,
+                initial_correct=ms.initial_correct,
+                online_only=False,  # TODO: How do we know?
+                _type='regular',  # TODO: ...or historical?
+            ) for ms, permutation in requested_material
+        ],
         data={},
     )
-    for m in requested_material:
-        ms = DBSession.query(Base.classes.material_source).filter_by(
-            material_source_id=m[0],
-        ).one()
-        out['data'][alloc.to_public_id(m[0], m[1])] = material_render(ms, m[1])
+    update_stats(alloc, out['stats'])
+
+    for ms, permutation in requested_material:
+        out['data'][alloc.to_public_id(ms.material_source_id, permutation)] = material_render(ms, permutation)
     return out
 
 

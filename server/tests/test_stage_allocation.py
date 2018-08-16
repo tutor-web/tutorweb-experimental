@@ -1,5 +1,9 @@
 import unittest
 
+from .requires_postgresql import RequiresPostgresql
+from .requires_pyramid import RequiresPyramid
+from .requires_materialbank import RequiresMaterialBank
+
 from tutorweb_quizdb.stage.allocation import get_allocation
 
 
@@ -53,3 +57,58 @@ class OriginalAllocationTest(unittest.TestCase):
         self.assertTrue(alloc_a.should_refresh_questions([dict()] * 10, 5))
         self.assertTrue(alloc_a.should_refresh_questions([dict()] * 11, 2))
         self.assertTrue(alloc_a.should_refresh_questions([dict()] * 22, 5))
+
+
+class OriginalAllocationDBTest(RequiresPyramid, RequiresMaterialBank, RequiresPostgresql, unittest.TestCase):
+    def test_get_material(self):
+        self.mb_write_example('common1_question.q.R', ('all', 'common1',), 3)
+        self.mb_write_example('common2_question.q.R', ('all', 'common2',), 3)
+        self.mb_update()
+
+        self.db_stages = self.create_stages(3, lambda i: dict(
+        ), lambda i: [
+            'type.question',
+            'all' if i == 0 else 'common%d' % (i // 2 + 1),
+        ])
+        self.db_studs = self.create_students(3)
+
+        alloc_a = get_allocation(dict(
+            allocation_method='original',
+            allocation_seed=44,
+            allocation_encryption_key='toottoottoot',
+        ), self.db_stages[0], self.db_studs[0])
+        out = [(self.mb_lookup_mss_id(x[0]).path, x[1], x[2], x[3]) for x in alloc_a.get_material()]
+        self.assertEqual(set(out), set([
+            ('common1_question.q.R', 1, 0, 0),
+            ('common1_question.q.R', 2, 0, 0),
+            ('common1_question.q.R', 3, 0, 0),
+            ('common2_question.q.R', 1, 0, 0),
+            ('common2_question.q.R', 2, 0, 0),
+            ('common2_question.q.R', 3, 0, 0),
+        ]))
+
+        alloc_a = get_allocation(dict(
+            allocation_method='original',
+            allocation_seed=44,
+            allocation_encryption_key='toottoottoot',
+        ), self.db_stages[1], self.db_studs[0])
+        out = [(self.mb_lookup_mss_id(x[0]).path, x[1], x[2], x[3]) for x in alloc_a.get_material()]
+        self.assertEqual(set(out), set([
+            ('common1_question.q.R', 1, 0, 0),
+            ('common1_question.q.R', 2, 0, 0),
+            ('common1_question.q.R', 3, 0, 0),
+        ]))
+
+        alloc_a = get_allocation(dict(
+            allocation_method='original',
+            allocation_seed=44,
+            allocation_encryption_key='toottoottoot',
+        ), self.db_stages[2], self.db_studs[0])
+        out = [(self.mb_lookup_mss_id(x[0]).path, x[1], x[2], x[3]) for x in alloc_a.get_material()]
+        self.assertEqual(set(out), set([
+            ('common2_question.q.R', 1, 0, 0),
+            ('common2_question.q.R', 2, 0, 0),
+            ('common2_question.q.R', 3, 0, 0),
+        ]))
+
+        # TODO: Test capping / sampling

@@ -2,6 +2,8 @@ import base64
 import random
 import struct
 
+from sqlalchemy import column, select, table, tuple_
+
 import skippy
 
 from tutorweb_quizdb import DBSession
@@ -25,14 +27,19 @@ class BaseAllocation():
         self.db_stage = db_stage
         self.db_student = db_student
 
-    def get_material(self, ids=None, stats=False):
+    def get_material(self):
         """
-        Return list of dicts, e.g.
-            dict(public_id=(id user sees), ms=(ms object), permutation=p, chosen=x, correct=y)
+        Return a list of mss_id/permutation/answered/correct tuples
+        of suitable material for this student.
+        """
+        q = select([
+            column('material_source_id'),
+            column('permutation'),
+            column('initial_answered'),
+            column('initial_correct'),
+        ]).select_from(table('stage_material')).where(column('stage_id') == self.db_stage.stage_id)
 
-        ...chosen & correct only required if stats=True
-        """
-        raise NotImplemented
+        return DBSession.execute(q).fetchall()
 
     def to_public_id(self, mss_id, permutation):
         """
@@ -46,32 +53,30 @@ class BaseAllocation():
         """
         return tuple(int(x) for x in public_id.split(":", 1))
 
-    def get_stats(self, material):
+    def get_stats(self, public_ids):
         """
-        Return stats for each item in material, (mss_id, permutation) tuples
+        Fetch the updated answered/correct stats for given public IDs
         """
-        out = []
-        for m in material:
-            # TODO: Terribly inefficient
-            rs = DBSession.execute(
-                'SELECT chosen, correct'
-                ' FROM answer_stats'
-                ' WHERE stage_id = :stage_id'
-                ' AND material_source_id = :mss_id'
-                '',
-                dict(
-                    stage_id=self.db_stage.stage_id,
-                    mss_id=m[0],  # NB: For stats purposes, we consider all permutations equal
-                )
-            ).fetchone()
-            out.append(dict(
-                uri=self.to_public_id(m[0], m[1]),
-                chosen=rs[0] if rs else 0,
-                correct=rs[1] if rs else 0,
-                online_only=False,  # TODO: How do we know?
-                _type='regular',  # TODO: ...or historical?
-            ))
-        return out
+        q = select([
+            column('material_source_id'),
+            column('permutation'),
+            column('answered'),
+            column('correct'),
+        ]).select_from(table('answer_stats')).where(column('stage_id') == self.db_stage.stage_id)
+
+        q = q.where(tuple_(
+            column('material_source_id'),
+            column('permutation')
+        ).in_(self.from_public_id(x) for x in public_ids))
+
+        # Return stats, sorted by incoming public_ids
+        stats = {}
+        for mss_id, permutation, answered, correct in DBSession.execute(q):
+            stats[self.to_public_id(mss_id, permutation)] = dict(
+                stage_answered=answered,
+                stage_correct=correct,
+            )
+        return [stats.get(x, dict(stage_answered=0, stage_correct=0)) for x in public_ids]
 
     def should_refresh_questions(self, aq, old_aq):
         """
@@ -117,20 +122,13 @@ class OriginalAllocation(BaseAllocation):
             in struct.unpack('II', base64.b64decode(public_id))
         )
 
-    def get_material(self, ids=None, stats=False):
-        # Fetch all potential questions
-        material = DBSession.execute(
-            'SELECT material_source_id, permutation'
-            ' FROM stage_material'
-            ' WHERE stage_id = :stage_id'
-            ' ORDER BY stage_id',
-            dict(
-                stage_id=self.db_stage.stage_id
-            )
-        ).fetchall()
+    def get_material(self):
+        material = super(OriginalAllocation, self).get_material()
 
         # If there are enough, sample based on our seed & how many questions student has answered
         if self.question_cap < len(material):
+            # TODO: We should be choosing based on difficulty, but to do that we need
+            # updated stats, and the current grade
             local_random = random.Random()
             local_random.seed(self.seed + (self._aq_length() // self.refresh_int))
             material = local_random.sample(material, self.question_cap)
@@ -188,21 +186,6 @@ class PassThroughAllocation(BaseAllocation):
             )
         ).fetchone()
         return (mss_id, int(permutation),)
-
-    def get_material(self, ids=None, stats=False):
-        """
-        Fetch all potential questions, no filter.
-        """
-        material = DBSession.execute(
-            'SELECT material_source_id, permutation'
-            ' FROM stage_material'
-            ' WHERE stage_id = :stage_id'
-            ' ORDER BY stage_id',
-            dict(
-                stage_id=self.db_stage.stage_id
-            )
-        ).fetchall()
-        return material
 
 
 class ExamAllocation(BaseAllocation):
