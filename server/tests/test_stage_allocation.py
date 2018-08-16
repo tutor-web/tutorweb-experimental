@@ -77,14 +77,14 @@ class OriginalAllocationDBTest(RequiresPyramid, RequiresMaterialBank, RequiresPo
             allocation_seed=44,
             allocation_encryption_key='toottoottoot',
         ), self.db_stages[0], self.db_studs[0])
-        out = [(self.mb_lookup_mss_id(x[0]).path, x[1], x[2], x[3]) for x in alloc_a.get_material()]
+        out = [(self.mb_lookup_mss_id(x[0]).path, x[1]) for x in alloc_a.get_material()]
         self.assertEqual(set(out), set([
-            ('common1_question.q.R', 1, 0, 0),
-            ('common1_question.q.R', 2, 0, 0),
-            ('common1_question.q.R', 3, 0, 0),
-            ('common2_question.q.R', 1, 0, 0),
-            ('common2_question.q.R', 2, 0, 0),
-            ('common2_question.q.R', 3, 0, 0),
+            ('common1_question.q.R', 1),
+            ('common1_question.q.R', 2),
+            ('common1_question.q.R', 3),
+            ('common2_question.q.R', 1),
+            ('common2_question.q.R', 2),
+            ('common2_question.q.R', 3),
         ]))
 
         alloc_a = get_allocation(dict(
@@ -92,11 +92,11 @@ class OriginalAllocationDBTest(RequiresPyramid, RequiresMaterialBank, RequiresPo
             allocation_seed=44,
             allocation_encryption_key='toottoottoot',
         ), self.db_stages[1], self.db_studs[0])
-        out = [(self.mb_lookup_mss_id(x[0]).path, x[1], x[2], x[3]) for x in alloc_a.get_material()]
+        out = [(self.mb_lookup_mss_id(x[0]).path, x[1]) for x in alloc_a.get_material()]
         self.assertEqual(set(out), set([
-            ('common1_question.q.R', 1, 0, 0),
-            ('common1_question.q.R', 2, 0, 0),
-            ('common1_question.q.R', 3, 0, 0),
+            ('common1_question.q.R', 1),
+            ('common1_question.q.R', 2),
+            ('common1_question.q.R', 3),
         ]))
 
         alloc_a = get_allocation(dict(
@@ -104,11 +104,11 @@ class OriginalAllocationDBTest(RequiresPyramid, RequiresMaterialBank, RequiresPo
             allocation_seed=44,
             allocation_encryption_key='toottoottoot',
         ), self.db_stages[2], self.db_studs[0])
-        out = [(self.mb_lookup_mss_id(x[0]).path, x[1], x[2], x[3]) for x in alloc_a.get_material()]
+        out = [(self.mb_lookup_mss_id(x[0]).path, x[1]) for x in alloc_a.get_material()]
         self.assertEqual(set(out), set([
-            ('common2_question.q.R', 1, 0, 0),
-            ('common2_question.q.R', 2, 0, 0),
-            ('common2_question.q.R', 3, 0, 0),
+            ('common2_question.q.R', 1),
+            ('common2_question.q.R', 2),
+            ('common2_question.q.R', 3),
         ]))
 
         # TODO: Test capping / sampling

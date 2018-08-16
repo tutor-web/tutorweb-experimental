@@ -35,8 +35,6 @@ class BaseAllocation():
         q = select([
             column('material_source_id'),
             column('permutation'),
-            column('initial_answered'),
-            column('initial_correct'),
         ]).select_from(table('stage_material')).where(column('stage_id') == self.db_stage.stage_id)
 
         return DBSession.execute(q).fetchall()
