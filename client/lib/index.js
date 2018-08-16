@@ -36,7 +36,8 @@ function StartView() {
         this.jqQuiz.empty().append(h('div', [
             h('h2', 'Your lectures'),
             select_list(subscriptions.subscriptions.children, function (data) {
-                var grade = grade_for(data),
+                var link_el = null,
+                    grade = grade_for(data),
                     grade_class = grade > 9.5 ? 'aced'
                                 : grade > 7.0 ? 'high'
                                 : grade > 3.0 ? 'medium'
@@ -44,11 +45,22 @@ function StartView() {
                                     : 'base',
                     grade_title = (subscriptions.lectures[data.href] || { stats: "" }).stats;
 
+                if (data.supporting_material_href) {
+                    link_el = h('a.link.pdf', {
+                        href: data.supporting_material_href,
+                        title: 'Download notes',
+                    }, [
+                        h('img', {src: '/images/page_white_put.png'}),
+                    ]);
+                }
                 return h('a', {
                     href: data.href ? '/stage?path=' + encodeURIComponent(data.href) : '#',
                 }, [
                     data.title,
-                    h('abbr.grade.' + grade_class, { title: grade_title }, grade),
+                    h('div.extras', [
+                        link_el,
+                        h('abbr.grade.' + grade_class, { title: grade_title }, grade),
+                    ]),
                 ]);
             }),
         ]));
