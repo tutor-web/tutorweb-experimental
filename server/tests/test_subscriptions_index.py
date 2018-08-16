@@ -5,7 +5,7 @@ from sqlalchemy_utils import Ltree
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
 
-from tutorweb_quizdb.subscriptions.list import view_subscription_list
+from tutorweb_quizdb.subscriptions.index import view_subscription_list
 
 
 class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase):
