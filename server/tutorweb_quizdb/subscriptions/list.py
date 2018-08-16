@@ -6,7 +6,7 @@ from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.student import get_current_student
 
 
-def add_syllabus(out, path, title, level=0):
+def add_syllabus(out, path, extras, level=0):
     path_head = str(path[level])
 
     # Search for path in children
@@ -23,9 +23,9 @@ def add_syllabus(out, path, title, level=0):
         n = out['children'][-1]
 
     if level + 1 >= len(path):
-        n['title'] = title
+        n.update(extras)
         return n
-    return add_syllabus(n, path, title, level + 1)
+    return add_syllabus(n, path, extras, level + 1)
 
 
 def view_subscription_list(request):
@@ -34,10 +34,10 @@ def view_subscription_list(request):
     # Build up tree structure to syllabuss, and a flat id->dict lookup
     out_root = dict(children=[])
     out_syllabus = dict()
-    for (subscribed_syllabus_id, syllabus_id, title, path) in DBSession.execute(
+    for (subscribed_syllabus_id, syllabus_id, title, path, supporting_material_href) in DBSession.execute(
             """
             SELECT l.syllabus_id subscribed_syllabus_id
-                 , sub_l.syllabus_id, sub_l.title, sub_l.path
+                 , sub_l.syllabus_id, sub_l.title, sub_l.path, sub_l.supporting_material_href
             FROM syllabus l, subscription s, syllabus sub_l
             WHERE s.syllabus_id = l.syllabus_id
             AND s.hidden = FALSE
@@ -52,7 +52,15 @@ def view_subscription_list(request):
             # We're looking at the root of a subscription, so we don't want to
             # consider anything above this point in the path
             base_level = len(path) - 1
-        out_syllabus[syllabus_id] = add_syllabus(out_root, Ltree(path), title, level=base_level)
+        extras=dict(title=title)
+        if supporting_material_href:
+            extras['supporting_material_href'] = supporting_material_href
+        out_syllabus[syllabus_id] = add_syllabus(
+            out_root,
+            Ltree(path),
+            extras,
+            level=base_level
+        )
 
     # Using the id->dict lookup, decorate structure with all available stages
     for db_stage in (DBSession.query(Base.classes.stage)

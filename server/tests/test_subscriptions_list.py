@@ -9,6 +9,8 @@ from tutorweb_quizdb.subscriptions.list import view_subscription_list
 
 
 class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase):
+    maxDiff = None
+
     def setUp(self):
         super(SubscriptionsListTest, self).setUp()
 
@@ -35,6 +37,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         for l in lecture_paths:
             self.db_lecs[l] = Base.classes.syllabus(host_id=ACTIVE_HOST, path=Ltree(l), title="UT Lecture %s" % l)
             DBSession.add(self.db_lecs[l])
+        self.db_lecs['dept0.tut0.lec0'].supporting_material_href = 'http://wikipedia.org/'
         DBSession.flush()
 
         # Hang some stages off lectures
@@ -93,6 +96,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                         'name': 'lec0',
                         'path': Ltree('dept0.tut0.lec0'),
                         'title': 'UT Lecture dept0.tut0.lec0',
+                        'supporting_material_href': 'http://wikipedia.org/',
                         'children': [
                             {
                                 'href': '/api/stage?path=dept0.tut0.lec0.stage0',

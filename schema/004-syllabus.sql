@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS syllabus (
     path                     LTREE NOT NULL,
     UNIQUE(host_id, path),
     title                    TEXT NOT NULL,
+    supporting_material_href TEXT NULL,
 
     requires_group_id        INTEGER NOT NULL DEFAULT get_group_id('accept_terms'),
     FOREIGN KEY (requires_group_id) REFERENCES "group"(group_id),
@@ -23,6 +24,7 @@ COMMENT ON TABLE  syllabus IS 'Lecture/department/tutorial tree sturcture';
 COMMENT ON COLUMN syllabus.host_id IS 'The host this syllabus item is from ()';
 COMMENT ON COLUMN syllabus.path IS 'Path to syllabus item in short name terms, e.g. math.099.lec001';
 COMMENT ON COLUMN syllabus.title IS 'Full syllabus item title visible to student';
+COMMENT ON COLUMN syllabus.supporting_material_href IS 'URL pointing to, e.g. PDFs of content';
 COMMENT ON COLUMN syllabus.requires_group_id IS 'Group ID student has to have before visible, defaults to accept_terms';
 
 

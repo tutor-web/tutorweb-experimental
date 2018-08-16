@@ -47,20 +47,21 @@ from sqlalchemy_utils import Ltree
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 
 
-def upsert_syllabus(path, title, requires_group):
+def upsert_syllabus(path, title, href, requires_group):
     """Fetch / insert from the syllabus table something with path"""
     try:
         dbl = (DBSession.query(Base.classes.syllabus)
                         .filter_by(host_id=ACTIVE_HOST, path=path)
                         .one())
         dbl.title = title
+        dbl.supporting_material_href = href
         dbl.requires_group_id = func.public.get_group_id(requires_group)
-        return dbl
     except NoResultFound:
         dbl = Base.classes.syllabus(
             host_id=ACTIVE_HOST,
             path=path,
             title=title,
+            supporting_material_href=href,
             requires_group_id=func.public.get_group_id(requires_group),
         )
         DBSession.add(dbl)
@@ -85,11 +86,12 @@ def lec_import(tut_struct):
     path = Ltree(tut_struct['path'])
     requires_group = tut_struct['requires_group'] or 'accept_terms'
     for i in range(len(path)):
-        upsert_syllabus(path[:i + 1], tut_struct['titles'][i], requires_group)
+        tut_href = tut_struct['href'] if (i == len(path) - 1) else None
+        upsert_syllabus(path[:i + 1], tut_struct['titles'][i], tut_href, requires_group)
 
     # Add all lectures & stages
-    for (lec_name, lec_title) in tut_struct['lectures']:
-        db_lec = upsert_syllabus(path + Ltree(lec_name), lec_title, requires_group)
+    for (lec_name, lec_title, lec_href) in tut_struct['lectures']:
+        db_lec = upsert_syllabus(path + Ltree(lec_name), lec_title, lec_href, requires_group)
 
         # Get all current stages, put in dict
         db_stages = dict()
