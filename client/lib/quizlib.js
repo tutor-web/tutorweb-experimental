@@ -283,7 +283,6 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 a.lec_answered = lastAns && lastAns.lec_answered ? lastAns.lec_answered : 0;
                 a.lec_correct = lastAns && lastAns.lec_correct ? lastAns.lec_correct : 0;
                 a.practice_answered = lastAns && lastAns.practice_answered ? lastAns.practice_answered : 0;
-                a.practice_correct = lastAns && lastAns.practice_correct ? lastAns.practice_correct : 0;
                 a.client_id = self._getClientId();
                 return self._getQuestionData(a.uri).then(function (qn) {
                     // Store new allocation in answerQueue
@@ -322,7 +321,6 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 a.lec_answered = lastAns && lastAns.lec_answered ? lastAns.lec_answered : 0;
                 a.lec_correct = lastAns && lastAns.lec_correct ? lastAns.lec_correct : 0;
                 a.practice_answered = lastAns && lastAns.practice_answered ? lastAns.practice_answered : 0;
-                a.practice_correct = lastAns && lastAns.practice_correct ? lastAns.practice_correct : 0;
                 a.client_id = self._getClientId();
                 curLecture.answerQueue.push(a);
                 return true;
@@ -402,6 +400,13 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                     }
                 });
 
+                if (a.practice) {
+                    // Practice mode: Question shouldn't be graded
+                    a.student_answer.practice_correct = a.correct;
+                    a.student_answer.practice = true;
+                    a.correct = null;
+                }
+
                 // Update question with new counts
                 curLecture.questions.map(function (qn) {
                     if (a.uri === qn.uri) {
@@ -420,8 +425,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 iaalib.gradeAllocation(curLecture.settings, curLecture.answerQueue, curLecture);
                 a.lec_answered = (a.lec_answered || 0) + 1;
                 a.lec_correct = (a.lec_correct || 0) + (a.correct ? 1 : 0);
-                a.practice_answered = (a.practice_answered || 0) + (a.practice ? 1 : 0);
-                a.practice_correct = (a.practice_correct || 0) + (a.practice && a.correct ? 1 : 0);
+                a.practice_answered = (a.practice_answered || 0) + (a.student_answer.practice ? 1 : 0);
 
                 return {
                     qn: qn,
@@ -543,8 +547,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             // Update running totals
             a.lec_answered = runningTotal(a, 'lec_answered', a.time_end ? 1 : 0);
             a.lec_correct  = runningTotal(a, 'lec_correct',  a.correct ? 1 : 0);
-            a.practice_answered = runningTotal(a, 'practice_answered', a.practice && a.time_end ? 1 : 0);
-            a.practice_correct  = runningTotal(a, 'practice_correct',  a.practice && a.correct ? 1 : 0);
+            a.practice_answered = runningTotal(a, 'practice_answered', a.student_answer.practice && a.time_end ? 1 : 0);
             return a;
         });
     }
@@ -736,14 +739,13 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
         if (a.practice) {
             out.practice = "Practice mode";
-            if (a.hasOwnProperty('practice_answered') && a.hasOwnProperty('practice_correct')) {
-                out.practiceStats = "Answered " + a.practice_answered + " practice questions, " + a.practice_correct + " correctly.";
+            if (a.hasOwnProperty('practice_answered')) {
+                out.practiceStats = "Answered " + a.practice_answered + " practice questions.";
             }
         }
 
         if (a.hasOwnProperty('lec_answered') && a.hasOwnProperty('lec_correct')) {
-            out.stats = "Answered " + (a.lec_answered - (a.practice_answered || 0)) + " questions, "
-                      + (a.lec_correct - (a.practice_correct || 0)) + " correctly.";
+            out.stats = "Answered " + (a.lec_answered - (a.practice_answered || 0)) + " questions.";
         }
 
         if (a.hasOwnProperty('grade_after') || a.hasOwnProperty('grade_before')) {

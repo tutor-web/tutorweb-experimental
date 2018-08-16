@@ -89,10 +89,8 @@ module.exports = function IAA() {
             questions.filter(function (qn) { return wanted_type ? qn._type === wanted_type : (!qn._type || qn._type === 'regular'); }),
             oldGrade,
             answerQueue,
-            questions.filter(function (qn) { return qn._type === 'template'; }),
-            opts.practice ? 0 // No template questions in practice mode
-                          : oldGrade < getSetting(settings, "mingrade_template", 5) ? 0 // No template questions when you have a grade less than 5
-                          : getSetting(settings, "prob_template", 0.1),
+            [], // TODO: We don't use this any more, needs tidying up
+            0, // TODO: We don't use this any more, needs tidying up
             settings
         ));
     };
@@ -150,9 +148,9 @@ module.exports = function IAA() {
             return;
         }
 
-        // Filter practice / unanswered / ungraded questions
+        // Filter unanswered / ungraded questions
         aq = answerQueue.filter(function (a) {
-            return a && !a.practice && a.hasOwnProperty('correct') && a.correct !== null;
+            return a && a.hasOwnProperty('correct') && a.correct !== null;
         });
 
         // Annotate the last question with your grade at this point
