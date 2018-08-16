@@ -51,6 +51,21 @@ class RequiresMaterialBank():
             self.git('add', file_path)
             self.git('commit', '-m', file_path)
 
+    def mb_write_example(self, file_path, tags, permutations):
+        """
+        Write a question, we don't care what it contains
+        """
+        self.mb_write_file(file_path, b'''
+# TW:TAGS=%s
+# TW:PERMUTATIONS=%d
+question <- function(permutation, data_frames) {
+    return(list(
+        content = '<p class="hints">You should write a question</p>',
+        correct = list('choice_correct' = list(nonempty = TRUE))
+    ))
+}
+        ''' % (','.join(tags).encode('utf8'), permutations))
+
     def mb_remove_file(self, file_path, commit=None):
         """
         Remove (file_path)
@@ -83,3 +98,13 @@ class RequiresMaterialBank():
 
         request = self.request(settings={'tutorweb.material_bank.default': self.material_bank.name})
         return view_material_update(request)
+
+    def mb_lookup_mss_id(self, mss_id):
+        """
+        Get an material_source object from mss_id, requires RequiresPostgresql
+        """
+        if not hasattr(self, 'postgresql'):
+            raise ValueError("postgresql not defined, RequiresPostgresql probably missing")
+        from tutorweb_quizdb import DBSession, Base
+
+        return DBSession.query(Base.classes.material_source).filter_by(material_source_id=mss_id).one()
