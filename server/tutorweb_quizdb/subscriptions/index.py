@@ -55,7 +55,7 @@ def view_subscription_list(request):
             # We're looking at the root of a subscription, so we don't want to
             # consider anything above this point in the path
             base_level = len(path) - 1
-        extras=dict(title=title)
+        extras = dict(title=title)
         if supporting_material_href:
             extras['supporting_material_href'] = supporting_material_href
         out_syllabus[syllabus_id] = add_syllabus(
