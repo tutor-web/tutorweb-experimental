@@ -1,8 +1,12 @@
 import urllib.parse
 
+from pyramid.httpexceptions import HTTPNotFound
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils import Ltree
 
-from tutorweb_quizdb import DBSession, Base
+from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.student import get_current_student
 
 
@@ -40,7 +44,6 @@ def view_subscription_list(request):
                  , sub_l.syllabus_id, sub_l.title, sub_l.path, sub_l.supporting_material_href
             FROM syllabus l, subscription s, syllabus sub_l
             WHERE s.syllabus_id = l.syllabus_id
-            AND s.hidden = FALSE
             AND s.user_id = :user_id
             AND sub_l.path <@ l.path
             ORDER BY l.path, sub_l.path
@@ -78,6 +81,35 @@ def view_subscription_list(request):
     return out_root
 
 
+def view_subscription_add(request):
+    student = get_current_student(request)
+    path = Ltree(request.params['path'])
+
+    # Find the syllabus item
+    try:
+        dbl = (DBSession.query(Base.classes.syllabus)
+                        .filter_by(host_id=ACTIVE_HOST, path=path)
+                        .filter(Base.classes.syllabus.requires_group_id.in_(g.id for g in student.groups))
+                        .one())
+    except NoResultFound:
+        raise HTTPNotFound(path)
+
+    # Add subscription
+    try:
+        DBSession.add(Base.classes.subscription(
+            user=student,
+            syllabus=dbl,
+        ))
+        DBSession.flush()
+    except IntegrityError:
+        # Already there
+        pass
+
+    return dict(success=True, path=path)
+
+
 def includeme(config):
     config.add_view(view_subscription_list, route_name='view_subscription_list', renderer='json')
     config.add_route('view_subscription_list', '/subscriptions/list')
+    config.add_view(view_subscription_add, route_name='view_subscription_add', renderer='json')
+    config.add_route('view_subscription_add', '/subscriptions/add')

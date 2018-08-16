@@ -109,12 +109,10 @@ CREATE TABLE IF NOT EXISTS subscription (
     FOREIGN KEY (syllabus_id) REFERENCES syllabus(syllabus_id),
     PRIMARY KEY (user_id, syllabus_id),
 
-    hidden                   BOOLEAN NOT NULL DEFAULT 'f',
     lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()
 );
 SELECT ddl_lastupdate_trigger('subscription');
 COMMENT ON TABLE  subscription IS 'Student<->syllabus item subscriptions';
-COMMENT ON COLUMN subscription.hidden IS 'Hide this from the student''s main menu';  -- TODO: Really necessary now?
 
 
 COMMIT;
