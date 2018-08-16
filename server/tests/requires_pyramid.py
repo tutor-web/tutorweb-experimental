@@ -1,5 +1,6 @@
 import random
 
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils import Ltree
 
 from pyramid import testing
@@ -47,22 +48,29 @@ class RequiresPyramid():
         DBSession.flush()
         return out
 
-    def create_students(self, total, accept_terms=True):
+    def create_students(self, total, student_group_fn=lambda i: ['accept_terms']):
         from tutorweb_quizdb import DBSession, ACTIVE_HOST
         from tutorweb_quizdb import models
-        from tutorweb_quizdb.student import student_accept_terms
 
         out = []
         for i in range(total):
+            groups = []
+            for g in student_group_fn(i):
+                try:
+                    groups.append(DBSession.query(models.Group).filter_by(name=g).one())
+                except NoResultFound:
+                    groups.append(models.Group(name=g))
+                    DBSession.add(groups[-1])
+                    DBSession.flush()
+
             out.append(models.User(
                 host_id=ACTIVE_HOST,
                 user_name='user%d' % i,
                 email='user%d@example.com' % i,
                 password='password%d' % i,
+                groups=groups,
             ))
             DBSession.add(out[-1])
             DBSession.flush()
 
-            if accept_terms:
-                student_accept_terms(self.request(user=out[-1]))
         return out

@@ -15,8 +15,6 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         super(SubscriptionsListTest, self).setUp()
 
         from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
-        from tutorweb_quizdb import models
-        from tutorweb_quizdb.student import student_accept_terms
         self.DBSession = DBSession
 
         lecture_paths = [
@@ -58,19 +56,10 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         DBSession.flush()
 
         # Add some students
-        self.db_studs = [models.User(
-            host_id=ACTIVE_HOST,
-            user_name='user%d' % i,
-            email='user%d@example.com' % i,
-            password='parp',
-        ) for i in [0, 1, 2]]
-        DBSession.add(self.db_studs[0])
-        DBSession.add(self.db_studs[1])
-        DBSession.add(self.db_studs[2])
-        DBSession.flush()
-
-        student_accept_terms(self.request(user=self.db_studs[0]))
-        student_accept_terms(self.request(user=self.db_studs[1]))
+        self.db_studs = self.create_students(
+            3,
+            student_group_fn=lambda i: ['accept_terms', 'super_secret'] if i == 0 else ['accept_terms']
+        )
 
     def test_call(self):
         from tutorweb_quizdb import DBSession, Base
@@ -85,8 +74,8 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         ])
         DBSession.flush()
 
-        out = view_subscription_list(self.request(user=self.db_studs[0]))
-        self.assertEqual(out, {'children': [
+        out0_pre_secret = view_subscription_list(self.request(user=self.db_studs[0]))
+        self.assertEqual(out0_pre_secret, {'children': [
             {
                 'name': 'tut0',
                 'path': Ltree('dept0.tut0'),
@@ -159,6 +148,36 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                                 'href': '/api/stage?path=dept0.tut1.lec1.stage0',
                                 'stage': 'stage0',
                                 'title': 'UT stage dept0.tut1.lec1.stage0'
+                            },
+                        ],
+                    }
+                ]
+            },
+        ]})
+
+        # Make dept0.tut1.lec1 super-secret, only stud0 can see it
+        self.db_lecs['dept0.tut1.lec1'].requires_group_id = [g.id for g in self.db_studs[0].groups if g.name == 'super_secret'][0]
+        DBSession.flush()
+
+        out0_post_secret = view_subscription_list(self.request(user=self.db_studs[0]))
+        self.assertEqual(out0_post_secret, out0_pre_secret)
+
+        out = view_subscription_list(self.request(user=self.db_studs[1]))
+        self.assertEqual(out, {'children': [
+            {
+                'name': 'tut1',
+                'path': Ltree('dept0.tut1'),
+                'title': 'UT Lecture dept0.tut1',
+                'children': [
+                    {
+                        'name': 'lec0',
+                        'path': Ltree('dept0.tut1.lec0'),
+                        'title': 'UT Lecture dept0.tut1.lec0',
+                        'children': [
+                            {
+                                'href': '/api/stage?path=dept0.tut1.lec0.stage0',
+                                'stage': 'stage0',
+                                'title': 'UT stage dept0.tut1.lec0.stage0'
                             },
                         ],
                     }

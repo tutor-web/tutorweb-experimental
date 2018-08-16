@@ -45,10 +45,12 @@ def view_subscription_list(request):
             FROM syllabus l, subscription s, syllabus sub_l
             WHERE s.syllabus_id = l.syllabus_id
             AND s.user_id = :user_id
+            AND sub_l.requires_group_id = ANY(:group_ids)
             AND sub_l.path <@ l.path
             ORDER BY l.path, sub_l.path
             """, dict(
                 user_id=student.user_id,
+                group_ids=[g.id for g in student.groups],
             )).fetchall():
         path = Ltree(path)
         if subscribed_syllabus_id == syllabus_id:
