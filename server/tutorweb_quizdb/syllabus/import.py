@@ -132,5 +132,5 @@ def script():
     initialize_dbsession(os.environ['DB_URL'])
 
     with transaction.manager:
-        tut_struct = json.load(sys.stdin)
+        tut_struct = json.load(open(sys.argv[1], 'r'))
         lec_import(tut_struct)
