@@ -27,8 +27,7 @@
     <section>
       ${render_flash_messages()|n}
       <h3>Profile</h3>
-      ${ user.username }<br />
-      ${ user.email }
+      ${form|n}
     </section>
 
   </main>
