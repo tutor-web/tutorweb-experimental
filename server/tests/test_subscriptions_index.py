@@ -24,14 +24,14 @@ class AddSyllabusTest(unittest.TestCase):
             {
                 'path': Ltree('math.101.0'), 'title': 'hi',
                 'children': [
-                    { 'path': Ltree('math.101.0.1'), 'title': 'hi l1', 'children': [] },
-                    { 'path': Ltree('math.101.0.2'), 'title': 'hi l2', 'children': [] },
+                    {'path': Ltree('math.101.0.1'), 'title': 'hi l1', 'children': []},
+                    {'path': Ltree('math.101.0.2'), 'title': 'hi l2', 'children': []},
                 ]
             },
             {
                 'path': Ltree('math.612.0'), 'title': 'hello',
                 'children': [
-                    { 'path': Ltree('math.612.0.1'), 'title': 'hello 1', 'children': [] },
+                    {'path': Ltree('math.612.0.1'), 'title': 'hello 1', 'children': []},
                 ]
             },
         ]))
