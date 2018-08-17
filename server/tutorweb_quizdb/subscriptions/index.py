@@ -11,17 +11,16 @@ from tutorweb_quizdb.student import get_current_student
 
 
 def add_syllabus(out, path, extras, level=0):
-    path_head = str(path[level])
+    path_head = path[:level + 1]
 
     # Search for path in children
     for n in out['children']:
-        if n['name'] == path_head:
+        if n['path'] == path_head:
             break
     else:
         # Couldn't find it, add it
         out['children'].append(dict(
-            name=path_head,
-            path=path[:level + 1],
+            path=path_head,
             children=[],
         ))
         n = out['children'][-1]

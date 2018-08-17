@@ -5,7 +5,36 @@ from sqlalchemy_utils import Ltree
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
 
-from tutorweb_quizdb.subscriptions.index import view_subscription_list
+from tutorweb_quizdb.subscriptions.index import add_syllabus, view_subscription_list
+
+
+class AddSyllabusTest(unittest.TestCase):
+    maxDiff = None
+
+    def test_withsamename(self):
+        """Adding items at same level with same name shouldn't cause a problem"""
+        out_root = dict(children=[])
+
+        add_syllabus(out_root, Ltree('math.101.0'), dict(title='hi'), 2)
+        add_syllabus(out_root, Ltree('math.101.0.1'), dict(title='hi l1'), 2)
+        add_syllabus(out_root, Ltree('math.101.0.2'), dict(title='hi l2'), 2)
+        add_syllabus(out_root, Ltree('math.612.0'), dict(title='hello'), 2)
+        add_syllabus(out_root, Ltree('math.612.0.1'), dict(title='hello 1'), 2)
+        self.assertEqual(out_root, dict(children=[
+            {
+                'path': Ltree('math.101.0'), 'title': 'hi',
+                'children': [
+                    { 'path': Ltree('math.101.0.1'), 'title': 'hi l1', 'children': [] },
+                    { 'path': Ltree('math.101.0.2'), 'title': 'hi l2', 'children': [] },
+                ]
+            },
+            {
+                'path': Ltree('math.612.0'), 'title': 'hello',
+                'children': [
+                    { 'path': Ltree('math.612.0.1'), 'title': 'hello 1', 'children': [] },
+                ]
+            },
+        ]))
 
 
 class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase):
@@ -77,12 +106,10 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         out0_pre_secret = view_subscription_list(self.request(user=self.db_studs[0]))
         self.assertEqual(out0_pre_secret, {'children': [
             {
-                'name': 'tut0',
                 'path': Ltree('dept0.tut0'),
                 'title': 'UT Lecture dept0.tut0',
                 'children': [
                     {
-                        'name': 'lec0',
                         'path': Ltree('dept0.tut0.lec0'),
                         'title': 'UT Lecture dept0.tut0.lec0',
                         'supporting_material_href': 'http://wikipedia.org/',
@@ -94,7 +121,6 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                             },
                         ],
                     }, {
-                        'name': 'lec1',
                         'path': Ltree('dept0.tut0.lec1'),
                         'title': 'UT Lecture dept0.tut0.lec1',
                         'children': [
@@ -108,7 +134,6 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                 ]
             },
             {
-                'name': 'lec1',
                 'path': Ltree('dept0.tut1.lec1'),
                 'title': 'UT Lecture dept0.tut1.lec1',
                 'children': [
@@ -124,12 +149,10 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         out = view_subscription_list(self.request(user=self.db_studs[1]))
         self.assertEqual(out, {'children': [
             {
-                'name': 'tut1',
                 'path': Ltree('dept0.tut1'),
                 'title': 'UT Lecture dept0.tut1',
                 'children': [
                     {
-                        'name': 'lec0',
                         'path': Ltree('dept0.tut1.lec0'),
                         'title': 'UT Lecture dept0.tut1.lec0',
                         'children': [
@@ -140,7 +163,6 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                             },
                         ],
                     }, {
-                        'name': 'lec1',
                         'path': Ltree('dept0.tut1.lec1'),
                         'title': 'UT Lecture dept0.tut1.lec1',
                         'children': [
@@ -165,12 +187,10 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         out = view_subscription_list(self.request(user=self.db_studs[1]))
         self.assertEqual(out, {'children': [
             {
-                'name': 'tut1',
                 'path': Ltree('dept0.tut1'),
                 'title': 'UT Lecture dept0.tut1',
                 'children': [
                     {
-                        'name': 'lec0',
                         'path': Ltree('dept0.tut1.lec0'),
                         'title': 'UT Lecture dept0.tut1.lec0',
                         'children': [
