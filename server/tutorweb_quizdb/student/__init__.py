@@ -33,3 +33,4 @@ def get_current_student(request):
 def includeme(config):
     config.include('tutorweb_quizdb.student.details')
     config.include('tutorweb_quizdb.student.accept_terms')
+    config.include('tutorweb_quizdb.student.create')

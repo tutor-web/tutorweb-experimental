@@ -4,6 +4,7 @@ import random
 from sqlalchemy.orm.exc import NoResultFound
 
 from tutorweb_quizdb import DBSession, models, ACTIVE_HOST
+from tutorweb_quizdb.student import get_group
 
 
 def trigger_forgot_password(request, user):
@@ -95,3 +96,60 @@ def generate_password(length):
             yield random.choice(consonants)
             yield random.choice(vowels)
     return ''.join(itertools.islice(pronounceable_password(), length))
+
+
+def includeme(config):
+    pass
+
+
+def script_student_import():
+    import argparse
+    import sys
+    from tutorweb_quizdb import setup_script
+
+    argparse_arguments = [
+        dict(description='Create many users in one go'),
+        dict(
+            name='infile',
+            type=argparse.FileType('r'),
+            default=sys.stdin),
+        dict(
+            name='--groups',
+            help='Groups to make sure these users are in (comma-separated)',
+            nargs='?',
+            default=''),
+        dict(
+            name='--email-address',
+            help='Email address to use for users, if not given use user_name',
+            nargs='?',
+            default=None),
+        dict(
+            name='--assign-passwords',
+            help='Generate passwords for each user, print in output',
+            action="store_true"),
+    ]
+
+    with setup_script(argparse_arguments) as env:
+        groups = [get_group(group_name, auto_create=True) for group_name in env['args'].groups]
+
+        with env['args'].infile as f:
+            new_user_names = filter(None, f.readlines())
+
+        for new_user_name in new_user_names:
+            new_user_name = new_user_name.strip()
+            if not new_user_name:
+                continue
+
+            # Create user and print output
+            (new_user, password) = create_student(
+                env['request'],
+                new_user_name,
+                env['args'].email_address or new_user_name,
+                assign_password=env['args'].assign_passwords,
+                groups=groups,
+            )
+            print("%s,%s,%s" % (
+                new_user.user_name,
+                new_user.email,
+                password or '',
+            ))
