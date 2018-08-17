@@ -86,16 +86,19 @@ label, input, button, select, textarea {
 	color: #333;
 }
 /* The first child is the default button (blue) */
+#tw-actions .button:first-child,
 #tw-actions button:first-child{
 	background: #08C;
 	border: solid 1px #08C;
 	color: #fff;
 	transition: background 0.2s ease-in-out;	
 }
+#tw-actions .button:first-child:hover,
 #tw-actions button:first-child:hover{
 	background: #006da3;
 }
 /* The last child always floats left and should not have a left margin */
+#tw-actions .button:last-child,
 #tw-actions button:last-child{
 	margin-left: 0;
 	float: left;

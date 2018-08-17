@@ -30,6 +30,15 @@
       ${form|n}
     </section>
 
+    <script>//<!--
+    document.getElementById('deform').submit.style.display = 'none';
+    // --></script>
+    <div class="status">
+      <div id="tw-actions">
+        <button class="button" onclick="document.getElementById('deform').submit.click()">Submit changes</button>
+        <a href="/" class="button">Back to main menu</a>
+      </div>
+    </div>
   </main>
 </body>
 </html>

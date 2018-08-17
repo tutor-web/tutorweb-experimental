@@ -30,8 +30,12 @@
       ${form|n}
     </section>
 
+    <script>//<!--
+    document.getElementById('deform').submit.style.display = 'none';
+    // --></script>
     <div class="status">
       <div id="tw-actions">
+        <button class="button" onclick="document.getElementById('deform').submit.click()">Reset password</button>
         <a href="${request.route_url('register')}" class="button">Sign up to Tutor-Web</a>
       </div>
     </div>
