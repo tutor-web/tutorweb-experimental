@@ -352,6 +352,9 @@ module.exports = function View($) {
             case 'go-twhome':
                 window.location.href = self.portalRootUrl();
                 break;
+            case 'go-profile':
+                window.location.href = '/auth/edit_profile';
+                break;
             case 'page-unload':
                 // We could modify self.unloadMessage here to stop the process
                 break;

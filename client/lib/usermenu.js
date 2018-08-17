@@ -142,6 +142,7 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
                     );
                     menu.action.push(
                         { text: "Get more tutorials", action: "twstate:go-twhome" },
+                        { text: "Edit your profile", action: "twstate:go-profile" },
                         { text: "Clear data and logout", action: "twstate:logout" }
                     );
                 } else {
