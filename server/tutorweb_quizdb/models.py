@@ -44,6 +44,11 @@ class User(UserBase, Base):
     def csrf_token(self, value):
         pass
 
+    def add_group(self, new_group):
+        """Add group only if it's not already there"""
+        if new_group not in self.groups:
+            self.groups.append(new_group)
+
 
 class Group(GroupBase, Base):
     __tablename__ = 'group'
