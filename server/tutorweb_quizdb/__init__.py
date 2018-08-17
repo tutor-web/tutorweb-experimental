@@ -108,3 +108,45 @@ def main(global_config, **settings):
     config.add_route('index', '')
 
     return config.make_wsgi_app()
+
+
+def setup_script(argparse_arguments):
+    """
+    Common code to configure a pyramid environment for a script, like bootstrap but...
+    * Configures argparse
+    * Sets up a request that generates appropriate URLs
+    * Auto-starts a transaction
+
+    Arguments
+    - argparse_arguments, First array to pass to ArgumentParser, rest to add_argument()
+
+    Use as ``with setup_script(argparse_arguments) as env``
+
+    ``env`` is same as bootstrap's env, but also contains ``args``.
+    See: https://docs.pylonsproject.org/projects/pyramid/en/latest/api/paster.html#pyramid.paster.bootstrap
+    """
+    import argparse
+    from contextlib import contextmanager
+    from pyramid.paster import bootstrap
+    from pyramid.request import Request
+
+    parser = argparse.ArgumentParser(**argparse_arguments[0])
+    for a in argparse_arguments[1:]:
+        parser.add_argument(a.pop('name'), **a)
+    args = parser.parse_args()
+
+    # Wrap the bootstrap context manager and inject our args in
+    def script_context():
+        ini_file = os.path.join(os.path.dirname(__file__), '..', 'application.ini')
+        request = Request.blank(
+            '/',
+            base_url='http' +
+                     ('s' if os.environ['SERVER_CERT_PATH'] else '') +
+                     '://' + os.environ['SERVER_NAME'],
+        )
+
+        # https://russell.ballestrini.net/pyramid-sqlalchemy-bootstrap-console-script-with-transaction-manager/
+        with bootstrap(ini_file, request) as env, env["request"].tm:
+            env['args'] = args
+            yield env
+    return contextmanager(script_context)()
