@@ -1,4 +1,5 @@
 "use strict";
+/*jslint nomen: true, plusplus: true*/
 var test = require('tape');
 
 var JSONLocalStorage = require('../lib/jsonls.js');
@@ -14,12 +15,13 @@ function MockLocalStorage() {
 
     this.getItem = function (key) {
         var value = this.obj[key];
-        return typeof value === 'undefined' ? null : value;
+        return value === undefined ? null : value;
     };
 
     this.setItem = function (key, value) {
         this.length++;
-        return this.obj[key] = value;
+        this.obj[key] = value;
+        return value;
     };
 
     this.key = function (i) {
@@ -65,12 +67,12 @@ test('SelectiveCompression', function (t) {
     ls.setItem("cows", ["daisy", "fréda"]);
     ls.setItem("pigs", ["george", "wilma"]);
     ls.setItem("dogs", { "fido" : "sausage dog", "dora" : "jack russell"});
-    t.notEqual(backing.getItem("cows").charAt(0), "[")
-    t.notEqual(backing.getItem("pigs").charAt(0), "[")
-    t.notEqual(backing.getItem("dogs").charAt(0), "{")
+    t.notEqual(backing.getItem("cows").charAt(0), "[");
+    t.notEqual(backing.getItem("pigs").charAt(0), "[");
+    t.notEqual(backing.getItem("dogs").charAt(0), "{");
 
     // Only compress cows
-    ls = new JSONLocalStorage(backing, function (k) { return k === "cows" });
+    ls = new JSONLocalStorage(backing, function (k) { return k === "cows"; });
 
     // Can still read compressed items in storage
     t.deepEqual(ls.getItem("cows"), ["daisy", "fréda"]);
@@ -81,9 +83,9 @@ test('SelectiveCompression', function (t) {
     ls.setItem("cows", ["daisy", "fréda"]);
     ls.setItem("pigs", ["george", "wilma"]);
     ls.setItem("dogs", { "fido" : "sausage dog", "dora" : "jack russell"});
-    t.notEqual(backing.getItem("cows").charAt(0), "[")
-    t.equal(backing.getItem("pigs").charAt(0), "[")
-    t.equal(backing.getItem("dogs").charAt(0), "{")
+    t.notEqual(backing.getItem("cows").charAt(0), "[");
+    t.equal(backing.getItem("pigs").charAt(0), "[");
+    t.equal(backing.getItem("dogs").charAt(0), "{");
 
     // Can still read compressed items in storage
     t.deepEqual(ls.getItem("cows"), ["daisy", "fréda"]);
@@ -105,7 +107,7 @@ test('Loopback', function (t) {
 
     function doLoopbackTests(values) {
         values.map(function (value) {
-            ls.setItem("x", value)
+            ls.setItem("x", value);
             t.deepEqual(ls.getItem("x"), value);
         });
     }
@@ -114,7 +116,7 @@ test('Loopback', function (t) {
     doLoopbackTests([null, 0, ""]);
 
     // Can store raw numbers
-    doLoopbackTests([22.4, .3, 0x99]);
+    doLoopbackTests([22.4, 0.3, 0x99]);
     doLoopbackTests(Array.apply(null, {length: 50}).map(Number.call, Number));  // 0..49
 
     // Can store raw strings

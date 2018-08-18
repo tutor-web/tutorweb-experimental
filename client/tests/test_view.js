@@ -1,4 +1,5 @@
 "use strict";
+/*jslint nomen: true, plusplus: true*/
 var test = require('tape');
 
 var parse_qs = require('lib/parse_qs.js').parse_qs;
@@ -7,7 +8,7 @@ var View = require('lib/view.js');
 // Do-nothing JQuery for where we're not using it.
 var nullJq = function (x) {
     return x;
-}
+};
 
 test('GenerateUrl', function (t) {
     function genUrl(origHref, origHash, newOpts) {
@@ -19,14 +20,15 @@ test('GenerateUrl', function (t) {
 
     // Don't add the URL if we don't have to, override opts
     t.deepEqual(genUrl("http://test/quiz.html", "#!moo=yes;", {moo : "no"}),
-        "#!moo=no")
+        "#!moo=no");
 
     // Multiple options are separated by ;
     t.deepEqual(
         genUrl("http://test/quiz.html",
             "#!moo=yes;",
             {_doc: "start.html", oink : "maybe"}),
-        "start.html#!moo=yes;oink=maybe")
+        "start.html#!moo=yes;oink=maybe"
+    );
 
     t.end();
 });
@@ -42,12 +44,12 @@ test('portalRootUrl', function (t) {
     t.equal(
         portalRootUrl({"protocol": "http:", "host": "moo:8000"}),
         "http://moo:8000/"
-    )
+    );
 
     t.equal(
         portalRootUrl({"protocol": "https:", "host": "oink"}, "pig"),
         "https://oink/pig"
-    )
+    );
 
     t.end();
 });

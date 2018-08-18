@@ -1,11 +1,12 @@
 "use strict";
+/*jslint nomen: true, plusplus: true*/
 var test = require('tape');
 
 var iaalib = new (require('../lib/iaa.js'))();
 var shuffle = require('knuth-shuffle').knuthShuffle;
 var seedrandom = require('seedrandom');
 
-function exampleLec () {
+function exampleLec() {
     return {
         "answerQueue": [],
         "questions": [
@@ -18,14 +19,14 @@ function exampleLec () {
         "settings": {
             "hist_sel": 0,
         },
-        "uri":"ut:lecture0",
+        "uri": "ut:lecture0",
     };
-};
+}
 
 test('InitialAlloc', function (t) {
     // Allocate an initial item, should presume we started from 0
     var a = iaalib.newAllocation(exampleLec(), {practice: false});
-    t.ok(a.uri.match(/ut:question[0-4]/))
+    t.ok(a.uri.match(/ut:question[0-4]/));
     t.equal(a.grade_before, 0);
     t.equal(a.practice, false);
 
@@ -35,13 +36,13 @@ test('InitialAlloc', function (t) {
 test('EmptyLecture', function (t) {
     // Should complain if there's no items in a lecture
     try {
-        a = iaalib.newAllocation({
+        iaalib.newAllocation({
             uri: "ut:lecture0",
             settings: {hist_sel: 0},
             answerQueue: [],
             questions: [],
         }, {});
-    } catch(err) {
+    } catch (err) {
         t.ok(err.message.indexOf("no questions") > -1);
     }
 
@@ -56,12 +57,12 @@ test('ItemAllocation', function (t) {
         for (i = 0; i < Math.abs(correctAnswers); i++) {
             answerQueue.push({"correct": (correctAnswers > 0), "time_end": 1234});
         }
-        return answerQueue
+        return answerQueue;
     }
 
     /** Run allocation 1000 times, get mean question chosen*/
     function modalAllocation(qns, answerQueue, settings, practiceMode) {
-        var uris = {}, i, alloc, grade = null;
+        var uris = {}, i, alloc, grade = null, highScore, modalUri, uri;
 
         if (!settings) {
             settings = {"hist_sel" : "0"};
@@ -92,22 +93,25 @@ test('ItemAllocation', function (t) {
         }
 
         // Find mode in uris
-        var highScore = -1, modalUri = '';
-        for (var uri in uris) {
-            if (!uris.hasOwnProperty(uri)) continue;
-            if (uris[uri] > highScore) {
-                modalUri = uri
-                highScore = uris[uri];
+        highScore = -1;
+        modalUri = '';
+        for (uri in uris) {
+            if (uris.hasOwnProperty(uri)) {
+                if (uris[uri] > highScore) {
+                    modalUri = uri;
+                    highScore = uris[uri];
+                }
             }
         }
 
         return {"alloc": modalUri, "grade": grade};
-    };
+    }
+
     function between(res, min, max) {
         // Assuming question URI is an int, check it's between min & max
 
-        if(parseInt(res) < min) return false;
-        if(parseInt(res) > max) return false;
+        if (parseInt(res, 10) < min) { return false; }
+        if (parseInt(res, 10) > max) { return false; }
         return true;
     }
 
@@ -279,7 +283,7 @@ test('ForceAllocation', function (t) {
     try {
         a = iaalib.newAllocation(exampleLec(), {practice: false, question_uri: "ut:not-a-question"});
         t.fail();
-    } catch(err) {
+    } catch (err) {
         t.ok(err.message.indexOf("ut:not-a-question") > -1);
     }
 
@@ -287,7 +291,7 @@ test('ForceAllocation', function (t) {
 });
 
 test('HistSel', function (t) {
-    var a, i;
+    var a;
 
     // Fix random seed
     seedrandom('9933sdrfseed', {global: true});
@@ -357,7 +361,7 @@ test('QuestionDistribution', function (t) {
         {"uri": "9", "chosen": 100, "correct": 99}
     ];
 
-    function questionOrder(qn, grade, aq) {
+    function questionOrder() {
         var i, dist, prevProb = 0, total = 0, qnOrder = [];
         dist = iaalib.questionDistribution.apply(iaalib, arguments);
         for (i = 0; i < dist.length; i++) {
@@ -447,26 +451,26 @@ test('QuestionDistribution', function (t) {
         {_type: "template", uri: "t0"},
         {_type: "template", uri: "t1"},
         {_type: "template", uri: "t2"},
-    ], 0.2).filter(function (d) { return d.qn._type === "template" }).map(function (d) {
+    ], 0.2).filter(function (d) { return d.qn._type === "template"; }).map(function (d) {
         t.ok(Math.abs(d.probability - (0.2 / 3)) < 0.0001);
     });
     iaalib.questionDistribution(defaultQns, 3, [], [
         {_type: "template", uri: "t0"},
         {_type: "template", uri: "t1"},
-    ], 0.6).filter(function (d) { return d.qn._type === "template" }).map(function (d) {
+    ], 0.6).filter(function (d) { return d.qn._type === "template"; }).map(function (d) {
         t.ok(Math.abs(d.probability - (0.6 / 2)) < 0.0001);
     });
 
     // Test gpow has an effect on the distribution
     t.deepEqual(
-        iaalib.questionDistribution(defaultQns, 3, [], [], 0, {iaa_adaptive_gpow: '0.5'}).map(function(d) { return [d.qn.uri, Math.round(d.probability * 1000) / 1000]; }),
+        iaalib.questionDistribution(defaultQns, 3, [], [], 0, {iaa_adaptive_gpow: '0.5'}).map(function (d) { return [d.qn.uri, Math.round(d.probability * 1000) / 1000]; }),
         [
             [ '9', 0.061 ], [ '0', 0.076 ], [ '8', 0.085 ], [ '1', 0.099 ], [ '7', 0.101 ],
             [ '2', 0.111 ], [ '6', 0.111 ], [ '5', 0.117 ], [ '3', 0.118 ], [ '4', 0.120 ],
         ]
     );
     t.deepEqual(
-        iaalib.questionDistribution(defaultQns, 3, [], [], 0, {iaa_adaptive_gpow: '1.5'}).map(function(d) { return [d.qn.uri, Math.round(d.probability * 1000) / 1000]; }),
+        iaalib.questionDistribution(defaultQns, 3, [], [], 0, {iaa_adaptive_gpow: '1.5'}).map(function (d) { return [d.qn.uri, Math.round(d.probability * 1000) / 1000]; }),
         [
             [ '0', 0.029 ], [ '1', 0.051 ], [ '2', 0.071 ], [ '3', 0.088 ], [ '4', 0.103 ],
             [ '5', 0.117 ], [ '6', 0.128 ], [ '7', 0.136 ], [ '9', 0.137 ], [ '8', 0.141 ],
@@ -561,22 +565,20 @@ test('QuestionStudyTime', function (t) {
     t.equal(qst("", "0.3", "", [false], 40), 2 + 0.3 * 40);
 
     // Answer queue length isn't used, only the last lec_answered
-    t.equal(qst("", "0.3", "", [], 40), 0 + 0);
-    t.equal(qst("", "0.3", "", [true], 40), 0 + 0.3 * 40);
-    t.equal(qst("", "0.3", "", [true, true], 40), 0 + 0.3 * 40);
-    t.equal(qst("", "0.3", "", [true, true], 40), 0 + 0.3 * 40);
+    t.equal(qst("", "0.3", "", [], 40), 0);
+    t.equal(qst("", "0.3", "", [true], 40), 0.3 * 40);
+    t.equal(qst("", "0.3", "", [true, true], 40), 0.3 * 40);
+    t.equal(qst("", "0.3", "", [true, true], 40), 0.3 * 40);
     t.equal(qst("", "0.3", "", [true, true, false], 40), 2 + 0.3 * 40);
 
     // We delay even if they got the question right
-    t.equal(qst("", "0.3", "", [false, true], 40), 0 + 0.3 * 40);
-    t.equal(qst("", "0.3", "", [true, null], 40), 0 + 0.3 * 40);
+    t.equal(qst("", "0.3", "", [false, true], 40), 0.3 * 40);
+    t.equal(qst("", "0.3", "", [true, null], 40), 0.3 * 40);
 
     t.end();
 });
 
 test('ChooseQuestion', function (t) {
-    var qn;
-
     // Can't choose questions from an empty set
     t.deepEqual(iaalib.chooseQuestion([]), null);
 
@@ -587,15 +589,15 @@ test('Weighting', function (t) {
     var i;
 
     function weighting(n, alpha, s, nmin, nmax) {
-        var i,
+        var j,
             total = 0,
             weightings = iaalib.gradeWeighting(n, alpha, s, nmin || 8, nmax || 30);
         // Should have at least 1 thing to grade
-        if (n === 0) return [];
+        if (n === 0) { return []; }
 
         // Should always sum to 1
-        for (i = 0; i < weightings.length; i++) {
-            total += weightings[i];
+        for (j = 0; j < weightings.length; j++) {
+            total += weightings[j];
         }
         if (n > 1) {
             t.ok(total > 0.99999 && total < 1.000001, total);
@@ -605,35 +607,35 @@ test('Weighting', function (t) {
         return weightings.map(function (x) {
             return x.toFixed(4);
         });
-    };
+    }
 
     // Asking for one weighting gives you 8
     t.deepEqual(weighting(1, 0.5, 2), [
-        '0.5000','0.1750','0.1286','0.0893',
-        '0.0571','0.0321','0.0143','0.0036']);
+        '0.5000', '0.1750', '0.1286', '0.0893',
+        '0.0571', '0.0321', '0.0143', '0.0036']);
     t.deepEqual(weighting(5, 0.3, 2), [
-        '0.3500','0.2571','0.1786','0.1143',
-        '0.0643','0.0286','0.0071','0.0000']);
+        '0.3500', '0.2571', '0.1786', '0.1143',
+        '0.0643', '0.0286', '0.0071', '0.0000']);
 
     // Curve small enough for alpha to go at beginning, truncate at 30
     t.deepEqual(weighting(50, 0.5, 2), [
-        '0.5000','0.0492','0.0458','0.0426',
-        '0.0395','0.0365','0.0337','0.0309',
-        '0.0283','0.0258','0.0234','0.0211',
-        '0.0189','0.0169','0.0150','0.0132',
-        '0.0115','0.0099','0.0084','0.0071',
-        '0.0058','0.0047','0.0037','0.0029',
-        '0.0021','0.0015','0.0009','0.0005',
-        '0.0002','0.0001']);
+        '0.5000', '0.0492', '0.0458', '0.0426',
+        '0.0395', '0.0365', '0.0337', '0.0309',
+        '0.0283', '0.0258', '0.0234', '0.0211',
+        '0.0189', '0.0169', '0.0150', '0.0132',
+        '0.0115', '0.0099', '0.0084', '0.0071',
+        '0.0058', '0.0047', '0.0037', '0.0029',
+        '0.0021', '0.0015', '0.0009', '0.0005',
+        '0.0002', '0.0001']);
 
     // If it rises beyond alpha, don't use it
     t.deepEqual(weighting(5, 0.2, 2), [
-        '0.3500','0.2571','0.1786','0.1143',
-        '0.0643','0.0286','0.0071','0.0000']);
+        '0.3500', '0.2571', '0.1786', '0.1143',
+        '0.0643', '0.0286', '0.0071', '0.0000']);
 
     // Length should be either i or 30
-    t.deepEqual(weighting(0, 0.5, 2), [])
-    t.deepEqual(weighting(0, 0.3, 2), [])
+    t.deepEqual(weighting(0, 0.5, 2), []);
+    t.deepEqual(weighting(0, 0.3, 2), []);
     for (i = 1; i < 50; i++) {
         t.equal(weighting(i, 0.5, 2).length, Math.min(Math.max(i, 8), 30));
         t.equal(weighting(i, 0.3, 2).length, Math.min(Math.max(i, 8), 30));
@@ -641,11 +643,11 @@ test('Weighting', function (t) {
 
     // s = 0 is a special case
     t.deepEqual(weighting(5, 0.1, 0), [
-        '0.1429','0.1429','0.1429','0.1429',
-        '0.1429','0.1429','0.1429','0.0000']);
+        '0.1429', '0.1429', '0.1429', '0.1429',
+        '0.1429', '0.1429', '0.1429', '0.0000']);
     t.deepEqual(weighting(5, 0.2, 0), [
-        '0.2000','0.1143','0.1143','0.1143',
-        '0.1143','0.1143','0.1143','0.1143']);
+        '0.2000', '0.1143', '0.1143', '0.1143',
+        '0.1143', '0.1143', '0.1143', '0.1143']);
 
     // Floating-point nmin and nmax don't faze us.
     t.deepEqual(weighting(1, 0.5, 2, 8.4, 22.241).length, 8);
@@ -664,7 +666,7 @@ test('Grading', function (t) {
         }
 
         return answerQueue[answerQueue.length - 1];
-    };
+    }
 
     // Generate a very long string of answers, some should be ignored
     var i, longGrade = [];
@@ -703,7 +705,8 @@ test('Grading', function (t) {
             grade(answerQueue).grade_next_right,
             grade(answerQueue.concat([
                 {"correct": true, "practice": false, "time_end": 1234},
-            ])).grade_after);
+            ])).grade_after
+        );
     });
 
     // Unanswered questions should be ignored
@@ -715,7 +718,7 @@ test('Grading', function (t) {
         var aq = [];
         iaalib.gradeAllocation({}, []);
         t.deepEqual(aq, []);
-    })()
+    }());
 
     // One incorrect answer should be 0
     t.equal(grade([
@@ -751,36 +754,41 @@ test('Grading', function (t) {
         "grade_next_right": grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}]).grade_after,
     });
 
-    
-    
     // By default, alpha is 0.3 (which should be your grade with one correct answer)
     t.equal(
         grade([{"correct": true, "time_end": 1234}], {}).grade_after,
-        Math.max(Math.round(iaalib.gradeWeighting(1, 0.125, 2, 8, 30)[0] * 40) / 4, 0));
+        Math.max(Math.round(iaalib.gradeWeighting(1, 0.125, 2, 8, 30)[0] * 40) / 4, 0)
+    );
     t.equal(
         grade([{"correct": true, "time_end": 1234}], {}).grade_after,
-        grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.125}).grade_after);
+        grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.125}).grade_after
+    );
     t.notEqual(
         grade([{"correct": true, "time_end": 1234}], {}).grade_after,
-        grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.5}).grade_after);
+        grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.5}).grade_after
+    );
     t.equal(
         grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.5}).grade_after,
-        Math.max(Math.round(iaalib.gradeWeighting(1, 0.5, 2, 8, 30)[0] * 40) / 4, 0));
+        Math.max(Math.round(iaalib.gradeWeighting(1, 0.5, 2, 8, 30)[0] * 40) / 4, 0)
+    );
     t.equal(
         grade([{"correct": true, "time_end": 1234}], {"grade_alpha" : 0.2}).grade_after,
-        Math.max(Math.round(iaalib.gradeWeighting(1, 0.2, 2, 8, 30)[0] * 40) / 4, 0));
+        Math.max(Math.round(iaalib.gradeWeighting(1, 0.2, 2, 8, 30)[0] * 40) / 4, 0)
+    );
 
     // By default, s is 2
     t.equal(
         grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3}).grade_after,
-        grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3, "grade_s" : 2}).grade_after);
+        grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3, "grade_s" : 2}).grade_after
+    );
     t.notEqual(
         grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3, "grade_s" : 2}).grade_after,
-        grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3, "grade_s" : 5}).grade_after);
+        grade([{"correct": true, "time_end": 1234}, {"correct": true, "time_end": 1234}], {"grade_alpha" : 0.3, "grade_s" : 5}).grade_after
+    );
 
     // Grade generally goes up.
     (function () {
-        var i,
+        var j,
             curGrade = 0,
             answers = [
                 {"correct": true, "time_end": 1234},
@@ -803,16 +811,18 @@ test('Grading', function (t) {
                 {"correct": true, "time_end": 1234},
                 {"correct": true, "time_end": 1234},
             ];
+        /*jslint unparam: true*/
         answers.map(function (a, i) {
             var aq = answers.slice(0, i + 1);
             iaalib.gradeAllocation({"grade_alpha" : 0.154, "grade_s": 1}, aq);
         });
+        /*jslint unparam: false*/
 
-        for (i = 0; i < answers.length; i++) {
-            t.ok( answers[i].correct
-                   ? answers[i].grade_after >= curGrade
-                   : answers[i].grade_after < curGrade);
-            curGrade = answers[i].grade_after;
+        for (j = 0; j < answers.length; j++) {
+            t.ok(answers[j].correct
+                   ? answers[j].grade_after >= curGrade
+                   : answers[j].grade_after < curGrade);
+            curGrade = answers[j].grade_after;
         }
     }());
 
@@ -837,16 +847,16 @@ test('GradingPracticeMode', function (t) {
         }
 
         return answerQueue[answerQueue.length - 1];
-    };
+    }
 
     // All practice mode should leave you with a grade of 0
     t.equal(grade([
-            {"correct": true, "practice": true, "time_end": 1234},
-            {"correct": false, "practice": true, "time_end": 1234},
-            {"correct": true, "practice": true, "time_end": 1234},
-            {"correct": false, "practice": true, "time_end": 1234},
-            {"correct": true, "practice": true, "time_end": 1234},
-        ]).grade_after, 0);
+        {"correct": true, "practice": true, "time_end": 1234},
+        {"correct": false, "practice": true, "time_end": 1234},
+        {"correct": true, "practice": true, "time_end": 1234},
+        {"correct": false, "practice": true, "time_end": 1234},
+        {"correct": true, "practice": true, "time_end": 1234},
+    ]).grade_after, 0);
 
     // Practice mode shouldn't affect score
     t.equal(
@@ -860,7 +870,8 @@ test('GradingPracticeMode', function (t) {
         grade([
             {"correct": false, "practice": false, "time_end": 1234},
             {"correct": true, "practice": false, "time_end": 1234},
-        ]).grade_after);
+        ]).grade_after
+    );
 
     t.equal(
         grade([
@@ -881,7 +892,8 @@ test('GradingPracticeMode', function (t) {
         grade([
             {"correct": false, "practice": false, "time_end": 1234},
             {"correct": true, "practice": false, "time_end": 1234},
-        ]).grade_after);
+        ]).grade_after
+    );
 
     // If practice question is latest, just rabbit same grade again.
     t.ok(grade([{"correct": true, "time_end": 1234}]).grade_after > 0);
@@ -922,7 +934,8 @@ test('GradingPracticeMode', function (t) {
         grade([
             {"correct": true, "practice": false, "time_end": 1234},
             {"correct": true, "practice": false, "time_end": 1234},
-        ]).grade_after);
+        ]).grade_after
+    );
     t.equal(
         grade([
             {"correct": true, "practice": false, "time_end": 1234},
@@ -936,14 +949,13 @@ test('GradingPracticeMode', function (t) {
             {"correct": true, "practice": false, "time_end": 1234},
             {"correct": true, "practice": false, "time_end": 1234},
             {"correct": true, "practice": false, "time_end": 1234},
-        ]).grade_after);
+        ]).grade_after
+    );
 
     t.end();
 });
 
 test('Timeout', function (t) {
-    var i;
-
     // Low grades get the tMax
     t.equal(iaalib.qnTimeout({
         "timeout_min": "3",
