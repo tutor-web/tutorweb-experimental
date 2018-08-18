@@ -1,4 +1,5 @@
 "use strict";
+var test = require('tape');
 
 var Promise = require('es6-promise').Promise;
 var Timer = require('../lib/timer.js');
@@ -34,7 +35,7 @@ function revRange(max) {
     return out;
 }
 
-module.exports.testCountdown = function (test) {
+test('Countdown', function (t) {
     var jqTimer = new FakeJqEl();
 
     global.window = {
@@ -55,7 +56,7 @@ module.exports.testCountdown = function (test) {
         });
 
     }).then(function (twTimer) {
-        test.deepEqual(jqTimer.events, [].concat([
+        t.deepEqual(jqTimer.events, [].concat([
             'show', 
             'text: 2 mins 3 secs',
             'text: 2 mins 2 secs',
@@ -72,15 +73,15 @@ module.exports.testCountdown = function (test) {
 
     // Stop it and tidy up
     }).then(function (args) {
-        test.done();
+        t.end();
     }).catch(function (err) {
         console.log(err.stack);
-        test.fail(err);
-        test.done();
+        t.fail(err);
+        t.end();
     });
-};
+});
 
-module.exports.testFloatInput = function (test) {
+test('FloatInput', function (t) {
     var jqTimer = new FakeJqEl();
 
     global.window = {
@@ -101,7 +102,7 @@ module.exports.testFloatInput = function (test) {
         });
 
     }).then(function (twTimer) {
-        test.deepEqual(jqTimer.events, [].concat([
+        t.deepEqual(jqTimer.events, [].concat([
             'show', 
             'text: 6 secs',
             'text: 5 secs',
@@ -115,10 +116,10 @@ module.exports.testFloatInput = function (test) {
 
     // Stop it and tidy up
     }).then(function (args) {
-        test.done();
+        t.end();
     }).catch(function (err) {
         console.log(err.stack);
-        test.fail(err);
-        test.done();
+        t.fail(err);
+        t.end();
     });
-};
+});

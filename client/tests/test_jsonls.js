@@ -1,4 +1,5 @@
 "use strict";
+var test = require('tape');
 
 var JSONLocalStorage = require('../lib/jsonls.js');
 
@@ -26,37 +27,37 @@ function MockLocalStorage() {
     };
 }
 
-module.exports.testStorage = function (test) {
+test('Storage', function (t) {
     var backing = new MockLocalStorage(),
         ls = new JSONLocalStorage(backing);
 
     // Nothing stored initially
-    test.deepEqual(ls.listItems(), []);
+    t.deepEqual(ls.listItems(), []);
 
     // Request for invalid item returns null
-    test.deepEqual(ls.getItem("unkown-item"), null);
+    t.deepEqual(ls.getItem("unkown-item"), null);
 
     // Store some things
     ls.setItem("cattle", {"cows": ["daisy", "fréda"], "bulls": ["mr beef"]});
     ls.setItem("pigs", ["george", "wilma"]);
-    test.deepEqual(ls.listItems(), ["cattle", "pigs"]);
+    t.deepEqual(ls.listItems(), ["cattle", "pigs"]);
 
     // Can get them back again
-    test.deepEqual(ls.getItem("cattle"), {"cows": ["daisy", "fréda"], "bulls": ["mr beef"]});
-    test.deepEqual(ls.getItem("pigs"), ["george", "wilma"]);
+    t.deepEqual(ls.getItem("cattle"), {"cows": ["daisy", "fréda"], "bulls": ["mr beef"]});
+    t.deepEqual(ls.getItem("pigs"), ["george", "wilma"]);
 
     // Request for invalid item still returns null
-    test.deepEqual(ls.getItem("unkown-item"), null);
+    t.deepEqual(ls.getItem("unkown-item"), null);
 
     // Can remove one item
     ls.removeItem("pigs");
-    test.deepEqual(ls.listItems(), ["cattle"]);
-    test.deepEqual(ls.getItem("pigs"), null);
+    t.deepEqual(ls.listItems(), ["cattle"]);
+    t.deepEqual(ls.getItem("pigs"), null);
 
-    test.done();
-};
+    t.end();
+});
 
-module.exports.testSelectiveCompression = function (test) {
+test('SelectiveCompression', function (t) {
     var backing = new MockLocalStorage(), ls;
 
     // By default everything is compressed
@@ -64,48 +65,48 @@ module.exports.testSelectiveCompression = function (test) {
     ls.setItem("cows", ["daisy", "fréda"]);
     ls.setItem("pigs", ["george", "wilma"]);
     ls.setItem("dogs", { "fido" : "sausage dog", "dora" : "jack russell"});
-    test.notEqual(backing.getItem("cows").charAt(0), "[")
-    test.notEqual(backing.getItem("pigs").charAt(0), "[")
-    test.notEqual(backing.getItem("dogs").charAt(0), "{")
+    t.notEqual(backing.getItem("cows").charAt(0), "[")
+    t.notEqual(backing.getItem("pigs").charAt(0), "[")
+    t.notEqual(backing.getItem("dogs").charAt(0), "{")
 
     // Only compress cows
     ls = new JSONLocalStorage(backing, function (k) { return k === "cows" });
 
     // Can still read compressed items in storage
-    test.deepEqual(ls.getItem("cows"), ["daisy", "fréda"]);
-    test.deepEqual(ls.getItem("pigs"), ["george", "wilma"]);
-    test.deepEqual(ls.getItem("dogs"), { "fido" : "sausage dog", "dora" : "jack russell"});
+    t.deepEqual(ls.getItem("cows"), ["daisy", "fréda"]);
+    t.deepEqual(ls.getItem("pigs"), ["george", "wilma"]);
+    t.deepEqual(ls.getItem("dogs"), { "fido" : "sausage dog", "dora" : "jack russell"});
 
     // Setting items now means cows is compressed
     ls.setItem("cows", ["daisy", "fréda"]);
     ls.setItem("pigs", ["george", "wilma"]);
     ls.setItem("dogs", { "fido" : "sausage dog", "dora" : "jack russell"});
-    test.notEqual(backing.getItem("cows").charAt(0), "[")
-    test.equal(backing.getItem("pigs").charAt(0), "[")
-    test.equal(backing.getItem("dogs").charAt(0), "{")
+    t.notEqual(backing.getItem("cows").charAt(0), "[")
+    t.equal(backing.getItem("pigs").charAt(0), "[")
+    t.equal(backing.getItem("dogs").charAt(0), "{")
 
     // Can still read compressed items in storage
-    test.deepEqual(ls.getItem("cows"), ["daisy", "fréda"]);
-    test.deepEqual(ls.getItem("pigs"), ["george", "wilma"]);
-    test.deepEqual(ls.getItem("dogs"), { "fido" : "sausage dog", "dora" : "jack russell"});
+    t.deepEqual(ls.getItem("cows"), ["daisy", "fréda"]);
+    t.deepEqual(ls.getItem("pigs"), ["george", "wilma"]);
+    t.deepEqual(ls.getItem("dogs"), { "fido" : "sausage dog", "dora" : "jack russell"});
 
     // So can compress-everything engine
     ls = new JSONLocalStorage(backing);
-    test.deepEqual(ls.getItem("cows"), ["daisy", "fréda"]);
-    test.deepEqual(ls.getItem("pigs"), ["george", "wilma"]);
-    test.deepEqual(ls.getItem("dogs"), { "fido" : "sausage dog", "dora" : "jack russell"});
+    t.deepEqual(ls.getItem("cows"), ["daisy", "fréda"]);
+    t.deepEqual(ls.getItem("pigs"), ["george", "wilma"]);
+    t.deepEqual(ls.getItem("dogs"), { "fido" : "sausage dog", "dora" : "jack russell"});
 
-    test.done();
-};
+    t.end();
+});
 
-module.exports.testLoopback = function (test) {
+test('Loopback', function (t) {
     var backing = new MockLocalStorage(),
         ls = new JSONLocalStorage(backing);
 
     function doLoopbackTests(values) {
         values.map(function (value) {
             ls.setItem("x", value)
-            test.deepEqual(ls.getItem("x"), value);
+            t.deepEqual(ls.getItem("x"), value);
         });
     }
 
@@ -119,5 +120,5 @@ module.exports.testLoopback = function (test) {
     // Can store raw strings
     doLoopbackTests(["woo"]);
 
-    test.done();
-};
+    t.end();
+});

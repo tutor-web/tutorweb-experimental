@@ -32,7 +32,7 @@ www/geogebra:
 compile: node_modules/ $(OUT_FILES)
 
 test: node_modules/
-	yarn run tape tests/test_*.js
+	NODE_PATH="." yarn run tape tests/test_*.js
 
 coverage: node_modules/
 	yarn run istanbul cover node_modules/tape/bin/tape tests/test_*.js
