@@ -3,13 +3,60 @@ import logging
 from sqlalchemy import Sequence
 
 from tutorweb_quizdb import DBSession, Base
+from tutorweb_quizdb.rst import to_rst
 from tutorweb_quizdb.timestamp import timestamp_to_datetime, datetime_to_timestamp
 
 log = logging.getLogger(__name__)
 
 
-def db_to_incoming(alloc, db_a):
+UG_REVIEW_TRUE_CAP = 50
+UG_REVIEW_FALSE_CAP = -50
+
+
+def mark_ug_reviews(db_a, ug_reviews):
+    """For a list of UG reviews, return a mark"""
+    if len(db_a.student_answer.get('choice_correct', '')) == 0:
+        # Question isn't complete, so marked as far down as possible
+        return -99
+    if db_a.review and db_a.review.get('superseded', False):
+        # If this is superseded, always marked as NA.
+        return 0
+
+    # Count / tally all review sections
+    out_count = 0
+    out_total = 0
+    for reviewer_user_id, review in ug_reviews:
+        if not review:
+            continue
+
+        review_total = 0
+        for r_type, r_rating in review.items():
+            if r_type == 'comments':
+                continue
+            try:
+                review_total += int(r_rating)
+            except ValueError:
+                pass
+        review['score'] = review_total
+        out_total += review_total
+        out_count += 1
+
+    # Mark should be mean of all reviews
+    return out_total / out_count if out_count > 0 else 0
+
+
+def db_to_incoming(alloc, db_a, ug_reviews):
     """Turn db entry back to wire-format"""
+    def format_review(reviewer_user_id, review):
+        """Format incoming review object from stage_ugmaterial for client"""
+        if not review:
+            review = {}
+
+        # rst-ize comments
+        if review.get('comments', None):
+            review['comments'] = to_rst(review['comments'])
+        return review
+
     return dict(
         uri=alloc.to_public_id(db_a.material_source_id, db_a.permutation),
         client_id=db_a.client_id,
@@ -24,6 +71,14 @@ def db_to_incoming(alloc, db_a):
         student_answer=db_a.student_answer,
         review=db_a.review,
         synced=True,
+        mark=getattr(db_a, 'mark', 0),
+
+        ug_reviews=[
+            format_review(reviewer_user_id, review)
+            for reviewer_user_id, review
+            in ug_reviews
+            if alloc.db_student.id != reviewer_user_id  # NB: Your own review will be in review, so no need
+        ],
     )
 
 
@@ -68,6 +123,21 @@ def sync_answer_queue(alloc, in_queue, time_offset):
                 .order_by(Base.classes.answer.time_end, Base.classes.answer.time_offset)
                 .with_lockmode('update').all())
 
+    # Fetch any reviews if we've written content here
+    # NB: This won't select items in in_queue that haven't been inserted yet, but
+    #     should just be the self-review we won't return anyway.
+    stage_ug_reviews = {}
+    for (mss_id, permutation, ug_reviews) in DBSession.execute(
+            "SELECT material_source_id, permutation, reviews FROM stage_ugmaterial"
+            " WHERE stage_id = :stage_id"
+            "   AND user_id = :user_id"
+            " ORDER BY time_end",
+            dict(
+                stage_id=alloc.db_stage.stage_id,
+                user_id=alloc.db_student.id,
+            )):
+        stage_ug_reviews[(mss_id, permutation)] = ug_reviews
+
     # First pass, fill in any missing time_offset fields
     for a in in_queue[:]:
         # If not complete, ignore it
@@ -102,7 +172,7 @@ def sync_answer_queue(alloc, in_queue, time_offset):
         if cmp == 0:
             # Matching items, update any review
             db_queue[db_i].review = in_queue[in_i].get('review', None)
-            out.append(db_to_incoming(alloc, db_queue[db_i]))
+            db_entry = db_queue[db_i]
             db_i += 1
             in_i += 1
 
@@ -112,13 +182,23 @@ def sync_answer_queue(alloc, in_queue, time_offset):
             db_entry.time_offset = time_offset
             DBSession.add(db_entry)
             additions += 1
-            out.append(db_to_incoming(alloc, db_entry))
             in_i += 1
 
         else:  # i.e. cmp < 0
             # An extra DB item, do nothing, will get added to outgoing list
-            out.append(db_to_incoming(alloc, db_queue[db_i]))
+            db_entry = db_queue[db_i]
             db_i += 1
+
+        # If reviews are present, update DB entry based on them
+        if (db_entry.material_source_id, db_entry.permutation) in stage_ug_reviews:
+            db_entry.mark = mark_ug_reviews(db_entry, stage_ug_reviews[(db_entry.material_source_id, db_entry.permutation)])
+            if db_entry.mark > UG_REVIEW_TRUE_CAP:
+                db_entry.correct = True
+            elif db_entry.mark < UG_REVIEW_FALSE_CAP:
+                db_entry.correct = False
+            else:
+                db_entry.correct = None
+        out.append(db_to_incoming(alloc, db_entry, stage_ug_reviews.get((db_entry.material_source_id, db_entry.permutation), [])))
 
         DBSession.flush()
 

@@ -14,6 +14,8 @@ from tutorweb_quizdb.stage.answer_queue import sync_answer_queue
 
 def aq_dict(**d):
     """Fill in the boring bits of an answer queue entry"""
+    if 'ug_reviews' not in d:
+        d['ug_reviews'] = []
     d['synced'] = True
     if 'client_id' not in d:
         d['client_id'] = '01'
@@ -27,6 +29,8 @@ def aq_dict(**d):
         d['correct'] = True
     if 'grade_after' not in d:
         d['grade_after'] = 0.1
+    if 'mark' not in d:
+        d['mark'] = 0
     return d
 
 
@@ -159,23 +163,68 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         # Templates should get their own sequence ID
         alloc = get_alloc(self.db_stages[0], self.db_studs[1])
         (out, additions) = sync_answer_queue(alloc, [
-            dict(client_id='01', uri='template1.t.R:1', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(text="2")),
-            dict(client_id='01', uri='template1.t.R:1', time_start=1010, time_end=1020, correct=True, grade_after=0.1, student_answer=dict(text="3")),
+            dict(client_id='01', uri='template1.t.R:1', time_start=1000, time_end=1010, correct=None, grade_after=0.1, student_answer=dict(choice_correct="2")),
+            dict(client_id='01', uri='template1.t.R:1', time_start=1010, time_end=1020, correct=None, grade_after=0.1, student_answer=dict(choice_correct="3")),
         ], 0)
         self.assertEqual(out, [
-            aq_dict(uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None),
-            aq_dict(uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None),
+            aq_dict(uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=None, grade_after=0.1, student_answer=dict(choice_correct="2"), review=None),
+            aq_dict(uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=None, grade_after=0.1, student_answer=dict(choice_correct="3"), review=None),
         ])
         self.assertEqual(additions, 2)
         (out, additions) = sync_answer_queue(alloc, [
-            dict(client_id='01', uri='template1.t.R:1', time_start=1020, time_end=1030, correct=True, grade_after=0.1, student_answer=dict(text="4")),
+            dict(client_id='01', uri='template1.t.R:1', time_start=1020, time_end=1030, correct=None, grade_after=0.1, student_answer=dict(choice_correct="4")),
         ], 0)
         self.assertEqual(out, [
-            aq_dict(uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None),
-            aq_dict(uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None),
-            aq_dict(uri='template1.t.R:12', time_start=1020, time_end=1030, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="4"), review=None),
+            # NB: correct has been rewritten back to none, since there's no review
+            aq_dict(uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=None, grade_after=0.1, student_answer=dict(choice_correct="2"), review=None, ug_reviews=[]),
+            aq_dict(uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=None, grade_after=0.1, student_answer=dict(choice_correct="3"), review=None, ug_reviews=[]),
+            aq_dict(uri='template1.t.R:12', time_start=1020, time_end=1030, time_offset=0, correct=None, grade_after=0.1, student_answer=dict(choice_correct="4"), review=None, ug_reviews=[]),
         ])
         self.assertEqual(additions, 1)
+
+        # student 0 can review student 1's work, we tell student 1 about it
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [
+            aq_dict(uri='template1.t.R:10', time_end=1130, student_answer=dict(choice="a2"), review=dict(comments="Absolutely **terrible**", content=-12, presentation=-12)),
+            aq_dict(uri='template1.t.R:11', time_end=1131, student_answer=dict(choice="a2"), review=dict(comments="*nice*", content=12, presentation=12)),
+        ], 0)
+        self.assertEqual(out[-2:], [
+            aq_dict(uri='template1.t.R:10', time_end=1130, student_answer=dict(choice="a2"), review=dict(comments="Absolutely **terrible**", content=-12, presentation=-12)),
+            aq_dict(uri='template1.t.R:11', time_end=1131, student_answer=dict(choice="a2"), review=dict(comments="*nice*", content=12, presentation=12)),
+        ])
+        self.assertEqual(additions, 2)
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [], 0)
+        self.assertEqual(out, [
+            aq_dict(uri='template1.t.R:10', time_end=1010, correct=None, mark=-24.0, student_answer=dict(choice_correct="2"), review=None, ug_reviews=[
+                dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, score=-24),
+            ]),
+            aq_dict(uri='template1.t.R:11', time_end=1020, correct=None, mark=24.0, student_answer=dict(choice_correct="3"), review=None, ug_reviews=[
+                dict(comments="<p><em>nice</em></p>", content=12, presentation=12, score=24),
+            ]),
+            aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(choice_correct="4"), review=None, ug_reviews=[]),
+        ])
+
+        # student 2 gives similar reviews, pushes system over the edge to marking them
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[2]), [
+            aq_dict(uri='template1.t.R:10', time_end=1132, student_answer=dict(choice="a2"), review=dict(comments="Bad", content=-24, presentation=-64)),
+            aq_dict(uri='template1.t.R:11', time_end=1133, student_answer=dict(choice="a2"), review=dict(comments="Good", content=24, presentation=64)),
+        ], 0)
+        self.assertEqual(out[-2:], [
+            aq_dict(uri='template1.t.R:10', time_end=1132, student_answer=dict(choice="a2"), review=dict(comments="Bad", content=-24, presentation=-64)),
+            aq_dict(uri='template1.t.R:11', time_end=1133, student_answer=dict(choice="a2"), review=dict(comments="Good", content=24, presentation=64)),
+        ])
+        self.assertEqual(additions, 2)
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [], 0)
+        self.assertEqual(out, [
+            aq_dict(uri='template1.t.R:10', time_end=1010, correct=False, mark=-56.0, student_answer=dict(choice_correct="2"), review=None, ug_reviews=[
+                dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, score=-24),
+                dict(comments="<p>Bad</p>", content=-24, presentation=-64, score=-88),
+            ]),
+            aq_dict(uri='template1.t.R:11', time_end=1020, correct=True, mark=56.0, student_answer=dict(choice_correct="3"), review=None, ug_reviews=[
+                dict(comments="<p>Good</p>", content=24, presentation=64, score=88),
+                dict(comments="<p><em>nice</em></p>", content=12, presentation=12, score=24),
+            ]),
+            aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(choice_correct="4"), review=None, ug_reviews=[]),
+        ])
 
         # We can still get student 0's work, after this diversion to student 1
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
@@ -188,6 +237,8 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             aq_dict(uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
             aq_dict(uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
             aq_dict(uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
+            aq_dict(uri='template1.t.R:10', time_end=1130, student_answer=dict(choice="a2"), review=dict(comments="Absolutely **terrible**", content=-12, presentation=-12)),
+            aq_dict(uri='template1.t.R:11', time_end=1131, student_answer=dict(choice="a2"), review=dict(comments="*nice*", content=12, presentation=12)),
         ])
         self.assertEqual(additions, 0)
 
