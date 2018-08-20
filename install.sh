@@ -66,7 +66,6 @@ Group=${UWSGI_GROUP}
 EnvironmentFile=/etc/systemd/system/${PROJECT_NAME}.env
 Restart=on-failure
 RestartSec=5s
-KillSignal=SIGQUIT
 Type=simple
 StandardError=syslog
 NotifyAccess=all
