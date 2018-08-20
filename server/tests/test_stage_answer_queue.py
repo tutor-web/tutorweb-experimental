@@ -9,7 +9,7 @@ from .requires_materialbank import RequiresMaterialBank
 
 from tutorweb_quizdb.stage.allocation import get_allocation
 from tutorweb_quizdb.stage.setting import getStudentSettings
-from tutorweb_quizdb.stage.answer_queue import sync_answer_queue
+from tutorweb_quizdb.stage.answer_queue import sync_answer_queue, request_review
 
 
 def aq_dict(**d):
@@ -72,10 +72,11 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             user_name='user%d' % i,
             email='user%d@example.com' % i,
             password='parp',
-        ) for i in [0, 1, 2]]
+        ) for i in [0, 1, 2, 3]]
         DBSession.add(self.db_studs[0])
         DBSession.add(self.db_studs[1])
         DBSession.add(self.db_studs[2])
+        DBSession.add(self.db_studs[3])
         DBSession.flush()
 
         # Add material
@@ -182,6 +183,24 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         ])
         self.assertEqual(additions, 1)
 
+        # Request review lets everyone bar student 1 review stuff
+        self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
+            dict(uri='template1.t.R:10'),
+            dict(uri='template1.t.R:11'),
+            dict(uri='template1.t.R:12'),
+        ])
+        self.assertEqual(request_review(get_alloc(self.db_stages[0], self.db_studs[1])), dict())
+        self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[2])), [
+            dict(uri='template1.t.R:10'),
+            dict(uri='template1.t.R:11'),
+            dict(uri='template1.t.R:12'),
+        ])
+        self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[3])), [
+            dict(uri='template1.t.R:10'),
+            dict(uri='template1.t.R:11'),
+            dict(uri='template1.t.R:12'),
+        ])
+
         # student 0 can review student 1's work, we tell student 1 about it
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [
             aq_dict(uri='template1.t.R:10', time_end=1130, student_answer=dict(choice="a2"), review=dict(comments="Absolutely **terrible**", content=-12, presentation=-12)),
@@ -201,6 +220,17 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
                 dict(comments="<p><em>nice</em></p>", content=12, presentation=12, score=24),
             ]),
             aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(choice_correct="4"), review=None, ug_reviews=[]),
+        ])
+
+        # student 0 loses the ability to review 10 and 11
+        self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
+            dict(uri='template1.t.R:12'),
+        ])
+        self.assertEqual(request_review(get_alloc(self.db_stages[0], self.db_studs[1])), dict())
+        self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[2])), [
+            dict(uri='template1.t.R:10'),
+            dict(uri='template1.t.R:11'),
+            dict(uri='template1.t.R:12'),
         ])
 
         # student 2 gives similar reviews, pushes system over the edge to marking them
@@ -225,6 +255,21 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             ]),
             aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(choice_correct="4"), review=None, ug_reviews=[]),
         ])
+
+        # Do this a few times to cope with random-ness
+        for i in range(10):
+            # student 2 loses the ability to review 10 and 11
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
+                dict(uri='template1.t.R:12'),
+            ])
+            self.assertEqual(request_review(get_alloc(self.db_stages[0], self.db_studs[1])), dict())
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[2])), [
+                dict(uri='template1.t.R:12'),
+            ])
+            # Student 3 does too, since these are now marked
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[3])), [
+                dict(uri='template1.t.R:12'),
+            ])
 
         # We can still get student 0's work, after this diversion to student 1
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])

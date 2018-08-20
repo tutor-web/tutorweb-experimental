@@ -208,3 +208,36 @@ def sync_answer_queue(alloc, in_queue, time_offset):
 
     # Return combination of answer queues, and how many new entries we found
     return (out, additions)
+
+
+def request_review(alloc):
+    # Find a question that needs a review
+    # Get all questions that we didn't write, ones with least reviews first
+    for (mss_id, permutation, reviews) in DBSession.execute(
+            "SELECT material_source_id, permutation, reviews FROM stage_ugmaterial"
+            " WHERE stage_id = :stage_id"
+            "   AND user_id != :user_id"
+            "   AND correct IS NULL"  # i.e. only ones for which a decision hasn't been reached
+            " ORDER BY JSONB_ARRAY_LENGTH(reviews), RANDOM()",
+            dict(
+                stage_id=alloc.db_stage.stage_id,
+                user_id=alloc.db_student.id,
+            )):
+
+        # Consider all reviews
+        score = 0
+        for (r_user_id, r_obj) in reviews:
+            if r_obj is None:
+                # Ignore empty reviews
+                continue
+            if r_user_id == alloc.db_student.id:
+                # We reviewed it ourselves, so ignore it
+                score = -99
+                break
+
+        if score >= 0:
+            # This one is good enough for reviewing
+            return dict(uri=alloc.to_public_id(mss_id, permutation))
+
+    # No available material to review
+    return dict()
