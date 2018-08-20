@@ -318,6 +318,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             return self._withLecture(null, function (curLecture) {
                 var a = data, lastAns = arrayLast(curLecture.answerQueue);
 
+                a.practice = true;  // NB: We shouldn't be graded directly for this, so use practice mode
                 a.lec_answered = lastAns && lastAns.lec_answered ? lastAns.lec_answered : 0;
                 a.lec_correct = lastAns && lastAns.lec_correct ? lastAns.lec_correct : 0;
                 a.practice_answered = lastAns && lastAns.practice_answered ? lastAns.practice_answered : 0;
