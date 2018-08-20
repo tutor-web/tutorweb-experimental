@@ -12,6 +12,24 @@ from tutorweb_quizdb.stage.setting import getStudentSettings
 from tutorweb_quizdb.stage.answer_queue import sync_answer_queue
 
 
+def aq_dict(**d):
+    """Fill in the boring bits of an answer queue entry"""
+    d['synced'] = True
+    if 'client_id' not in d:
+        d['client_id'] = '01'
+    if 'review' not in d:
+        d['review'] = None
+    if 'time_start' not in d:
+        d['time_start'] = d['time_end'] - 10
+    if 'time_offset' not in d:
+        d['time_offset'] = 0
+    if 'correct' not in d:
+        d['correct'] = True
+    if 'grade_after' not in d:
+        d['grade_after'] = 0.1
+    return d
+
+
 def get_alloc(db_stage, db_student):
     """Get settings & allocation in one step"""
     settings = getStudentSettings(db_stage, db_student)
@@ -87,8 +105,8 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example1.q.R:9', time_start=1090),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
+            aq_dict(uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
+            aq_dict(uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
         ])
         self.assertEqual(additions, 2)
 
@@ -105,8 +123,8 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="ignored"), review=dict(hard="yes")),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes"), synced=True),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
+            aq_dict(uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
+            aq_dict(uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
         ])
         self.assertEqual(additions, 0)
 
@@ -115,9 +133,9 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None),
         ], 300)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes"), synced=True),
-            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
+            aq_dict(uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
+            aq_dict(uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late")),
+            aq_dict(uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
         ])
         self.assertEqual(additions, 1)
 
@@ -129,12 +147,12 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes"), synced=True),
-            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
+            aq_dict(uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
+            aq_dict(uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
+            aq_dict(uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late")),
+            aq_dict(uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
+            aq_dict(uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
+            aq_dict(uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
         ])
         self.assertEqual(additions, 3)
 
@@ -145,17 +163,17 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(client_id='01', uri='template1.t.R:1', time_start=1010, time_end=1020, correct=True, grade_after=0.1, student_answer=dict(text="3")),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None, synced=True),
-            dict(client_id='01', uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None, synced=True),
+            aq_dict(uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None),
+            aq_dict(uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None),
         ])
         self.assertEqual(additions, 2)
         (out, additions) = sync_answer_queue(alloc, [
             dict(client_id='01', uri='template1.t.R:1', time_start=1020, time_end=1030, correct=True, grade_after=0.1, student_answer=dict(text="4")),
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None, synced=True),
-            dict(client_id='01', uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None, synced=True),
-            dict(client_id='01', uri='template1.t.R:12', time_start=1020, time_end=1030, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="4"), review=None, synced=True),
+            aq_dict(uri='template1.t.R:10', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="2"), review=None),
+            aq_dict(uri='template1.t.R:11', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="3"), review=None),
+            aq_dict(uri='template1.t.R:12', time_start=1020, time_end=1030, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(text="4"), review=None),
         ])
         self.assertEqual(additions, 1)
 
@@ -164,12 +182,12 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         (out, additions) = sync_answer_queue(alloc, [
         ], 0)
         self.assertEqual(out, [
-            dict(client_id='01', uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes"), synced=True),
-            dict(client_id='01', uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=None, synced=True),
-            dict(client_id='01', uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3"), review=None, synced=True),
+            aq_dict(uri='example1.q.R:6', time_start=1000, time_end=1005, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
+            aq_dict(uri='example1.q.R:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
+            aq_dict(uri='example2.q.R:1', time_start=1000, time_end=1010, time_offset=300, correct=True, grade_after=0.1, student_answer=dict(answer="late")),
+            aq_dict(uri='example1.q.R:7', time_start=1010, time_end=1015, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
+            aq_dict(uri='example1.q.R:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
+            aq_dict(uri='example1.q.R:8', time_start=1020, time_end=1025, time_offset=0, correct=True, grade_after=0.2, student_answer=dict(answer="3")),
         ])
         self.assertEqual(additions, 0)
 
