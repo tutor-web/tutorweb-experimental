@@ -96,6 +96,44 @@ module.exports = function IAA() {
     };
 
     /**
+      * mark and individual answer, given the question's marking scheme
+      */
+    this.markAnswer = function (a, qn_correct) {
+        var correct = true;
+
+        if (Object.keys(qn_correct).length === 0) {
+            // Nothing to grade, so give a null grade
+            correct = null;
+        }
+
+        // Check that all parts of answer are correct
+        Object.keys(qn_correct).map(function (k) {
+            if (qn_correct[k].nonempty) {
+                // Check that the answer is non-empty
+                if (!a.student_answer[k]) {
+                    correct = false;
+                }
+            }
+
+            if (Array.isArray(qn_correct[k])) {
+                // Default array case: Check answer contains correct string
+                if (qn_correct[k].indexOf(a.student_answer[k]) === -1) {
+                    correct = false;
+                }
+            }
+        });
+
+        if (a.practice) {
+            // Practice mode: Question shouldn't be graded directly
+            a.student_answer.practice_correct = correct;
+            a.student_answer.practice = true;
+            correct = null;
+        }
+
+        return correct;
+    };
+
+    /**
       * Grade the student's work, add it to the last item in the queue.
       * answerQueue: Previous student answers, most recent last
       */

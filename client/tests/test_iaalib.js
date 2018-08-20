@@ -1000,3 +1000,48 @@ test('Timeout', function (t) {
 
     t.end();
 });
+
+test('markAnswer', function (t) {
+    var a;
+
+    // We always give a null grade if no marking scheme given
+    t.equal(iaalib.markAnswer({student_answer: {}}, {}), null);
+    t.equal(iaalib.markAnswer({student_answer: {correct: ["yes"]}}, {}), null);
+
+    // Otherwise, all parts are checked
+    t.equal(iaalib.markAnswer({student_answer: {correct: "no"}}, {correct: ["yes"]}), false);
+    t.equal(iaalib.markAnswer({student_answer: {correct: "yes"}}, {correct: ["yes"]}), true);
+    t.equal(iaalib.markAnswer({student_answer: {correct: "yes", also_correct: "no"}}, {correct: ["yes"]}), true);
+    t.equal(iaalib.markAnswer({student_answer: {correct: "yes", also_correct: "no"}}, {correct: ["yes"], also_correct: ["yes"]}), false);
+    t.equal(iaalib.markAnswer({student_answer: {correct: "yes", also_correct: "yes"}}, {correct: ["yes"], also_correct: ["yes"]}), true);
+
+    // Can use the non-empty function
+    t.equal(iaalib.markAnswer({student_answer: {}}, {correct: {nonempty: 1}}), false);
+    t.equal(iaalib.markAnswer({student_answer: {correct: ""}}, {correct: {nonempty: 1}}), false);
+    t.equal(iaalib.markAnswer({student_answer: {correct: "maybe"}}, {correct: {nonempty: 1}}), true);
+    t.equal(iaalib.markAnswer({student_answer: {correct: "no"}}, {correct: {nonempty: 1}}), true);
+
+    // Practice mode: Always null, real answer annotated in student answer object
+    a = {practice: true, student_answer: {correct: "no"}};
+    t.equal(iaalib.markAnswer(a, {correct: ["yes"]}), null);
+    t.deepEqual(a, {
+        practice: true,
+        student_answer: {
+            correct: "no",
+            practice: true,
+            practice_correct: false,
+        },
+    });
+    a = {practice: true, student_answer: {correct: "yes"}};
+    t.equal(iaalib.markAnswer(a, {correct: ["yes"]}), null);
+    t.deepEqual(a, {
+        practice: true,
+        student_answer: {
+            correct: "yes",
+            practice: true,
+            practice_correct: true,
+        },
+    });
+
+    t.end();
+});

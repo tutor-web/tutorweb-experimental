@@ -382,30 +382,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                                : typeof qn.correct === 'string' ? JSON.parse(window.atob(qn.correct))
                                : qn.correct;
 
-                // Check that all parts of answer are correct
-                a.correct = true;
-                Object.keys(answerData).map(function (k) {
-                    if (answerData[k].nonempty) {
-                        // Check that the answer is non-empty
-                        if (!a.student_answer[k]) {
-                            a.correct = false;
-                        }
-                    }
-
-                    if (Array.isArray(answerData[k])) {
-                        // Default array case: Check answer contains correct string
-                        if (answerData[k].indexOf(a.student_answer[k]) === -1) {
-                            a.correct = false;
-                        }
-                    }
-                });
-
-                if (a.practice) {
-                    // Practice mode: Question shouldn't be graded
-                    a.student_answer.practice_correct = a.correct;
-                    a.student_answer.practice = true;
-                    a.correct = null;
-                }
+                a.correct = iaalib.markAnswer(a, answerData);
 
                 // Update question with new counts
                 curLecture.questions.map(function (qn) {
