@@ -6,7 +6,6 @@ from sqlalchemy_utils import Ltree
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.material.render import material_render
 from tutorweb_quizdb.student import get_current_student
-from tutorweb_quizdb.rst import to_rst
 from .allocation import get_allocation
 from .answer_queue import sync_answer_queue, request_review
 from .setting import getStudentSettings, clientside_settings
@@ -116,49 +115,6 @@ def stage_material(request):
     return out
 
 
-def stage_review(request):
-    """
-    Get the reviews for all questions you have written
-    """
-    def format_review(user_id, reviewer_user_id, review):
-        """Format incoming review object from stage_ugmaterial"""
-        if not review:
-            return {}
-        review['is_self'] = user_id == reviewer_user_id
-
-        # rst-ize comments
-        if review.get('comments', None):
-            review['comments'] = to_rst(review['comments'])
-        return review
-
-    db_stage = stage_get(ACTIVE_HOST, request.params['path'])
-    db_student = get_current_student(request)
-    settings = getStudentSettings(db_stage, db_student)
-    alloc = get_allocation(settings, db_stage, db_student)
-
-    out = []
-    # For all questions that we wrote...
-    for (mss_id, permutation, obj, reviews) in DBSession.execute(
-            "SELECT material_source_id, permutation, student_answer, reviews FROM stage_ugmaterial"
-            " WHERE stage_id = :stage_id"
-            "   AND user_id = :user_id"
-            " ORDER BY time_end",
-            dict(
-                stage_id=db_stage.stage_id,
-                user_id=alloc.db_student.id,
-            )):
-
-        score = len(reviews)  # TODO: Better scoring
-
-        out.append(dict(
-            uri=alloc.to_public_id(mss_id, permutation),
-            text=to_rst(obj.get('text', '')),
-            children=[format_review(alloc.db_student.id, *r) for r in reviews],
-            score=score,
-        ))
-    return dict(material=out)
-
-
 def stage_request_review(request):
     """
     Request to review some material for this allocation, assuming alloc has
@@ -178,9 +134,7 @@ def stage_request_review(request):
 def includeme(config):
     config.add_view(stage_index, route_name='stage_index', renderer='json')
     config.add_view(stage_material, route_name='stage_material', renderer='json')
-    config.add_view(stage_review, route_name='stage_review', renderer='json')
     config.add_view(stage_request_review, route_name='stage_request_review', renderer='json')
     config.add_route('stage_index', '/stage')
     config.add_route('stage_material', '/stage/material')
-    config.add_route('stage_review', '/stage/review')
     config.add_route('stage_request_review', '/stage/request-review')

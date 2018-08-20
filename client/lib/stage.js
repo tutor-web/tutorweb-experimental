@@ -234,7 +234,11 @@ QuizView.prototype = new View(jQuery);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             if (args.material_tags.indexOf("type.template") > -1) {
                 twView.postQuestionActions = ['gohome', 'review', 'review-material', 'write-material'];
-                return 'review';
+
+                // Always sync first so we pick up new reviews
+                return quiz.syncLecture(twView.curUrl.lecUri, {
+                    syncForce: true,
+                }).then(function () { return 'review'; });
             }
             if (args.material_tags.indexOf("type.example") > -1) {
                 twView.postQuestionActions = ['gohome', 'load-example'];
@@ -390,7 +394,7 @@ QuizView.prototype = new View(jQuery);
 
     twView.states.review = function () {
         twView.updateActions([]);
-        return quiz.fetchReview().then(function (review) {
+        return quiz.fetchReview(twView.curUrl.lecUri).then(function (review) {
             twView.renderReview(review);
             twView.updateActions(twView.postQuestionActions.filter(function (s) { return s !== 'review'; }));
         });

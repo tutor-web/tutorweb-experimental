@@ -699,11 +699,22 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         });
     };
 
-    /** Return a promise call that gets the review */
-    this.fetchReview = function () {
+    /** Turn answerQueue into select_list tree for review */
+    this.fetchReview = function (lecUri) {
         var self = this;
 
-        return self.ajaxApi.getJson('/api/stage/review?path=' + encodeURIComponent(self.lecUri));
+        return self._getLecture(lecUri).then(function (curLecture) {
+            return {material: curLecture.answerQueue.map(function (a) {
+                return {
+                    uri: a.uri,
+                    text: a.student_answer.text,  // TODO: rst it, somewhere
+                    children: a.ug_reviews.map(function (r) {
+                        return r;
+                    }),
+                    mark: a.mark || 0,
+                };
+            })};
+        });
     };
 
     /** Output a selection of summary strings on the given / current lecture */
