@@ -193,7 +193,7 @@ function QuizView($) {
 
             return h('a', {
             }, [
-                h('span.grade', data.score || data.rating),
+                h('div.extras', [h('span.grade', data.mark)]),
                 content_el,
             ]);
         }));
