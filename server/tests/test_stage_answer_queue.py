@@ -214,10 +214,10 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [], 0)
         self.assertEqual(out, [
             aq_dict(uri='template1.t.R:10', time_end=1010, correct=None, mark=-24.0, student_answer=dict(choice_correct="2"), review=None, ug_reviews=[
-                dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, score=-24),
+                dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, mark=-24),
             ]),
             aq_dict(uri='template1.t.R:11', time_end=1020, correct=None, mark=24.0, student_answer=dict(choice_correct="3"), review=None, ug_reviews=[
-                dict(comments="<p><em>nice</em></p>", content=12, presentation=12, score=24),
+                dict(comments="<p><em>nice</em></p>", content=12, presentation=12, mark=24),
             ]),
             aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(choice_correct="4"), review=None, ug_reviews=[]),
         ])
@@ -246,12 +246,12 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [], 0)
         self.assertEqual(out, [
             aq_dict(uri='template1.t.R:10', time_end=1010, correct=False, mark=-56.0, student_answer=dict(choice_correct="2"), review=None, ug_reviews=[
-                dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, score=-24),
-                dict(comments="<p>Bad</p>", content=-24, presentation=-64, score=-88),
+                dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, mark=-24),
+                dict(comments="<p>Bad</p>", content=-24, presentation=-64, mark=-88),
             ]),
             aq_dict(uri='template1.t.R:11', time_end=1020, correct=True, mark=56.0, student_answer=dict(choice_correct="3"), review=None, ug_reviews=[
-                dict(comments="<p>Good</p>", content=24, presentation=64, score=88),
-                dict(comments="<p><em>nice</em></p>", content=12, presentation=12, score=24),
+                dict(comments="<p>Good</p>", content=24, presentation=64, mark=88),
+                dict(comments="<p><em>nice</em></p>", content=12, presentation=12, mark=24),
             ]),
             aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(choice_correct="4"), review=None, ug_reviews=[]),
         ])

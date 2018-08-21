@@ -37,7 +37,7 @@ def mark_ug_reviews(db_a, ug_reviews):
                 review_total += int(r_rating)
             except ValueError:
                 pass
-        review['score'] = review_total
+        review['mark'] = review_total
         out_total += review_total
         out_count += 1
 
@@ -225,17 +225,17 @@ def request_review(alloc):
             )):
 
         # Consider all reviews
-        score = 0
+        mark = 0
         for (r_user_id, r_obj) in reviews:
             if r_obj is None:
                 # Ignore empty reviews
                 continue
             if r_user_id == alloc.db_student.id:
                 # We reviewed it ourselves, so ignore it
-                score = -99
+                mark = -99
                 break
 
-        if score >= 0:
+        if mark >= 0:
             # This one is good enough for reviewing
             return dict(uri=alloc.to_public_id(mss_id, permutation))
 
