@@ -34,7 +34,7 @@ def mark_ug_reviews(db_a, ug_reviews):
         out_total += review_total
         out_count += 1
 
-    if len(db_a.student_answer.get('choice_correct', '')) == 0:
+    if len(db_a.student_answer.get('text', '')) == 0:
         # Question isn't complete, so marked as far down as possible
         return -99
     if db_a.review and db_a.review.get('superseded', False):
