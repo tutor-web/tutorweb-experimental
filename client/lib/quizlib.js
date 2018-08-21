@@ -410,6 +410,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                     a: a,
                     answerData: answerData,
                     practiceAllowed: practiceAllowed(curLecture),
+                    material_tags: curLecture.material_tags,
                 };
             });
         });
@@ -429,6 +430,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             return {
                 a: a,
                 practiceAllowed: practiceAllowed(curLecture),
+                material_tags: curLecture.material_tags,
             };
         });
     };

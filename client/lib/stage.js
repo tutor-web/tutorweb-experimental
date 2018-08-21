@@ -186,6 +186,20 @@ QuizView.prototype = new View(jQuery);
     // Do nothing if not on the right page
     if (!window) { return; }
 
+    /** Generate of appropriate actions after answering a question */
+    function postQuestionActions(args) {
+        if (args.material_tags.indexOf("type.template") > -1) {
+            return ['ug-review', 'ug-review-material', 'ug-write'];
+        }
+        if (args.material_tags.indexOf("type.example") > -1) {
+            return ['gohome', 'load-example'];
+        }
+        if (args.practiceAllowed > 0) {
+            return ['gohome', 'quiz-real'];
+        }
+        return ['gohome', 'quiz-practice', 'quiz-real'];
+    }
+
     // Make instructions box toggle open
     $(".instructions_box").hide();
     $('.instructions_heading').click(function () {
@@ -211,22 +225,17 @@ QuizView.prototype = new View(jQuery);
         return quiz.setCurrentLecture({lecUri: twView.curUrl.path}).then(function (args) {
             twView.renderStart(args);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
-            if (args.material_tags.indexOf("type.template") > -1) {
-                twView.postQuestionActions = ['ug-review', 'ug-review-material', 'ug-write'];
-                return 'ug-review';
-            }
-            if (args.material_tags.indexOf("type.example") > -1) {
-                twView.postQuestionActions = ['gohome', 'load-example'];
-                return 'quiz-real';
-            }
-            twView.postQuestionActions = ['gohome', 'quiz-practice', 'quiz-real'];
+
             if (args.continuing === 'practice') {
                 return 'quiz-practice';
             }
             if (args.continuing === 'real') {
                 return 'quiz-real';
             }
-            twView.updateActions(['gohome', (args.practiceAllowed > 0 ? 'quiz-practice' : null), 'quiz-real']);
+            if (args.material_tags.indexOf("type.template") > -1) {
+                return 'ug-review';
+            }
+            twView.updateActions(postQuestionActions(args));
         })['catch'](function (err) {
             if (err.message.indexOf("Unknown lecture: ") === 0) {
                 twView.showAlert('info', 'You are not subscribed yet, you need to subscribe before taking drills. Do you wish to?');
@@ -296,11 +305,6 @@ QuizView.prototype = new View(jQuery);
         // Disable all controls and mark answer
         twView.updateActions([]);
         return quiz.setQuestionAnswer(curState.endsWith('-skip') ? {} : serializeForm(twView.jqQuiz.children('form')[0])).then(function (args) {
-            var actions = twView.postQuestionActions;
-            if (args.practiceAllowed > 0) {
-                actions = twView.postQuestionActions.filter(function (a) { return a !== 'quiz-practice'; });
-            }
-
             twView.renderAnswer(args.a, args.answerData, args.qn);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             twMenu.syncAttempt(false);
@@ -313,10 +317,10 @@ QuizView.prototype = new View(jQuery);
             if (args.a.explanation_delay) {
                 twTimer.start(function () {
                     twTimer.reset();
-                    twView.updateActions(actions);
+                    twView.updateActions(postQuestionActions(args));
                 }, args.a.explanation_delay);
             } else {
-                twView.updateActions(actions);
+                twView.updateActions(postQuestionActions(args));
             }
         });
     };
@@ -328,13 +332,9 @@ QuizView.prototype = new View(jQuery);
 
     twView.states['qn-submitreview'] = function (curState) {
         return quiz.setQuestionReview(serializeForm(twView.jqQuiz.children('form')[1])).then(function (args) {
-            var actions = twView.postQuestionActions;
-            if (args.practiceAllowed > 0) {
-                actions = twView.postQuestionActions.filter(function (a) { return a !== 'quiz-practice'; });
-            }
             twMenu.syncAttempt(false);
 
-            twView.updateActions(actions);
+            twView.updateActions(postQuestionActions(args));
         });
     };
 

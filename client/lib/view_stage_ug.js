@@ -35,7 +35,6 @@ function renderReview(twView, reviewData) {
 }
 
 module.exports['ug-review'] = function () {
-    this.postQuestionActions = ['ug-review', 'ug-review-material', 'ug-write'];
     this.updateActions([]);
 
     return this.quiz.syncLecture(this.curUrl.lecUri, {
