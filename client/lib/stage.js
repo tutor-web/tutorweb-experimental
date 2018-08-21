@@ -184,16 +184,24 @@ function QuizView($) {
             (reviewData.material.length === 0 ? el('p').text("You haven't written anything yet") : null),
         ]);
         this.jqQuiz.append(select_list(reviewData.material, function (data) {
-            var content_el = h('div');
+            var extras_el, content_el = h('div');
 
             if (!(data.text || data.comments)) {
                 return null;
             }
             content_el.innerHTML = data.text || data.comments;
 
+            if (data.correct !== undefined) {
+                extras_el = h('div.extras', [h('abbr', { title: data.mark }, [
+                    data.correct === true ? h('span.correct', "✔") : data.correct === false ? h('span.incorrect', "✗") : '-',
+                ])]);
+            } else {
+                extras_el = h('div.extras', [h('span', data.mark)]);
+            }
+
             return h('a', {
             }, [
-                h('div.extras', [h('span.grade', data.mark)]),
+                extras_el,
                 content_el,
             ]);
         }));

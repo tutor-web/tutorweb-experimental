@@ -711,6 +711,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                     children: a.ug_reviews.map(function (r) {
                         return r;
                     }),
+                    correct: a.hasOwnProperty('correct') ? a.correct : undefined,
                     mark: a.mark || 0,
                 };
             })};
