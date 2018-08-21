@@ -385,7 +385,7 @@ QuizView.prototype = new View(jQuery);
 
     twView.states['qn-startreview'] = function (curState) {
         twView.renderReviewForm();
-        twView.updateActions(['qn-submitreview']);
+        twView.updateActions([null, 'qn-submitreview']);
     };
 
     twView.states['qn-submitreview'] = function (curState) {
