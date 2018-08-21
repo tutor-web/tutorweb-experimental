@@ -88,7 +88,9 @@ test('ItemAllocation', function (t) {
             if (grade === null) {
                 grade = alloc.grade_before;
             } else {
-                t.equal(alloc.grade_before, grade);
+                if (alloc.grade_before !== grade) {
+                    t.fail(alloc.grade_before + ' !== ' + grade);
+                }
             }
         }
 
