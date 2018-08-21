@@ -3,7 +3,10 @@
 var renderTex = require('./rendertex.js').renderTex;
 require('es6-promise').polyfill();
 var parse_qs = require('../lib/parse_qs.js').parse_qs;
-var view_terms_extend = require('lib/view_terms.js').extend;
+var view_extensions = [
+    require('lib/view_stage_ug.js').extend,
+    require('lib/view_terms.js').extend,
+];
 var AjaxApi = require('./ajaxapi.js');
 var isQuotaExceededError = require('./ls_utils.js').isQuotaExceededError;
 
@@ -31,11 +34,8 @@ module.exports = function View($) {
         "coinaward-redeem": "Redeem your smileycoins",
         "qn-skip": "Skip this question",
         "qn-submit": "Submit answer",
-        "ug-skip": "Skip question writing",
-        "ug-submit": "Submit your question",
-        "ug-rate": "Rate this question",
-        "review": "Review your work",
-        "rewrite-question": "Rewrite this question",
+        "qn-startreview": "Leave feedback",
+        "qn-submitreview": "Submit review",
         "userdetails-save": "Save and continue",
         "subscription-remove": "Unsubscribe from this tutorial",
         "subscription-add": "Subscribe to this tutorial",
@@ -289,7 +289,7 @@ module.exports = function View($) {
     };
 
     // Add in extra modules
-    view_terms_extend(this);
+    view_extensions.map(function (e) { e(this); }.bind(this));
 
     this.stateMachine = function (updateState) {
         var self = this;

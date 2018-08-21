@@ -9,7 +9,6 @@ var Timer = require('lib/timer.js');
 var UserMenu = require('lib/usermenu.js');
 var serializeForm = require('@f/serialize-form');
 var h = require('hyperscript');
-var select_list = require('lib/select_list.js').select_list;
 
 /**
   * View class to translate data into DOM structures
@@ -178,36 +177,6 @@ function QuizView($) {
         self.updateDebugMessage(args.lecUri, '');
     };
 
-    this.renderReview = function (reviewData) {
-        this.jqQuiz.empty().append([
-            el('h3').text('Material you have written'),
-            (reviewData.material.length === 0 ? el('p').text("You haven't written anything yet") : null),
-        ]);
-        this.jqQuiz.append(select_list(reviewData.material, function (data) {
-            var extras_el, content_el = h('div');
-
-            if (!(data.text || data.comments)) {
-                return null;
-            }
-            content_el.innerHTML = data.text || data.comments;
-
-            if (data.correct !== undefined) {
-                extras_el = h('div.extras', [h('abbr', { title: data.mark }, [
-                    data.correct === true ? h('span.correct', "✔") : data.correct === false ? h('span.incorrect', "✗") : '-',
-                ])]);
-            } else {
-                extras_el = h('div.extras', [h('span', data.mark)]);
-            }
-
-            return h('a', {
-            }, [
-                extras_el,
-                content_el,
-            ]);
-        }));
-        this.renderMath();
-    };
-
 }
 QuizView.prototype = new View(jQuery);
 
@@ -226,10 +195,12 @@ QuizView.prototype = new View(jQuery);
     // Wire up Quiz View
     twView = new QuizView($);
     twTimer = new Timer($('#tw-timer span'));
+    twView.twTimer = twTimer;
 
     // Create Quiz model
     twView.states.initial = function () {
         quiz = new Quiz(localStorage, new AjaxApi($.ajax));
+        twView.quiz = quiz;
         twMenu = new UserMenu($('#tw-usermenu'), quiz);
         return 'set-lecture';
     };
@@ -241,12 +212,8 @@ QuizView.prototype = new View(jQuery);
             twView.renderStart(args);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             if (args.material_tags.indexOf("type.template") > -1) {
-                twView.postQuestionActions = ['gohome', 'review', 'review-material', 'write-material'];
-
-                // Always sync first so we pick up new reviews
-                return quiz.syncLecture(twView.curUrl.lecUri, {
-                    syncForce: true,
-                }).then(function () { return 'review'; });
+                twView.postQuestionActions = ['ug-review', 'ug-review-material', 'ug-write'];
+                return 'ug-review';
             }
             if (args.material_tags.indexOf("type.example") > -1) {
                 twView.postQuestionActions = ['gohome', 'load-example'];
@@ -325,35 +292,6 @@ QuizView.prototype = new View(jQuery);
         });
     };
 
-    twView.states['write-material'] = twView.states['rewrite-material'] = function (curState, updateState) {
-        twView.updateActions([]);
-        return quiz.getNewQuestion({
-            question_uri: curState === 'rewrite-question' ? twView.selectedQn : null,
-        }).then(function (args) {
-            args.actions = ['qn-skip', 'qn-submit'];
-
-            quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
-            return twView.renderNewQuestion(args.qn, args.a, args.actions).then(function () {
-                return args;
-            });
-        }).then(function (args) {
-            var skipAction = args.actions[0];
-            twView.updateActions([skipAction]);
-            twTimer.reset();
-        });
-    };
-
-    twView.states['review-material'] = function (curState, updateState) {
-        twView.updateActions([]);
-        return quiz.getReviewMaterial().then(function (material_found) {
-            if (material_found) {
-                return 'quiz-real';
-            }
-            twView.showAlert('info', 'There is nothing more ready for review');
-            twView.updateActions(['gohome', 'review', 'write-material']);
-        });
-    };
-
     twView.states['qn-skip'] = twView.states['qn-submit'] = function (curState) {
         // Disable all controls and mark answer
         twView.updateActions([]);
@@ -397,14 +335,6 @@ QuizView.prototype = new View(jQuery);
             twMenu.syncAttempt(false);
 
             twView.updateActions(actions);
-        });
-    };
-
-    twView.states.review = function () {
-        twView.updateActions([]);
-        return quiz.fetchReview(twView.curUrl.lecUri).then(function (review) {
-            twView.renderReview(review);
-            twView.updateActions(twView.postQuestionActions.filter(function (s) { return s !== 'review'; }));
         });
     };
 
