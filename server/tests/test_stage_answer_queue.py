@@ -271,6 +271,17 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
                 dict(uri='template1.t.R:12'),
             ])
 
+        # Student 1 marks question as superseded, still gets review output
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [
+            dict(client_id='01', uri='template1.t.R:1', time_start=1000, time_end=1010, correct=None, grade_after=0.1, student_answer=dict(choice_correct="2"), review=dict(superseded=True)),
+        ], 0)
+        self.assertEqual(out[0:1], [
+            aq_dict(uri='template1.t.R:10', time_end=1010, correct=False, mark=-99, student_answer=dict(choice_correct="2"), review=dict(superseded=True), ug_reviews=[
+                dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, mark=-24),
+                dict(comments="<p>Bad</p>", content=-24, presentation=-64, mark=-88),
+            ]),
+        ])
+
         # We can still get student 0's work, after this diversion to student 1
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
         (out, additions) = sync_answer_queue(alloc, [

@@ -15,13 +15,6 @@ UG_REVIEW_FALSE_CAP = -50
 
 def mark_ug_reviews(db_a, ug_reviews):
     """For a list of UG reviews, return a mark"""
-    if len(db_a.student_answer.get('choice_correct', '')) == 0:
-        # Question isn't complete, so marked as far down as possible
-        return -99
-    if db_a.review and db_a.review.get('superseded', False):
-        # If this is superseded, always marked as NA.
-        return 0
-
     # Count / tally all review sections
     out_count = 0
     out_total = 0
@@ -41,8 +34,16 @@ def mark_ug_reviews(db_a, ug_reviews):
         out_total += review_total
         out_count += 1
 
-    # Mark should be mean of all reviews
-    return out_total / out_count if out_count > 0 else 0
+    if len(db_a.student_answer.get('choice_correct', '')) == 0:
+        # Question isn't complete, so marked as far down as possible
+        return -99
+    if db_a.review and db_a.review.get('superseded', False):
+        # If this is superseded, also mark down to get rid of it
+        return -99
+    if out_count > 0:
+        # Mark should be mean of all reviews
+        return out_total / out_count
+    return 0
 
 
 def db_to_incoming(alloc, db_a, ug_reviews):
