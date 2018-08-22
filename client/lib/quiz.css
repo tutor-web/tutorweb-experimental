@@ -285,28 +285,6 @@ div#tw-actions a.disabled {
     float: right;
 }
 
-/* === Instructions box ============================================================= */
-div.instructions_box{
-	max-width: 500px;
-	border: 1px solid #08c;
-	border-radius: 2px;
-	background: #fff;
-	padding: 1px 6px 1px 6px;
-	margin-bottom: 20px;
-	color: #333;
-}
-h4.instructions_heading{
-	font-size: 14px;
-	cursor: pointer;
-	color: #08c;
-	padding-top: 30px;
-	font-weight: 500;
-}
-@media screen and (max-width:480px) {
-	h4.instructions_heading{
-	    padding-top:0;
-	}
-}
 /* === Footer ============================================================== */
 
 #tw-grade {

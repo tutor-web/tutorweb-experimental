@@ -16,7 +16,6 @@ var h = require('hyperscript');
   */
 function QuizView($) {
     "use strict";
-    this.jqDebugMessage = $('#tw-debugmessage');
     this.jqGrade = $('#tw-grade');
     this.jqAnswers = $('#tw-answers');
     this.ugQnRatings = [
@@ -34,18 +33,10 @@ function QuizView($) {
         return $(document.createElement(name));
     }
 
-    /** Update the debug message with current URI and an extra string */
-    this.updateDebugMessage = function (lecUri, qn) {
-        var self = this;
-        if (lecUri) { self.jqDebugMessage[0].lecUri = lecUri; }
-        self.jqDebugMessage.text(self.jqDebugMessage[0].lecUri + "\n" + qn);
-    };
-
     /** Render next question */
     this.renderNewQuestion = function (qn, a, actionsOnChange) {
         var self = this, jqForm = el('form');
 
-        self.updateDebugMessage(null, a.uri.replace(/.*\//, ''));
         jqForm.append(self.renderQuestion(qn, a));
 
         jqForm.on('change', function () {
@@ -174,7 +165,6 @@ function QuizView($) {
         self.jqQuiz.empty().append($("<p/>").text(
             args.continuing ? "Click 'Continue question' to carry on" : "Click 'New question' to start"
         ));
-        self.updateDebugMessage(args.lecUri, '');
     };
 
 }
@@ -199,12 +189,6 @@ QuizView.prototype = new View(jQuery);
         }
         return ['gohome', 'quiz-practice', 'quiz-real'];
     }
-
-    // Make instructions box toggle open
-    $(".instructions_box").hide();
-    $('.instructions_heading').click(function () {
-        $('.instructions_box').toggle();
-    });
 
     // Wire up Quiz View
     twView = new QuizView($);
