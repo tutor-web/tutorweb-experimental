@@ -10,6 +10,17 @@ var UserMenu = require('lib/usermenu.js');
 var serializeForm = require('@f/serialize-form');
 var h = require('hyperscript');
 
+var default_review = [
+    {
+        name: 'content',
+        title: 'What do you think of the question?',
+        values: [
+            [-12, "There is a mistake in the problem or the answer"],
+            [0, "I have other feedback"],
+        ]
+    }
+];
+
 /**
   * View class to translate data into DOM structures
   *    $: jQuery
@@ -18,15 +29,6 @@ function QuizView($) {
     "use strict";
     this.jqGrade = $('#tw-grade');
     this.jqAnswers = $('#tw-answers');
-    this.ugQnRatings = [
-        [100, "Very hard"],
-        [75, "Hard"],
-        [50, "Good"],
-        [25, "Easy"],
-        [0, "Too easy"],
-        [-1, "Doesn't make sense"],
-        [-2, "Superseded"],
-    ];
 
     // Generate a jQueried DOM element
     function el(name) {
@@ -106,22 +108,44 @@ function QuizView($) {
 
     /** Add on form to speak your branes */
     this.renderReviewForm = function () {
-        this.jqQuiz.append(el('form').append([
-            el('label').text("How did you find the question?"),
-            el('ol').append(this.ugQnRatings.map(function (rating) {
-                if (rating[0] < -1) {
-                    // Can't select superseded
-                    return null;
+        var review_el;
+
+        function show_next_fieldset(start_el) {
+            var i, next_fieldset = false, elements = start_el.form.elements;
+
+            for (i = 0; i < elements.length; i++) {
+                // If we've reached start_el, start looking for a fieldset
+                next_fieldset = next_fieldset || elements[i] === start_el;
+
+                if (next_fieldset && elements[i].tagName === 'FIELDSET') {
+                    elements[i].style.display = '';
+                    return;
                 }
-                return el('li').append([
-                    el('label').text(rating[1]).prepend([
-                        el('input').attr('type', 'radio').attr('name', 'rating').attr('value', rating[0])
-                    ])
-                ]);
-            })),
-            el('label').text("Any other comments?"),
-            el('textarea').attr('name', 'comments')
-        ]));
+            }
+        }
+
+        review_el = h('form', default_review.map(function (r) {
+            return h('fieldset', {'style': {display: 'none'}}, [
+                h('legend', r.title),
+                h('ol.fixed', r.values.map(function (v) {
+                    return h('li', h('label', [
+                        h('input', {type: 'radio', name: r.name, value: v[0]}),
+                        h('span', v[1]),
+                    ]));
+                })),
+            ]);
+        }).concat(h('fieldset', {'style': {display: 'none'}}, [
+            h('legend', 'Any other comments?'),
+            h('textarea', {name: 'comments'}),
+        ])));
+
+        // Un-hide first fieldset, on each change show next one
+        show_next_fieldset(review_el.elements[0]);
+        review_el.addEventListener('change', function (e) {
+            show_next_fieldset(e.target);
+        });
+
+        this.jqQuiz.append(review_el);
     };
 
     this.renderGradeSummary = function (summary) {
@@ -178,16 +202,25 @@ QuizView.prototype = new View(jQuery);
 
     /** Generate of appropriate actions after answering a question */
     function postQuestionActions(args) {
+        var out = ['gohome'];
+
         if (args.material_tags.indexOf("type.template") > -1) {
+            // Material-writing lectures have entirely different flow
             return ['ug-review', 'ug-review-material', 'ug-write'];
         }
+
+        if (args.qn) {
+            out.push('qn-startreview');
+        }
         if (args.material_tags.indexOf("type.example") > -1) {
-            return ['gohome', 'load-example'];
+            out.push('load-example');
+        } else {
+            if (args.practiceAllowed > 0) {
+                out.push('quiz-practice');
+            }
+            out.push('quiz-real');
         }
-        if (args.practiceAllowed > 0) {
-            return ['gohome', 'quiz-real'];
-        }
-        return ['gohome', 'quiz-practice', 'quiz-real'];
+        return out;
     }
 
     // Wire up Quiz View
@@ -318,7 +351,7 @@ QuizView.prototype = new View(jQuery);
         return quiz.setQuestionReview(serializeForm(twView.jqQuiz.children('form')[1])).then(function (args) {
             twMenu.syncAttempt(false);
 
-            twView.updateActions(postQuestionActions(args));
+            twView.updateActions(postQuestionActions(args).filter(function (s) { return s !== 'qn-startreview'; }));
         });
     };
 
