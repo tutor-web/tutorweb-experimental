@@ -7,7 +7,7 @@ class UgRenderDataTest(unittest.TestCase):
     maxDiff = None
 
     def test_ug_render_data(self):
-        self.assertEqual(ug_render_data(dict(
+        out = ug_render_data(dict(
             text="This is a **question**",
             explanation="Obvious, innit.",
             choice_correct="*This* is an answer",
@@ -17,7 +17,8 @@ class UgRenderDataTest(unittest.TestCase):
                 "",
                 ""
             ]
-        )), dict(
+        ))
+        self.assertEqual(out, dict(
             content="""
 <div><p>This is a <strong>question</strong></p></div>
 <ol class="shuffle">
@@ -28,13 +29,18 @@ class UgRenderDataTest(unittest.TestCase):
             """.strip(),
             correct=dict(answer=['1667303700']),
             tags=['type.question', 'review.mandatory'],
+            review_questions=out['review_questions'],
         ))
+        self.assertTrue(len(out['review_questions']) > 0)
 
-        self.assertEqual(ug_render_data(dict(
+        out = ug_render_data(dict(
             text="This is a really good **example**",
-        )), dict(
+        ))
+        self.assertEqual(out, dict(
             content="""
 <div><p>This is a really good <strong>example</strong></p></div>
             """.strip(),
             tags=['type.example', 'review.mandatory'],
+            review_questions=out['review_questions'],
         ))
+        self.assertTrue(len(out['review_questions']) > 0)
