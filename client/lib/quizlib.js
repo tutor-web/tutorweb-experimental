@@ -416,6 +416,27 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         });
     };
 
+    this.getQuestionReviewForm = function () {
+        var self = this, default_review = [
+            {
+                name: 'content',
+                title: 'What do you think of the question?',
+                values: [
+                    [-12, "There is a mistake in the problem or the answer"],
+                    [0, "I have other feedback"],
+                ]
+            }
+        ];
+
+        return self._withLecture(null, function (curLecture) {
+            var a = arrayLast(curLecture.answerQueue);
+
+            return self._getQuestionData(a.uri, true).then(function (qn) {
+                return qn.review_questions || default_review;
+            });
+        });
+    };
+
     /** User has reviewed current question */
     this.setQuestionReview = function (formData) {
         var self = this;

@@ -1394,6 +1394,68 @@ broken_test('_questionUpdate ', function (t) {
     });
 });
 
+test('getQuestionReviewForm', function (t) {
+    var ls = new MockLocalStorage(),
+        aa = new MockAjaxApi(),
+        quiz = new Quiz(ls, aa),
+        utils = test_utils();
+
+    quiz.insertQuestions({
+        "ut:qn-custom-template": {
+            content: "<p>This is good stuff</p>",
+            correct: [],
+            review_questions: [
+                {name: 'qn1', title: 'Question 1', values: [[0, 'Bad'], [-1, 'Even worse']]},
+                {name: 'qn2', title: 'Question 2', values: [[0, 'Bad'], [-1, 'Even worse']]},
+            ],
+        }
+    });
+
+    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial', [
+        {
+            "uri": "ut:lecture0",
+            "answerQueue": [],
+            "questions": [ {"uri": "ut:qn-custom-template", "chosen": 20, "correct": 100} ],
+            "settings": { },
+        },
+        {
+            "uri": "ut:lecture1",
+            "answerQueue": [],
+            "questions": [ {"uri": "ut:question0", "chosen": 20, "correct": 100} ],
+            "settings": { },
+        },
+    ], utils.utQuestions).then(function () {
+
+        // Lecture0 has a question with a custom template
+        return quiz.setCurrentLecture({'lecUri': 'ut:lecture0'});
+    }).then(function (args) {
+        return getQn(quiz, false).then(setAns.bind(null, quiz, 0)).then(quiz.getQuestionReviewForm.bind(quiz));
+    }).then(function (form_desc) {
+        // getQuestionReviewForm returns custom form
+        t.deepEqual(form_desc.map(function (r) { return r.name; }), [
+            'qn1',
+            'qn2',
+        ]);
+
+        // Lecture1's question just uses the default
+        return quiz.setCurrentLecture({'lecUri': 'ut:lecture1'});
+    }).then(function (args) {
+        return getQn(quiz, false).then(setAns.bind(null, quiz, 0)).then(quiz.getQuestionReviewForm.bind(quiz));
+    }).then(function (form_desc) {
+        // getQuestionReviewForm returns custom form
+        t.deepEqual(form_desc.map(function (r) { return r.name; }), [
+            'content',
+        ]);
+
+    }).then(function (args) {
+        t.end();
+    }).catch(function (err) {
+        console.log(err.stack);
+        t.fail(err);
+        t.end();
+    });
+});
+
 test('_setCurrentLecture_practiceAllowed', function (t) {
     var ls = new MockLocalStorage(),
         aa = new MockAjaxApi(),

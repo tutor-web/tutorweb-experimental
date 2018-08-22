@@ -10,17 +10,6 @@ var UserMenu = require('lib/usermenu.js');
 var serializeForm = require('@f/serialize-form');
 var h = require('hyperscript');
 
-var default_review = [
-    {
-        name: 'content',
-        title: 'What do you think of the question?',
-        values: [
-            [-12, "There is a mistake in the problem or the answer"],
-            [0, "I have other feedback"],
-        ]
-    }
-];
-
 /**
   * View class to translate data into DOM structures
   *    $: jQuery
@@ -107,7 +96,7 @@ function QuizView($) {
     };
 
     /** Add on form to speak your branes */
-    this.renderReviewForm = function () {
+    this.renderReviewForm = function (form_desc) {
         var review_el;
 
         function show_next_fieldset(start_el) {
@@ -124,7 +113,7 @@ function QuizView($) {
             }
         }
 
-        review_el = h('form', default_review.map(function (r) {
+        review_el = h('form', form_desc.map(function (r) {
             return h('fieldset', {'style': {display: 'none'}}, [
                 h('legend', r.title),
                 h('ol.fixed', r.values.map(function (v) {
@@ -343,8 +332,12 @@ QuizView.prototype = new View(jQuery);
     };
 
     twView.states['qn-startreview'] = function (curState) {
-        twView.renderReviewForm();
-        twView.updateActions([null, 'qn-submitreview']);
+        twView.updateActions([]);
+
+        return quiz.getQuestionReviewForm().then(function (form_desc) {
+            twView.renderReviewForm(form_desc);
+            twView.updateActions([null, 'qn-submitreview']);
+        });
     };
 
     twView.states['qn-submitreview'] = function (curState) {
