@@ -16,11 +16,11 @@ PROJECT_NAME="${PROJECT_NAME-$(basename ${PROJECT_PATH})}"  # The project direct
 PROJECT_MODE="${PROJECT_MODE-development}"  # The project mode, development or production
 
 DB_SUDO_USER="${DB_SUDO_USER-postgres}"  # The user that has root access to DB
-DB_HOST="${DB_HOST-localhost}"  # The hostname / socket path to connect to
+DB_HOST="${DB_HOST-/var/run/postgresql/}"  # The hostname / socket path to connect to
 DB_NAME="${DB_NAME-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_db}"  # The DB to create
 DB_USER="${DB_USER-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_user}"  # The credentials that the app will use
 DB_PASS="${DB_PASS-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_pass}"  # The credentials that the app will use
-DB_URL=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}/${DB_NAME}
+DB_URL="postgresql://${DB_USER}:${DB_PASS}@/${DB_NAME}?host=${DB_HOST}"
 
 SERVER_NAME="${SERVER_NAME-$(hostname --fqdn)}"  # The server_name(s) NGINX responds to
 SERVER_CERT_PATH="${SERVER_CERT_PATH-}"  # e.g. /etc/nginx/ssl/certs
