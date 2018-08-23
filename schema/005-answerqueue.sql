@@ -82,8 +82,7 @@ CREATE OR REPLACE VIEW stage_ugmaterial AS
     WHERE a.material_source_id IN (
         SELECT material_source_id
           FROM material_source
-         WHERE 'type.template' = ANY(material_tags)
-           AND next_material_source_id IS NULL)
+         WHERE 'type.template' = ANY(material_tags))
     ORDER BY a.material_source_id, a.permutation, a.answer_id;
 COMMENT ON VIEW stage_ugmaterial IS 'All user-generated content and reviews against them';
 
