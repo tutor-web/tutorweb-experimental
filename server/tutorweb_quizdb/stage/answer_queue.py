@@ -42,7 +42,7 @@ def mark_ug_reviews(db_a, ug_reviews):
         return -99
     if out_count > 0:
         # Mark should be mean of all reviews
-        return out_total / out_count
+        return out_total / max(3, out_count)
     return 0
 
 

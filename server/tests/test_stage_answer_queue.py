@@ -213,10 +213,10 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         self.assertEqual(additions, 2)
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [], 0)
         self.assertEqual(out, [
-            aq_dict(uri='template1.t.R:10', time_end=1010, correct=None, mark=-24.0, student_answer=dict(text="2"), review=None, ug_reviews=[
+            aq_dict(uri='template1.t.R:10', time_end=1010, correct=None, mark=-8.0, student_answer=dict(text="2"), review=None, ug_reviews=[
                 dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, mark=-24),
             ]),
-            aq_dict(uri='template1.t.R:11', time_end=1020, correct=None, mark=24.0, student_answer=dict(text="3"), review=None, ug_reviews=[
+            aq_dict(uri='template1.t.R:11', time_end=1020, correct=None, mark=8.0, student_answer=dict(text="3"), review=None, ug_reviews=[
                 dict(comments="<p><em>nice</em></p>", content=12, presentation=12, mark=24),
             ]),
             aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(text="4"), review=None, ug_reviews=[]),
@@ -235,22 +235,22 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
 
         # student 2 gives similar reviews, pushes system over the edge to marking them
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[2]), [
-            aq_dict(uri='template1.t.R:10', time_end=1132, student_answer=dict(choice="a2"), review=dict(comments="Bad", content=-24, presentation=-64)),
-            aq_dict(uri='template1.t.R:11', time_end=1133, student_answer=dict(choice="a2"), review=dict(comments="Good", content=24, presentation=64)),
+            aq_dict(uri='template1.t.R:10', time_end=1132, student_answer=dict(choice="a2"), review=dict(comments="Bad", content=-24, presentation=-300)),
+            aq_dict(uri='template1.t.R:11', time_end=1133, student_answer=dict(choice="a2"), review=dict(comments="Good", content=24, presentation=300)),
         ], 0)
         self.assertEqual(out[-2:], [
-            aq_dict(uri='template1.t.R:10', time_end=1132, student_answer=dict(choice="a2"), review=dict(comments="Bad", content=-24, presentation=-64)),
-            aq_dict(uri='template1.t.R:11', time_end=1133, student_answer=dict(choice="a2"), review=dict(comments="Good", content=24, presentation=64)),
+            aq_dict(uri='template1.t.R:10', time_end=1132, student_answer=dict(choice="a2"), review=dict(comments="Bad", content=-24, presentation=-300)),
+            aq_dict(uri='template1.t.R:11', time_end=1133, student_answer=dict(choice="a2"), review=dict(comments="Good", content=24, presentation=300)),
         ])
         self.assertEqual(additions, 2)
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [], 0)
         self.assertEqual(out, [
-            aq_dict(uri='template1.t.R:10', time_end=1010, correct=False, mark=-56.0, student_answer=dict(text="2"), review=None, ug_reviews=[
+            aq_dict(uri='template1.t.R:10', time_end=1010, correct=False, mark=-116.0, student_answer=dict(text="2"), review=None, ug_reviews=[
                 dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, mark=-24),
-                dict(comments="<p>Bad</p>", content=-24, presentation=-64, mark=-88),
+                dict(comments="<p>Bad</p>", content=-24, presentation=-300, mark=-324),
             ]),
-            aq_dict(uri='template1.t.R:11', time_end=1020, correct=True, mark=56.0, student_answer=dict(text="3"), review=None, ug_reviews=[
-                dict(comments="<p>Good</p>", content=24, presentation=64, mark=88),
+            aq_dict(uri='template1.t.R:11', time_end=1020, correct=True, mark=116.0, student_answer=dict(text="3"), review=None, ug_reviews=[
+                dict(comments="<p>Good</p>", content=24, presentation=300, mark=324),
                 dict(comments="<p><em>nice</em></p>", content=12, presentation=12, mark=24),
             ]),
             aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(text="4"), review=None, ug_reviews=[]),
@@ -278,7 +278,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         self.assertEqual(out[0:1], [
             aq_dict(uri='template1.t.R:10', time_end=1010, correct=False, mark=-99, student_answer=dict(text="2"), review=dict(superseded=True), ug_reviews=[
                 dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, mark=-24),
-                dict(comments="<p>Bad</p>", content=-24, presentation=-64, mark=-88),
+                dict(comments="<p>Bad</p>", content=-24, presentation=-300, mark=-324),
             ]),
         ])
 
