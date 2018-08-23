@@ -88,7 +88,8 @@ fi
 # NGINX config for serving clientside
 echo -n "" > /etc/nginx/sites-available/${PROJECT_NAME}
 
-if [ -n "${SERVER_CERT_PATH}" ]; then
+if [ -n "${SERVER_CERT_PATH}" -a -e "${SERVER_CERT_PATH}/certs/${SERVER_NAME}/fullchain.pem" ]; then
+    # Generate full-blown SSL config
     cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
 server {
     listen      80;
@@ -120,7 +121,19 @@ server {
     ssl_prefer_server_ciphers on;
 
 EOF
+elif [ -n "${SERVER_CERT_PATH}" ]; then
+    # HTTP only, but add acme-challenge section for bootstrapping
+    cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
+server {
+    listen      80;
+    server_name ${SERVER_NAME};
+
+    location /.well-known/acme-challenge/ {
+        alias "${SERVER_CERT_PATH}/acme-challenge/";
+    }
+EOF
 else
+    # HTTP only
     cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
 server {
     listen      80;
