@@ -2,10 +2,10 @@
 set -eux
 
 [ "${1-}" = "--recreate" ] && { DB_RECREATE="x"; shift; } || DB_RECREATE=""
-[ "$#" = "3" ] || { echo "Usage: $0 [--recreate] (db_name) (db_user) (db_pass)" 1>&2; exit 1; }
+[ "$#" -gt "1" ] || { echo "Usage: $0 [--recreate] (db_name) (db_user) [db_pass]" 1>&2; exit 1; }
 DB_NAME="$1"
 DB_USER="$2"
-DB_PASS="$3"
+DB_PASS="${3-}"
 PSQL="psql -X --set ON_ERROR_STOP=1 --set AUTOCOMMIT=off"
 
 # Drop and/or create database
@@ -24,9 +24,11 @@ for s in "$(dirname $0)"/*.sql; do
     ${PSQL} -a -f "$s" "${DB_NAME}"
 done
 
-# Make sure the DB user exists
-echo "=============== Create DB user"
-${PSQL} ${DB_NAME} -f - <<EOF
+if [ -n "${DB_PASS}" ]; then
+    # If DB_PASS set, we're probably using network socket/password auth
+    # otherwise, assume UNIX socket, ident
+    echo "=============== Create DB user"
+    ${PSQL} ${DB_NAME} -f - <<EOF
 DO
 \$do\$
 BEGIN
@@ -37,6 +39,13 @@ BEGIN
    END IF;
 END
 \$do\$;
+COMMIT;
+EOF
+fi
+
+echo "=============== Grant roles"
+${PSQL} ${DB_NAME} -f - <<EOF
+BEGIN;
 GRANT CONNECT ON DATABASE ${DB_NAME} TO ${DB_USER};
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON ALL TABLES IN SCHEMA public

@@ -15,19 +15,26 @@ PROJECT_PATH="${PROJECT_PATH-$(dirname "$(readlink -f "$0")")}"  # The full proj
 PROJECT_NAME="${PROJECT_NAME-$(basename ${PROJECT_PATH})}"  # The project directory name, e.g. tutor-web.beta
 PROJECT_MODE="${PROJECT_MODE-development}"  # The project mode, development or production
 
+SERVER_NAME="${SERVER_NAME-$(hostname --fqdn)}"  # The server_name(s) NGINX responds to
+SERVER_CERT_PATH="${SERVER_CERT_PATH-}"  # e.g. /etc/nginx/ssl/certs
+if [ "${PROJECT_MODE}" = "production" ]; then
+    # Default to nobody
+    UWSGI_USER="${UWSGI_USER-nobody}"
+    UWSGI_GROUP="${UWSGI_GROUP-nogroup}"
+else
+    # Default to user that checked out code (i.e the developer)
+    UWSGI_USER="${UWSGI_USER-$(stat -c '%U' ${PROJECT_PATH}/.git)}"
+    UWSGI_GROUP="${UWSGI_GROUP-$(stat -c '%U' ${PROJECT_PATH}/.git)}"
+fi
+UWSGI_SOCKET="${UWSGI_SOCKET-/tmp/${PROJECT_NAME}_uwsgi.${PROJECT_MODE}.sock}"
+UWSGI_MAILSENDER="${UWSGI_MAILSENDER-noreply@$SERVER_NAME}"
+
 DB_SUDO_USER="${DB_SUDO_USER-postgres}"  # The user that has root access to DB
 DB_HOST="${DB_HOST-/var/run/postgresql/}"  # The hostname / socket path to connect to
 DB_NAME="${DB_NAME-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_db}"  # The DB to create
-DB_USER="${DB_USER-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_user}"  # The credentials that the app will use
-DB_PASS="${DB_PASS-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_pass}"  # The credentials that the app will use
+DB_USER="${DB_USER-${UWSGI_USER}}"  # The credentials that the app will use
+DB_PASS="${DB_PASS-}"  # The credentials that the app will use
 DB_URL="postgresql://${DB_USER}:${DB_PASS}@/${DB_NAME}?host=${DB_HOST}"
-
-SERVER_NAME="${SERVER_NAME-$(hostname --fqdn)}"  # The server_name(s) NGINX responds to
-SERVER_CERT_PATH="${SERVER_CERT_PATH-}"  # e.g. /etc/nginx/ssl/certs
-UWSGI_USER="${UWSGI_USER-nobody}"
-UWSGI_GROUP="${UWSGI_GROUP-nogroup}"
-UWSGI_SOCKET="${UWSGI_SOCKET-/tmp/${PROJECT_NAME}_uwsgi.${PROJECT_MODE}.sock}"
-UWSGI_MAILSENDER="${UWSGI_MAILSENDER-noreply@$SERVER_NAME}"
 
 if [ "${PROJECT_MODE}" = "production" ]; then
     UWSGI_LOGLEVEL_ROOT="${UWSGI_LOGLEVEL_ROOT-INFO}"
