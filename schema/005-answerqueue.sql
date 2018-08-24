@@ -76,14 +76,19 @@ COMMENT ON VIEW stage_material IS 'All appropriate material for all stages, and 
 CREATE OR REPLACE VIEW stage_ugmaterial AS
     SELECT DISTINCT ON (a.material_source_id, a.permutation)
     a.*
-    , JSONB_AGG(JSONB_BUILD_ARRAY(user_id, review))
-      OVER (PARTITION BY a.stage_id, a.material_source_id, a.permutation) AS reviews
+    , JSONB_AGG(JSONB_BUILD_ARRAY(user_id, review)) OVER curqn AS reviews
     FROM answer a
     WHERE a.material_source_id IN (
         SELECT material_source_id
           FROM material_source
          WHERE 'type.template' = ANY(material_tags))
-    ORDER BY a.material_source_id, a.permutation, a.answer_id;
+    WINDOW curqn AS (
+        -- i.e. all rows dealing with the current question
+        PARTITION BY a.material_source_id, a.permutation
+        ORDER BY a.material_source_id, a.permutation, a.time_end, a.answer_id
+        ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
+    )
+    ORDER BY a.material_source_id, a.permutation, a.time_end, a.answer_id;
 COMMENT ON VIEW stage_ugmaterial IS 'All user-generated content and reviews against them';
 
 COMMIT;

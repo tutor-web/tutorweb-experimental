@@ -250,8 +250,8 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
                 dict(comments="<p>Bad</p>", content=-24, presentation=-300, mark=-324),
             ]),
             aq_dict(uri='template1.t.R:11', time_end=1020, correct=True, mark=116.0, student_answer=dict(text="3"), review=None, ug_reviews=[
-                dict(comments="<p>Good</p>", content=24, presentation=300, mark=324),
                 dict(comments="<p><em>nice</em></p>", content=12, presentation=12, mark=24),
+                dict(comments="<p>Good</p>", content=24, presentation=300, mark=324),
             ]),
             aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(text="4"), review=None, ug_reviews=[]),
         ])
