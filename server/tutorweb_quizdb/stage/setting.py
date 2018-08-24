@@ -22,6 +22,7 @@ INTEGER_SETTINGS = set((
     'cap_template_qn_nonsense',
     'grade_nmin',
     'grade_nmax',
+    'ugreview_minreviews',
 ))
 STRING_SETTINGS = set((
     'allocation_encryption_key',
@@ -36,6 +37,9 @@ SERVERSIDE_SETTINGS = set((
     'cap_template_qn_reviews',
     'question_cap',
     'award_lecture_answered',
+    'ugreview_capfalse',
+    'ugreview_captrue',
+    'ugreview_minreviews',
 ))
 # These are applied to every stage, sp there's always an allocation_seed
 GLOBAL_SPECS = dict(

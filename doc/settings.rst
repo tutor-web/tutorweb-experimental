@@ -30,6 +30,13 @@ Grading algorithm:
 * ``grade_alpha``: Default 0.125
 * ``grade_s``: Default 1
 
+* ``ugreview_minreviews``: The minimum number of reviews required. Before this the mark is biased towards 0, see below. Default 3
+
+    mark for UG material = (total grade of all reviews) / max(ugreview_minreviews, (number of reviews))
+
+* ``ugreview_captrue``: The mark above which we consider this material gets a "correct" grade, and we stop reviewing. Default 3
+* ``ugreview_capfalse``: The mark above which we consider this material gets an "incorrect" grade, and we stop reviewing. Default -1
+
 Question timeout:
 
 * ``timeout_std``: Default 2

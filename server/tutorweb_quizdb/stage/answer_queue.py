@@ -9,11 +9,7 @@ from tutorweb_quizdb.timestamp import timestamp_to_datetime, datetime_to_timesta
 log = logging.getLogger(__name__)
 
 
-UG_REVIEW_TRUE_CAP = 50
-UG_REVIEW_FALSE_CAP = -50
-
-
-def mark_ug_reviews(db_a, ug_reviews):
+def mark_ug_reviews(db_a, settings, ug_reviews):
     """For a list of UG reviews, return a mark"""
     # Count / tally all review sections
     out_count = 0
@@ -42,7 +38,7 @@ def mark_ug_reviews(db_a, ug_reviews):
         return -99
     if out_count > 0:
         # Mark should be mean of all reviews
-        return out_total / max(3, out_count)
+        return out_total / max(int(settings.get('ugreview_minreviews', 3)), out_count)
     return 0
 
 
@@ -192,10 +188,10 @@ def sync_answer_queue(alloc, in_queue, time_offset):
 
         # If reviews are present, update DB entry based on them
         if (db_entry.material_source_id, db_entry.permutation) in stage_ug_reviews:
-            db_entry.mark = mark_ug_reviews(db_entry, stage_ug_reviews[(db_entry.material_source_id, db_entry.permutation)])
-            if db_entry.mark > UG_REVIEW_TRUE_CAP:
+            db_entry.mark = mark_ug_reviews(db_entry, alloc.settings, stage_ug_reviews[(db_entry.material_source_id, db_entry.permutation)])
+            if db_entry.mark > float(alloc.settings.get('ugreview_captrue', 3)):
                 db_entry.correct = True
-            elif db_entry.mark < UG_REVIEW_FALSE_CAP:
+            elif db_entry.mark < float(alloc.settings.get('ugreview_capfalse', -1)):
                 db_entry.correct = False
             else:
                 db_entry.correct = None

@@ -62,6 +62,9 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             stage_setting_spec=dict(
                 allocation_method=dict(value='passthrough'),
                 allocation_bank_name=dict(value=self.material_bank.name),
+                ugreview_minreviews=dict(value=3),
+                ugreview_captrue=dict(value=50),
+                ugreview_capfalse=dict(value=-50),
             )
         ) for i in [0, 1, 2]]
         for i in [0, 1, 2]:
