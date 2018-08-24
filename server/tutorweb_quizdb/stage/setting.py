@@ -1,3 +1,6 @@
+"""
+See ``doc/settings.rst`` for more details on the structures used here
+"""
 import itertools
 import random
 
