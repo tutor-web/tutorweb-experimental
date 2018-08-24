@@ -6,7 +6,8 @@ module.exports['terms-display'] = function () {
     this.jqQuiz[0].innerHTML = [
         '<h3>Tutor-web Terms and Conditions</h3>',
         '<p>I agree that my grades can be recorded into a database, these can be viewed by instructors in the appropriate courses and the grades can be used anonymously for research purposes.</p>',
-        '<p>Your e-mail address is collected for administrative purposes only, and will not be used as part of any research.</p>',
+        '<p>Any Questions, examples and other text you contribute may be made freely available on the tutor-web under a creative commons license. Any material you submit will be your own and not subject to copyright.</p>',
+        '<p>Your e-mail address is collected for administrative purposes only (e.g. to contact you if you have lost your password), and will not be used as part of any research.</p>',
     ].join("\n");
     this.updateActions(['gohome', 'terms-accept']);
 };
