@@ -70,7 +70,17 @@ CREATE OR REPLACE VIEW stage_material AS
           AND s.stage_id = stats.stage_id
     WHERE ms.next_material_source_id IS NULL
       AND s.next_stage_id IS NULL;
-COMMENT ON VIEW stage_material IS 'All appropriate material for all stages, and their stats';
+COMMENT ON VIEW stage_material IS 'All appropriate current material for all current stages, and their stats';
+
+
+CREATE OR REPLACE VIEW stage_material_sources AS
+    SELECT s.stage_id
+         , ms.material_source_id
+         , ms.material_tags
+    FROM stage s
+    JOIN material_source ms
+      ON s.material_tags <@ ms.material_tags;
+COMMENT ON VIEW stage_material_sources IS 'All appropriate material for all stages, including historical';
 
 
 CREATE OR REPLACE VIEW stage_ugmaterial AS
@@ -78,10 +88,6 @@ CREATE OR REPLACE VIEW stage_ugmaterial AS
     a.*
     , JSONB_AGG(JSONB_BUILD_ARRAY(user_id, review)) OVER curqn AS reviews
     FROM answer a
-    WHERE a.material_source_id IN (
-        SELECT material_source_id
-          FROM material_source
-         WHERE 'type.template' = ANY(material_tags))
     WINDOW curqn AS (
         -- i.e. all rows dealing with the current question
         PARTITION BY a.material_source_id, a.permutation

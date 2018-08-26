@@ -125,11 +125,15 @@ def sync_answer_queue(alloc, in_queue, time_offset):
     #     should just be the self-review we won't return anyway.
     stage_ug_reviews = {}
     for (mss_id, permutation, ug_reviews) in DBSession.execute(
-            "SELECT material_source_id, permutation, reviews FROM stage_ugmaterial"
-            " WHERE stage_id = :stage_id"
-            "   AND user_id = :user_id"
-            " ORDER BY time_end",
-            dict(
+            """
+            SELECT material_source_id, permutation, reviews FROM stage_ugmaterial
+             WHERE user_id = :user_id
+               AND material_source_id IN (
+                SELECT material_source_id FROM stage_material_sources sms
+                 WHERE sms.stage_id = :stage_id
+                   AND 'type.template' = ANY(sms.material_tags))
+            ORDER BY time_end
+            """, dict(
                 stage_id=alloc.db_stage.stage_id,
                 user_id=alloc.db_student.id,
             )):
@@ -211,12 +215,16 @@ def request_review(alloc):
     # Find a question that needs a review
     # Get all questions that we didn't write, ones with least reviews first
     for (mss_id, permutation, reviews) in DBSession.execute(
-            "SELECT material_source_id, permutation, reviews FROM stage_ugmaterial"
-            " WHERE stage_id = :stage_id"
-            "   AND user_id != :user_id"
-            "   AND correct IS NULL"  # i.e. only ones for which a decision hasn't been reached
-            " ORDER BY JSONB_ARRAY_LENGTH(reviews), RANDOM()",
-            dict(
+            """
+            SELECT material_source_id, permutation, reviews FROM stage_ugmaterial
+             WHERE user_id != :user_id
+               AND correct IS NULL -- i.e. only ones for which a decision hasn't been reached
+               AND material_source_id IN (
+                SELECT material_source_id FROM stage_material_sources sms
+                 WHERE sms.stage_id = :stage_id
+                   AND 'type.template' = ANY(sms.material_tags))
+            ORDER BY JSONB_ARRAY_LENGTH(reviews), RANDOM()
+            """, dict(
                 stage_id=alloc.db_stage.stage_id,
                 user_id=alloc.db_student.id,
             )):
