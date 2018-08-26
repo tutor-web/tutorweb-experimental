@@ -52,34 +52,19 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         self.DBSession = DBSession
 
         # Add stage
-        lec_name = 'lec_%d' % random.randint(1000000, 9999999)
-        db_lec = Base.classes.syllabus(host_id=ACTIVE_HOST, path=Ltree(lec_name), title=lec_name)
-        DBSession.add(db_lec)
-        self.db_stages = [Base.classes.stage(
-            syllabus=db_lec,
-            stage_name='stage%d' % i, version=0,
-            title='UT stage %s' % i,
-            stage_setting_spec=dict(
-                allocation_method=dict(value='passthrough'),
-                allocation_bank_name=dict(value=self.material_bank.name),
-                ugreview_minreviews=dict(value=3),
-                ugreview_captrue=dict(value=50),
-                ugreview_capfalse=dict(value=-50),
-            )
-        ) for i in [0, 1, 2]]
-        for i in [0, 1, 2]:
-            DBSession.add(self.db_stages[i])
+        self.db_stages = self.create_stages(3, stage_setting_spec_fn=lambda i: dict(
+            allocation_method=dict(value='passthrough'),
+            allocation_bank_name=dict(value=self.material_bank.name),
+            ugreview_minreviews=dict(value=3),
+            ugreview_captrue=dict(value=50),
+            ugreview_capfalse=dict(value=-50),
+        ), material_tags_fn=lambda i: [
+            'type.template',
+            'lec050500',
+        ])
         DBSession.flush()
-        self.db_studs = [models.User(
-            host_id=ACTIVE_HOST,
-            user_name='user%d' % i,
-            email='user%d@example.com' % i,
-            password='parp',
-        ) for i in [0, 1, 2, 3]]
-        DBSession.add(self.db_studs[0])
-        DBSession.add(self.db_studs[1])
-        DBSession.add(self.db_studs[2])
-        DBSession.add(self.db_studs[3])
+
+        self.db_studs = self.create_students(4)
         DBSession.flush()
 
         # Add material
