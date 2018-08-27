@@ -1,7 +1,4 @@
-import random
 import unittest
-
-from sqlalchemy_utils import Ltree
 
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
@@ -47,8 +44,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
     def setUp(self):
         super(SyncAnswerQueueTest, self).setUp()
 
-        from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
-        from tutorweb_quizdb import models
+        from tutorweb_quizdb import DBSession
         self.DBSession = DBSession
 
         # Add stage
