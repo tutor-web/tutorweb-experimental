@@ -124,13 +124,18 @@ def lec_import(tut_struct):
 
 
 def script():
-    import os
+    import argparse
     import sys
-    import transaction
+    from tutorweb_quizdb import setup_script
 
-    from tutorweb_quizdb import initialize_dbsession
-    initialize_dbsession(os.environ['DB_URL'])
+    argparse_arguments = [
+        dict(description='Import a tutorial/lecture/stage configuration'),
+        dict(
+            name='infile',
+            type=argparse.FileType('r'),
+            default=sys.stdin),
+    ]
 
-    with transaction.manager:
-        tut_struct = json.load(open(sys.argv[1], 'r'))
-        lec_import(tut_struct)
+    with setup_script(argparse_arguments) as env:
+        with env['args'].infile as f:
+            lec_import(json.load(f))
