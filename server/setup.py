@@ -56,6 +56,7 @@ setup(
         'console_scripts': [
             'syllabus_import=tutorweb_quizdb.syllabus.import:script',
             'student_import=tutorweb_quizdb.student.create:script_student_import',
+            'material_update=tutorweb_quizdb.material.update:script_material_update',
         ],
     },
 )

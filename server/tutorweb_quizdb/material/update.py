@@ -46,5 +46,17 @@ def view_material_update(request):
 
 
 def includeme(config):
-    config.add_view(view_material_update, route_name='view_material_update', renderer='json')
-    config.add_route('view_material_update', '/material/update')
+    pass
+
+
+def script_material_update():
+    from tutorweb_quizdb import setup_script
+
+    argparse_arguments = [
+        dict(description='Update material bank database from file-system'),
+    ]
+
+    with setup_script(argparse_arguments) as env:
+        return update(
+            material_bank=env['request'].registry.settings['tutorweb.material_bank.default'],
+        )
