@@ -6,7 +6,7 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.interfaces import IRendererFactory
-from sqlalchemy import create_engine
+from sqlalchemy import engine_from_config
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy_utils import Ltree
@@ -49,11 +49,11 @@ def read_machine_id():
         return f.read()
 
 
-def initialize_dbsession(db_url):
+def initialize_dbsession(settings, prefix=''):
     """
     Use Automap to generate class definitions from tables
     """
-    engine = create_engine(db_url)
+    engine = engine_from_config(settings, prefix=prefix)
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
     Base.prepare(engine, reflect=True)
@@ -70,7 +70,7 @@ def main(global_config, **settings):
     """
     config = Configurator(settings=settings, route_prefix='/api/')
 
-    initialize_dbsession(global_config['ENV_DB_URL'])
+    initialize_dbsession(settings, prefix='sqlalchemy.')
     config.set_authorization_policy(ACLAuthorizationPolicy())
 
     machine_id = read_machine_id()
@@ -88,7 +88,7 @@ def main(global_config, **settings):
         )
     config.setup_pluserable(os.path.join(global_config['here'], 'kerno.ini'))
 
-    smileycoin.configure(global_config, prefix='ENV_APP_SMILEYCOIN_')
+    smileycoin.configure(settings, prefix='smileycoin.')
 
     config.include('tutorweb_quizdb.coin')
     config.include('tutorweb_quizdb.exceptions')
@@ -128,7 +128,6 @@ def setup_script(argparse_arguments):
     import argparse
     from contextlib import contextmanager
     from pyramid.paster import bootstrap
-    from pyramid.request import Request
 
     parser = argparse.ArgumentParser(**argparse_arguments[0])
     for a in argparse_arguments[1:]:
@@ -138,15 +137,17 @@ def setup_script(argparse_arguments):
     # Wrap the bootstrap context manager and inject our args in
     def script_context():
         ini_file = os.path.join(os.path.dirname(__file__), '..', 'application.ini')
-        request = Request.blank(
-            '/',
-            base_url='http' +
-                     ('s' if os.environ['SERVER_CERT_PATH'] else '') +
-                     '://' + os.environ['SERVER_NAME'],
-        )
 
         # https://russell.ballestrini.net/pyramid-sqlalchemy-bootstrap-console-script-with-transaction-manager/
-        with bootstrap(ini_file, request) as env, env["request"].tm:
+        with bootstrap(ini_file) as env, env["request"].tm:
+            # Configure request to have matching server-name
+            env['request'].environ['SERVER_NAME'] = env['registry'].settings['tutorweb.script.server_name']
+            env['request'].environ['SERVER_PORT'] = '443' if env['registry'].settings['tutorweb.script.is_https'] else '80'
+            env['request'].environ['wsgi.url_scheme'] = 'https' if env['registry'].settings['tutorweb.script.is_https'] else 'http'
+            env['request'].environ['HTTP_HOST'] = '%s:%s' % (
+                env['request'].environ['SERVER_NAME'],
+                env['request'].environ['SERVER_PORT'],
+            )
             env['args'] = args
             yield env
     return contextmanager(script_context)()

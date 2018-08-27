@@ -23,6 +23,7 @@
 /server/.pytest_cache
 /server/.coverage
 /server/htmlcov/
+/server/application.ini
 
 /.local-conf
 

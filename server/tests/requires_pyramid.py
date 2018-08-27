@@ -13,7 +13,7 @@ class RequiresPyramid():
 
         self.config = testing.setUp()
         if hasattr(self, 'postgresql'):
-            initialize_dbsession(self.postgresql.url())
+            initialize_dbsession(dict(url=self.postgresql.url()))
 
     def tearDown(self):
         testing.tearDown()

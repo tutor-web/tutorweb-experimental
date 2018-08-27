@@ -1,4 +1,5 @@
 PROJECT=tutorweb
+SHELL=/bin/bash -o pipefail
 
 all: compile test lint
 
@@ -14,7 +15,7 @@ lib/.requirements: requirements.txt requirements-to-freeze.txt setup.py bin/pip
 	./bin/pip freeze | grep -v egg=tutorweb_quizdb > requirements.txt
 	touch lib/.requirements
 
-compile: lib/.requirements
+compile: lib/.requirements application.ini
 
 test: compile
 	# NB: Ideally this would be ./bin/pytest tests/test_*.py
@@ -31,7 +32,10 @@ coverage: compile
 	ln -rs htmlcov ../client/www/htmlcov
 	echo Visit http://...//htmlcov/index.html
 
-start: compile ../install.sh ../.local-conf
-	(cd .. && ./install.sh --exec server/bin/pserve server/application.ini)
+application.ini: ./application.ini.sh ../install.sh ../.local-conf
+	(cd .. && ./install.sh --exec server/application.ini.sh server/$@)
+
+start: compile
+	./bin/pserve application.ini
 
 .PHONY: compile test start

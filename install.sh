@@ -56,9 +56,6 @@ set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_|^DB_'
 
 # ---------------------------
 # Systemd unit file to run uWSGI
-set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_|^DB_' > "/etc/systemd/system/${PROJECT_NAME}.env"
-chmod 600 -- "/etc/systemd/system/${PROJECT_NAME}.env"
-
 systemctl | grep -q "${PROJECT_NAME}.service" && systemctl stop ${PROJECT_NAME}.service
 cat <<EOF > /etc/systemd/system/${PROJECT_NAME}.service
 [Unit]
@@ -71,7 +68,6 @@ ExecStart=${PROJECT_PATH}/server/bin/pserve \
 WorkingDirectory=${PROJECT_PATH}/server
 User=${UWSGI_USER}
 Group=${UWSGI_GROUP}
-EnvironmentFile=/etc/systemd/system/${PROJECT_NAME}.env
 Restart=on-failure
 RestartSec=5s
 Type=simple
