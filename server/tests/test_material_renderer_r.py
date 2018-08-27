@@ -36,6 +36,12 @@ class RobToDictTest(unittest.TestCase):
             dict(poop=dict(pop=dict(pam=["moo"])), parp=[49])
         )
 
+        # NULL and NA are squished down to None
+        self.assertEqual(
+            rob_to_dict(robjects.r('''list(poop = NULL, parp = NA)''')),
+            dict(poop=None, parp=[None])
+        )
+
 
 class MaterialRenderTest(RequiresMaterialBank, unittest.TestCase):
     def test_material_render(self):

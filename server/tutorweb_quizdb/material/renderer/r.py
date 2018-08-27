@@ -1,6 +1,7 @@
 import os
 import threading
 
+import rpy2.rinterface
 import rpy2.robjects as robjects
 
 R_INTERPRETER_LOCK = threading.Lock()
@@ -19,8 +20,14 @@ def rob_to_dict(a):
             for x in a:
                 out += rob_to_dict(x)
             return out
+    elif isinstance(a, rpy2.rinterface.RNULLType):
+        return None
     else:
-        return list(a)
+        return [
+            None
+            if isinstance(x, rpy2.rinterface.NALogicalType)
+            else x
+            for x in a]
 
 
 def r_render(ms, permutation):
