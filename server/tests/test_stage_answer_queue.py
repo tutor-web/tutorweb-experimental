@@ -266,6 +266,32 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             ]),
         ])
 
+        # Student 1 skips a question (which is marked as False by the client), stays false
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [
+            aq_dict(uri='template1.t.R:1', time_end=1040, correct=False, student_answer=dict(), review=dict()),
+        ], 0)
+        self.assertEqual(out[-1:], [
+            aq_dict(uri='template1.t.R:13', time_end=1040, correct=False, student_answer=dict(), review=dict()),
+        ])
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [
+        ], 0)
+        self.assertEqual(out[-1:], [
+            aq_dict(uri='template1.t.R:13', time_end=1040, correct=False, student_answer=dict(), review=dict()),
+        ])
+
+        # ...and no-one gets to review it
+        for i in range(10):
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
+                dict(uri='template1.t.R:12'),
+            ])
+            self.assertEqual(request_review(get_alloc(self.db_stages[0], self.db_studs[1])), dict())
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[2])), [
+                dict(uri='template1.t.R:12'),
+            ])
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[3])), [
+                dict(uri='template1.t.R:12'),
+            ])
+
         # We can still get student 0's work, after this diversion to student 1
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
         (out, additions) = sync_answer_queue(alloc, [

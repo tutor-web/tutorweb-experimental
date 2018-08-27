@@ -30,9 +30,6 @@ def mark_ug_reviews(db_a, settings, ug_reviews):
         out_total += review_total
         out_count += 1
 
-    if len(db_a.student_answer.get('text', '')) == 0:
-        # Question isn't complete, so marked as far down as possible
-        return -99
     if db_a.review and db_a.review.get('superseded', False):
         # If this is superseded, also mark down to get rid of it
         return -99
@@ -193,7 +190,10 @@ def sync_answer_queue(alloc, in_queue, time_offset):
         # If reviews are present, update DB entry based on them
         if (db_entry.material_source_id, db_entry.permutation) in stage_ug_reviews:
             db_entry.mark = mark_ug_reviews(db_entry, alloc.settings, stage_ug_reviews[(db_entry.material_source_id, db_entry.permutation)])
-            if db_entry.mark > float(alloc.settings.get('ugreview_captrue', 3)):
+            if db_entry.correct != None:
+                # Already reached a decision, don't change it
+                pass
+            elif db_entry.mark > float(alloc.settings.get('ugreview_captrue', 3)):
                 db_entry.correct = True
             elif db_entry.mark < float(alloc.settings.get('ugreview_capfalse', -1)):
                 db_entry.correct = False
