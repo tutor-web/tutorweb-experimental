@@ -1023,6 +1023,10 @@ test('markAnswer', function (t) {
     t.equal(iaalib.markAnswer({student_answer: {correct: "maybe"}}, {correct: {nonempty: 1}}), true);
     t.equal(iaalib.markAnswer({student_answer: {correct: "no"}}, {correct: {nonempty: 1}}), true);
 
+    // Can set '_start_with' to choose correct grade
+    t.equal(iaalib.markAnswer({student_answer: {correct: "no"}}, {correct: ["yes"], _start_with: null}), false);
+    t.equal(iaalib.markAnswer({student_answer: {correct: "yes"}}, {correct: ["yes"], _start_with: null}), null);
+
     // Practice mode: Always null, real answer annotated in student answer object
     a = {practice: true, student_answer: {correct: "no"}};
     t.equal(iaalib.markAnswer(a, {correct: ["yes"]}), null);

@@ -108,14 +108,17 @@ module.exports = function IAA() {
 
         // Check that all parts of answer are correct
         Object.keys(qn_correct).map(function (k) {
-            if (qn_correct[k].nonempty) {
+            if (k === '_start_with') {
+                // Assign new correct value, unless we've already marked as false
+                if (correct !== false) {
+                    correct = qn_correct[k];
+                }
+            } else if (qn_correct[k].nonempty) {
                 // Check that the answer is non-empty
                 if (!a.student_answer[k]) {
                     correct = false;
                 }
-            }
-
-            if (Array.isArray(qn_correct[k])) {
+            } else if (Array.isArray(qn_correct[k])) {
                 // Default array case: Check answer contains correct string
                 if (qn_correct[k].indexOf(a.student_answer[k]) === -1) {
                     correct = false;
