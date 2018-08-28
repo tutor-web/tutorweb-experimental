@@ -27,11 +27,14 @@ class RequiresPyramid():
             request.user = user
         return request
 
-    def create_stages(self, total, stage_setting_spec_fn=lambda i: {}, material_tags_fn=lambda i: None):
+    def create_stages(self, total,
+                      stage_setting_spec_fn=lambda i: {},
+                      material_tags_fn=lambda i: None,
+                      lec_parent='dept.tutorial'):
         from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 
         lec_name = 'lec_%d' % random.randint(1000000, 9999999)
-        db_lec = Base.classes.syllabus(host_id=ACTIVE_HOST, path=Ltree(lec_name), title=lec_name)
+        db_lec = Base.classes.syllabus(host_id=ACTIVE_HOST, path=Ltree(lec_parent + '.' + lec_name), title=lec_name)
         DBSession.add(db_lec)
 
         out = []
