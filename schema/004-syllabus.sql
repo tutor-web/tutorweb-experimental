@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS syllabus (
     title                    TEXT NOT NULL,
     supporting_material_href TEXT NULL,
 
-    requires_group_id        INTEGER NOT NULL DEFAULT get_group_id('accept_terms'),
+    requires_group_id        INTEGER NULL,
     FOREIGN KEY (requires_group_id) REFERENCES "group"(group_id),
 
     lastupdate               TIMESTAMP NOT NULL DEFAULT NOW()

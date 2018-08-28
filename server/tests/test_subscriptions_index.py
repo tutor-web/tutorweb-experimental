@@ -5,7 +5,7 @@ from sqlalchemy_utils import Ltree
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
 
-from tutorweb_quizdb.subscriptions.index import add_syllabus, view_subscription_list
+from tutorweb_quizdb.subscriptions.index import add_syllabus, subscription_add, view_subscription_list
 
 
 class AddSyllabusTest(unittest.TestCase):
@@ -91,16 +91,12 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         )
 
     def test_call(self):
-        from tutorweb_quizdb import DBSession, Base
+        from tutorweb_quizdb import DBSession
 
         # make some subscriptions
-        self.db_studs[0].subscription_collection.extend([
-            Base.classes.subscription(syllabus=self.db_lecs['dept0.tut0']),
-            Base.classes.subscription(syllabus=self.db_lecs['dept0.tut1.lec1']),
-        ])
-        self.db_studs[1].subscription_collection.extend([
-            Base.classes.subscription(syllabus=self.db_lecs['dept0.tut1']),
-        ])
+        subscription_add(self.db_studs[0], Ltree('dept0.tut0'))
+        subscription_add(self.db_studs[0], Ltree('dept0.tut1.lec1'))
+        subscription_add(self.db_studs[1], Ltree('dept0.tut1'))
         DBSession.flush()
 
         out0_pre_secret = view_subscription_list(self.request(user=self.db_studs[0]))
@@ -204,3 +200,9 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                 ]
             },
         ]})
+
+        # Repeatedly adding isn't a problem
+        subscription_add(self.db_studs[0], Ltree('dept0.tut0'))
+        subscription_add(self.db_studs[0], Ltree('dept0.tut1.lec1'))
+        subscription_add(self.db_studs[1], Ltree('dept0.tut1'))
+        DBSession.flush()

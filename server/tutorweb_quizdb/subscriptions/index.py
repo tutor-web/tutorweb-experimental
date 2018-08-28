@@ -2,7 +2,6 @@ import urllib.parse
 
 from pyramid.httpexceptions import HTTPNotFound
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils import Ltree
 
@@ -31,6 +30,36 @@ def add_syllabus(out, path, extras, level=0):
     return add_syllabus(n, path, extras, level + 1)
 
 
+def subscription_add(student, path):
+    """
+    Ensure (student) is subscribed to (path)
+    """
+    # Find the syllabus item
+    try:
+        dbl = (DBSession.query(Base.classes.syllabus)
+                        .filter_by(host_id=ACTIVE_HOST, path=path)
+                        .filter((Base.classes.syllabus.requires_group_id.is_(None)) |
+                                Base.classes.syllabus.requires_group_id.in_(g.id for g in student.groups))
+                        .one())
+    except NoResultFound:
+        raise HTTPNotFound(path)
+
+    # Add subscription
+    try:
+        dbs = (DBSession.query(Base.classes.subscription)
+                        .filter_by(user=student, syllabus=dbl)
+                        .one())
+        return dbs
+    except NoResultFound:
+        dbs = Base.classes.subscription(
+            user=student,
+            syllabus=dbl,
+        )
+        DBSession.add(dbs)
+        DBSession.flush()
+    return dbs
+
+
 def view_subscription_list(request):
     student = get_current_student(request)
 
@@ -44,7 +73,7 @@ def view_subscription_list(request):
             FROM syllabus l, subscription s, syllabus sub_l
             WHERE s.syllabus_id = l.syllabus_id
             AND s.user_id = :user_id
-            AND sub_l.requires_group_id = ANY(:group_ids)
+            AND (sub_l.requires_group_id IS NULL OR sub_l.requires_group_id = ANY(:group_ids))
             AND sub_l.path <@ l.path
             ORDER BY l.path, sub_l.path
             """, dict(
@@ -86,26 +115,7 @@ def view_subscription_add(request):
     student = get_current_student(request)
     path = Ltree(request.params['path'])
 
-    # Find the syllabus item
-    try:
-        dbl = (DBSession.query(Base.classes.syllabus)
-                        .filter_by(host_id=ACTIVE_HOST, path=path)
-                        .filter(Base.classes.syllabus.requires_group_id.in_(g.id for g in student.groups))
-                        .one())
-    except NoResultFound:
-        raise HTTPNotFound(path)
-
-    # Add subscription
-    try:
-        DBSession.add(Base.classes.subscription(
-            user=student,
-            syllabus=dbl,
-        ))
-        DBSession.flush()
-    except IntegrityError:
-        # Already there
-        pass
-
+    subscription_add(student, path)
     return dict(success=True, path=path)
 
 
