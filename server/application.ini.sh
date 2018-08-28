@@ -20,6 +20,7 @@ pyramid.includes =
     pyramid_tm
 
 sqlalchemy.url = ${DB_URL}
+sqlalchemy.echo = false
 
 pluserable.login_redirect = index
 pluserable.logout_redirect = index
