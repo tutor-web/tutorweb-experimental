@@ -24,24 +24,23 @@ for s in "$(dirname $0)"/*.sql; do
     ${PSQL} -a -f "$s" "${DB_NAME}"
 done
 
-if [ -n "${DB_PASS}" ]; then
-    # If DB_PASS set, we're probably using network socket/password auth
-    # otherwise, assume UNIX socket, ident
-    echo "=============== Create DB user"
-    ${PSQL} ${DB_NAME} -f - <<EOF
+# If DB_PASS set, we're probably using network socket/password auth
+# otherwise, assume UNIX socket, ident
+[ -n "${DB_PASS}" ] && PASSWD_OPT="'${DB_PASS}'" || PASSWD_OPT="NULL"
+echo "=============== Create DB user"
+${PSQL} ${DB_NAME} -f - <<EOF
 DO
 \$do\$
 BEGIN
    IF NOT EXISTS (SELECT
                   FROM pg_catalog.pg_roles
                   WHERE rolname = '${DB_USER}') THEN
-      CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASS}';
+      CREATE ROLE ${DB_USER} LOGIN PASSWORD ${PASSWD_OPT};
    END IF;
 END
 \$do\$;
 COMMIT;
 EOF
-fi
 
 echo "=============== Grant roles"
 ${PSQL} ${DB_NAME} -f - <<EOF
