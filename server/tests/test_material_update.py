@@ -30,13 +30,19 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=100
 # TW:DATAFRAMES=agelength
+
+question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
         self.assertEqual(self.call_view(), {
             'example.q.R': ('(untracked)+1', ['math099', 'Q-0990t0', 'lec050500', 'type.question']),
         })
 
         # Add a second file, also available
-        self.mb_write_file('extra/another.q.R', b'''# TW:TAGS=math1234''')
+        self.mb_write_file('extra/another.q.R', b'''
+# TW:TAGS=math1234
+
+question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
+        ''')
         self.assertEqual(self.call_view(), {
             'example.q.R': ('(untracked)+1', ['math099', 'Q-0990t0', 'lec050500', 'type.question']),
             'extra/another.q.R': ('(untracked)+1', ['math1234', 'type.question']),
@@ -47,6 +53,8 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=100
 # TW:DATAFRAMES=agelength
+
+question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
         self.assertEqual(self.call_view(), {
             'example.q.R': ('(untracked)+1', ['math099', 'Q-0990t0', 'lec050500', 'type.question']),
@@ -58,6 +66,8 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
 # TW:TAGS=math099,Q-0990t0,lec050500,hello.mum
 # TW:PERMUTATIONS=100
 # TW:DATAFRAMES=agelength
+
+question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
         self.assertEqual(self.call_view(), {
             'example.q.R': ('(untracked)+2', ['math099', 'Q-0990t0', 'lec050500', 'hello.mum', 'type.question']),
@@ -69,6 +79,8 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=100
 # TW:DATAFRAMES=agelength
+
+question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
         self.assertEqual(self.call_view(), {
             'example.q.R': ('(untracked)+3', ['math099', 'Q-0990t0', 'lec050500', 'type.question']),

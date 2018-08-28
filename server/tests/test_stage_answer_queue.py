@@ -105,15 +105,21 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=10
 # TW:DATAFRAMES=agelength
+
+question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
         self.mb_write_file('example2.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=10
 # TW:DATAFRAMES=agelength
+
+question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
         self.mb_write_file('template1.t.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=1
+
+question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
         self.mb_update()
 

@@ -2,6 +2,7 @@ import os
 
 from tutorweb_quizdb import DBSession, Base
 
+from tutorweb_quizdb.material.render import material_render
 from tutorweb_quizdb.material.utils import path_tags, file_md5sum, path_to_materialsource
 
 
@@ -26,6 +27,9 @@ def update(material_bank):
             DBSession.add(new_m)
             DBSession.flush()
             m.next_material_source_id = new_m.material_source_id
+            # Make sure this new item renders before we carry on
+            if new_m.permutation_count > 0:
+                print("%s: %s" % (new_m.path, material_render(new_m, 1)))
 
         # This path considered, remove from dict
         try:
@@ -35,7 +39,11 @@ def update(material_bank):
 
     # For any remaining paths, insert afresh into DB
     for path, md5sum in material_paths.items():
-        DBSession.add(Base.classes.material_source(**path_to_materialsource(material_bank, path, None), md5sum=md5sum))
+        new_m = Base.classes.material_source(**path_to_materialsource(material_bank, path, None), md5sum=md5sum)
+        DBSession.add(new_m)
+        # Make sure this new item renders before we carry on
+        if new_m.permutation_count > 0:
+            print("%s: %s" % (new_m.path, material_render(new_m, 1)))
     DBSession.flush()
 
 
