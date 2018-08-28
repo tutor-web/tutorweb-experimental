@@ -31,7 +31,7 @@ apt install \
 Create a ``.local-conf`` configuration file, including the smileycoin wallet configuration:
 
     cat <<EOF > .local-conf
-    SERVICE_MODE=production
+    PROJECT_MODE=production
     SERVER_NAME=beta.tutor-web.net
 
     APP_SMILEYCOIN_rpc_pass=(passphrase)
