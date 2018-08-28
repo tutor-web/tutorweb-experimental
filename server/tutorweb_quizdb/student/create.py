@@ -2,9 +2,11 @@ import itertools
 import random
 
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy_utils import Ltree
 
 from tutorweb_quizdb import DBSession, models, ACTIVE_HOST
 from tutorweb_quizdb.student import get_group
+from tutorweb_quizdb.subscriptions.index import subscription_add
 
 
 def trigger_forgot_password(request, user):
@@ -41,13 +43,15 @@ def create_student(request,
                    user_name,
                    email=None,
                    assign_password=False,
-                   groups=[]):
+                   groups=[],
+                   subscribe=[]):
     """
     Add a new student
     - request: Pyramid request (needed to get mailer)
     - user_name: The new user-name
     - email: E-mail address, defaults to the same as the user_name
     - assign_password: If true, assign a password to any new student, otherwise mail them
+    - subscribe: Tutorials to subscribe this user to
     """
     if not email:
         email = user_name
@@ -78,6 +82,10 @@ def create_student(request,
     for g in groups:
         if g not in db_u.groups:
             db_u.groups.append(g)
+
+    # Make sure user is subscribed to everything required
+    for s in subscribe:
+        subscription_add(db_u, Ltree(s))
 
     return (db_u, password)
 
@@ -127,6 +135,11 @@ def script_student_import():
             name='--assign-passwords',
             help='Generate passwords for each user, print in output',
             action="store_true"),
+        dict(
+            name='--subscribe',
+            help='Subscribe student to tutorial',
+            action='append',
+            default=[]),
     ]
 
     with setup_script(argparse_arguments) as env:
@@ -147,6 +160,7 @@ def script_student_import():
                 env['args'].email_address or new_user_name,
                 assign_password=env['args'].assign_passwords,
                 groups=groups,
+                subscribe=env['args'].subscribe,
             )
             print("%s,%s,%s" % (
                 new_user.user_name,
