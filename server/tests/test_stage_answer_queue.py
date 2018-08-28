@@ -9,6 +9,12 @@ from tutorweb_quizdb.stage.setting import getStudentSettings
 from tutorweb_quizdb.stage.answer_queue import sync_answer_queue, request_review
 
 
+AWARD_STAGE_ANSWERED = 1
+AWARD_STAGE_ACED = 10
+AWARD_TUTORIAL_ACED = 100
+AWARD_UGMATERIAL_CORRECT = 1000
+
+
 def aq_dict(**d):
     """Fill in the boring bits of an answer queue entry"""
     if 'ug_reviews' not in d:
@@ -24,6 +30,8 @@ def aq_dict(**d):
         d['time_offset'] = 0
     if 'correct' not in d:
         d['correct'] = True
+    if 'student_answer' not in d:
+        d['student_answer'] = {}
     if 'grade_after' not in d:
         d['grade_after'] = 0.1
     if 'mark' not in d:
@@ -41,21 +49,50 @@ def get_alloc(db_stage, db_student):
 class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgresql, unittest.TestCase):
     maxDiff = None
 
-    def setUp(self):
-        super(SyncAnswerQueueTest, self).setUp()
+    def coins_awarded(self, db_student):
+        """Get total coins awarded to this student"""
+        from tutorweb_quizdb.student.details import view_student_details
 
+        return view_student_details(self.request(user=db_student))['millismly']
+
+    def test_call(self):
         from tutorweb_quizdb import DBSession
         self.DBSession = DBSession
 
-        # Add stage
-        self.db_stages = self.create_stages(3, stage_setting_spec_fn=lambda i: dict(
+        # Add stages
+        self.db_stages = self.create_stages(3, lec_parent='ut.ans_queue.0', stage_setting_spec_fn=lambda i: dict(
             allocation_method=dict(value='passthrough'),
             allocation_bank_name=dict(value=self.material_bank.name),
+
             ugreview_minreviews=dict(value=3),
             ugreview_captrue=dict(value=50),
             ugreview_capfalse=dict(value=-50),
+
+            award_stage_answered=dict(value=AWARD_STAGE_ANSWERED),
+            award_stage_aced=dict(value=AWARD_STAGE_ACED),
+            award_tutorial_aced=dict(value=AWARD_TUTORIAL_ACED),
+            award_ugmaterial_correct=dict(value=AWARD_UGMATERIAL_CORRECT),
         ), material_tags_fn=lambda i: [
             'type.template',
+            'lec050500',
+        ])
+        DBSession.flush()
+
+        # Add another lecture to the same tutorial
+        self.db_other_stages = self.create_stages(1, lec_parent='ut.ans_queue.0', stage_setting_spec_fn=lambda i: dict(
+            allocation_method=dict(value='passthrough'),
+            allocation_bank_name=dict(value=self.material_bank.name),
+
+            ugreview_minreviews=dict(value=3),
+            ugreview_captrue=dict(value=50),
+            ugreview_capfalse=dict(value=-50),
+
+            award_stage_answered=dict(value=AWARD_STAGE_ANSWERED),
+            award_stage_aced=dict(value=AWARD_STAGE_ACED),
+            award_tutorial_aced=dict(value=AWARD_TUTORIAL_ACED),
+            award_ugmaterial_correct=dict(value=AWARD_UGMATERIAL_CORRECT),
+        ), material_tags_fn=lambda i: [
+            'type.question',
             'lec050500',
         ])
         DBSession.flush()
@@ -80,7 +117,6 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         ''')
         self.mb_update()
 
-    def test_call(self):
         # Can sync empty answer queue with empty
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [], 0)
         self.assertEqual(out, [])
@@ -167,7 +203,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         ])
         self.assertEqual(additions, 1)
 
-        # Request review lets everyone bar student 1 review stuff
+        # Request review lets everyone bar student 1 review stuff, student 1 gets no coins
         self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
             dict(uri='template1.t.R:10'),
             dict(uri='template1.t.R:11'),
@@ -184,6 +220,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(uri='template1.t.R:11'),
             dict(uri='template1.t.R:12'),
         ])
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), 0)
 
         # student 0 can review student 1's work, we tell student 1 about it
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [
@@ -206,7 +243,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(text="4"), review=None, ug_reviews=[]),
         ])
 
-        # student 0 loses the ability to review 10 and 11
+        # student 0 loses the ability to review 10 and 11, student 1 still gets no coins
         self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
             dict(uri='template1.t.R:12'),
         ])
@@ -216,6 +253,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             dict(uri='template1.t.R:11'),
             dict(uri='template1.t.R:12'),
         ])
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), 0)
 
         # student 2 gives similar reviews, pushes system over the edge to marking them
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[2]), [
@@ -254,6 +292,8 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[3])), [
                 dict(uri='template1.t.R:12'),
             ])
+        # Student 1 awarded coins for their efforts
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
 
         # Student 1 marks question as superseded, still gets review output
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [
@@ -315,3 +355,75 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         self.assertEqual(out, [
         ])
         self.assertEqual(additions, 0)
+
+        # Student 0 works in second stage, not above answered rate, gets nothing (student 1 stays at same level)
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[1], self.db_studs[0]), [
+            aq_dict(time_end=2000, uri='example1.q.R:1', grade_after=0.1),
+            aq_dict(time_end=2001, uri='example1.q.R:1', grade_after=0.1),
+            aq_dict(time_end=2002, uri='example1.q.R:1', grade_after=0.1),
+        ], 0)
+        self.assertEqual(out, [
+            aq_dict(time_end=2000, uri='example1.q.R:1', grade_after=0.1),
+            aq_dict(time_end=2001, uri='example1.q.R:1', grade_after=0.1),
+            aq_dict(time_end=2002, uri='example1.q.R:1', grade_after=0.1),
+        ])
+        self.assertEqual(self.coins_awarded(self.db_studs[0]), 0)
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
+
+        # Student 1 gets answered award (student 1 stays at same level)
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[1], self.db_studs[0]), [
+            aq_dict(time_end=2003, uri='example1.q.R:1', grade_after=4.5),
+            aq_dict(time_end=2004, uri='example1.q.R:1', grade_after=5.5),
+            aq_dict(time_end=2005, uri='example1.q.R:1', grade_after=5.5),
+        ], 0)
+        self.assertEqual(out[-3:], [
+            aq_dict(time_end=2003, uri='example1.q.R:1', grade_after=4.5),
+            aq_dict(time_end=2004, uri='example1.q.R:1', grade_after=5.5),
+            aq_dict(time_end=2005, uri='example1.q.R:1', grade_after=5.5),
+        ])
+        self.assertEqual(self.coins_awarded(self.db_studs[0]), AWARD_STAGE_ANSWERED)
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
+
+        # Student 1 improves a little bit, no more awards
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[1], self.db_studs[0]), [
+            aq_dict(time_end=2006, uri='example1.q.R:1', grade_after=6.5),
+            aq_dict(time_end=2007, uri='example1.q.R:1', grade_after=7.5),
+            aq_dict(time_end=2008, uri='example1.q.R:1', grade_after=8.5),
+        ], 0)
+        self.assertEqual(out[-3:], [
+            aq_dict(time_end=2006, uri='example1.q.R:1', grade_after=6.5),
+            aq_dict(time_end=2007, uri='example1.q.R:1', grade_after=7.5),
+            aq_dict(time_end=2008, uri='example1.q.R:1', grade_after=8.5),
+        ])
+        self.assertEqual(self.coins_awarded(self.db_studs[0]), AWARD_STAGE_ANSWERED)
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
+
+        # Student 1 repeatedly aces, but only gets aced award once
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[1], self.db_studs[0]), [
+            aq_dict(time_end=2009, uri='example1.q.R:1', grade_after=9.9),
+            aq_dict(time_end=2010, uri='example1.q.R:1', grade_after=9.9),
+            aq_dict(time_end=2011, uri='example1.q.R:1', grade_after=9.9),
+        ], 0)
+        self.assertEqual(out[-3:], [
+            aq_dict(time_end=2009, uri='example1.q.R:1', grade_after=9.9),
+            aq_dict(time_end=2010, uri='example1.q.R:1', grade_after=9.9),
+            aq_dict(time_end=2011, uri='example1.q.R:1', grade_after=9.9),
+        ])
+        self.assertEqual(self.coins_awarded(self.db_studs[0]), AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED)
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
+
+        # Ace other 2 stages, get stage awards but not the big prize
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [
+            aq_dict(time_end=2012, uri='example1.q.R:1', grade_after=9.9),
+        ], 0)
+        self.assertEqual(self.coins_awarded(self.db_studs[0]), 2 * (AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED))
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[2], self.db_studs[0]), [
+            aq_dict(time_end=2013, uri='example1.q.R:1', grade_after=9.9),
+        ], 0)
+        self.assertEqual(self.coins_awarded(self.db_studs[0]), 3 * (AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED))
+
+        # Ace final stage in second lecture, get the full award
+        (out, additions) = sync_answer_queue(get_alloc(self.db_other_stages[0], self.db_studs[0]), [
+            aq_dict(time_end=2013, uri='example1.q.R:1', grade_after=9.9),
+        ], 0)
+        self.assertEqual(self.coins_awarded(self.db_studs[0]), 4 * (AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED) + AWARD_TUTORIAL_ACED)

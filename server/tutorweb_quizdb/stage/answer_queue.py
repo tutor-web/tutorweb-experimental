@@ -9,6 +9,69 @@ from tutorweb_quizdb.timestamp import timestamp_to_datetime, datetime_to_timesta
 log = logging.getLogger(__name__)
 
 
+def mark_aq_entry(db_a, settings, grade_hwm):
+    """
+    Update db_a.correct / db_a.mark / db_a.coins_awarded based on entry
+    - db_a: answer_queue entry to modify
+    - settings: Stage settings for this student
+    - grade_hwm: The highest grade acheived so far
+    """
+    def crossed_grade_boundary(boundary):
+        """True iff student has crossed grade boundary for the first time"""
+        return grade_hwm < boundary and db_a.grade >= boundary
+
+    def get_award_setting(award_type):
+        return round(float(settings.get('award_' + award_type, 0)))
+
+    def get_sibling_hwms():
+        """Return the high-water-mark for every other stage in the tutorial"""
+        return DBSession.execute("""
+            SELECT st.stage_id
+                 , (SELECT COALESCE(MAX(grade), 0) FROM answer WHERE stage_id = st.stage_id AND user_id = :user_id) grade_hwm
+              FROM stage st, syllabus sy
+             WHERE sy.syllabus_id = st.syllabus_id
+               AND st.stage_id != :stage_id
+               AND sy.path <@ (
+                   SELECT subpath(sy2.path, 0, -1)
+                     FROM syllabus sy2, stage st2
+                    WHERE sy2.syllabus_id = st2.syllabus_id
+                      AND st2.stage_id = :stage_id)
+            GROUP BY st.stage_id
+        """, dict(
+            user_id=db_a.user_id,
+            stage_id=db_a.stage_id,
+        ))
+
+    if db_a.ug_reviews is None:
+        # No UG review, consider as a regular question
+        db_a.coins_awarded = 0
+        if crossed_grade_boundary(5.000):
+            db_a.coins_awarded += get_award_setting('stage_answered')
+        if crossed_grade_boundary(9.750):
+            db_a.coins_awarded += get_award_setting('stage_aced')
+
+            # Have we also aced all other lectures?
+            for (sibling_id, sibling_hwm) in get_sibling_hwms():
+                if sibling_hwm < 9.750:
+                    break
+            else:
+                db_a.coins_awarded += get_award_setting('tutorial_aced')
+        return
+
+    db_a.mark = mark_ug_reviews(db_a, settings, db_a.ug_reviews)
+    if db_a.correct is not None:
+        # Already reached a decision, don't change it
+        pass
+    elif db_a.mark > float(settings.get('ugreview_captrue', 3)):
+        db_a.correct = True
+        if db_a.coins_awarded == 0:
+            db_a.coins_awarded = get_award_setting('ugmaterial_correct')
+    elif db_a.mark < float(settings.get('ugreview_capfalse', -1)):
+        db_a.correct = False
+    else:
+        db_a.correct = None
+
+
 def mark_ug_reviews(db_a, settings, ug_reviews):
     """For a list of UG reviews, return a mark"""
     # Count / tally all review sections
@@ -39,7 +102,7 @@ def mark_ug_reviews(db_a, settings, ug_reviews):
     return 0
 
 
-def db_to_incoming(alloc, db_a, ug_reviews):
+def db_to_incoming(alloc, db_a):
     """Turn db entry back to wire-format"""
     def format_review(reviewer_user_id, review):
         """Format incoming review object from stage_ugmaterial for client"""
@@ -70,7 +133,7 @@ def db_to_incoming(alloc, db_a, ug_reviews):
         ug_reviews=[
             format_review(reviewer_user_id, review)
             for reviewer_user_id, review
-            in ug_reviews
+            in (db_a.ug_reviews or [])
             if alloc.db_student.id != reviewer_user_id  # NB: Your own review will be in review, so no need
         ],
     )
@@ -150,6 +213,7 @@ def sync_answer_queue(alloc, in_queue, time_offset):
     in_i = 0
     additions = 0
     out = []
+    grade_hwm = 0
     while True:
         if db_i >= len(db_queue):
             # Ran off the end of DB items, anything extra should be added to incoming
@@ -188,25 +252,13 @@ def sync_answer_queue(alloc, in_queue, time_offset):
             db_i += 1
 
         # If reviews are present, update DB entry based on them
-        if (db_entry.material_source_id, db_entry.permutation) in stage_ug_reviews:
-            db_entry.mark = mark_ug_reviews(db_entry, alloc.settings, stage_ug_reviews[(db_entry.material_source_id, db_entry.permutation)])
-            if db_entry.correct != None:
-                # Already reached a decision, don't change it
-                pass
-            elif db_entry.mark > float(alloc.settings.get('ugreview_captrue', 3)):
-                db_entry.correct = True
-            elif db_entry.mark < float(alloc.settings.get('ugreview_capfalse', -1)):
-                db_entry.correct = False
-            else:
-                db_entry.correct = None
-        out.append(db_to_incoming(alloc, db_entry, stage_ug_reviews.get((db_entry.material_source_id, db_entry.permutation), [])))
+        db_entry.ug_reviews = stage_ug_reviews.get((db_entry.material_source_id, db_entry.permutation), None)
+        mark_aq_entry(db_entry, alloc.settings, grade_hwm)
+        out.append(db_to_incoming(alloc, db_entry))
+        if db_entry.grade > grade_hwm:
+            grade_hwm = db_entry.grade
 
         DBSession.flush()
-
-    # Trigger work based on updated table
-    # TODO: getCoinAward?
-    # TODO: Review points for reviewed material?
-
     # Return combination of answer queues, and how many new entries we found
     return (out, additions)
 
