@@ -58,6 +58,9 @@ UG_QUESTION_REVIEW = [
 
 UG_EXAMPLE = Template("""
 <%! from tutorweb_quizdb.rst import to_rst %>
+% if context.get('title', UNDEFINED) is not UNDEFINED:
+    <h3>${title | h}</h3>
+% endif
 <div>${text | to_rst}</div>
 """)
 

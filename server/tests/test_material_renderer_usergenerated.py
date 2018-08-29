@@ -44,3 +44,18 @@ class UgRenderDataTest(unittest.TestCase):
             review_questions=out['review_questions'],
         ))
         self.assertTrue(len(out['review_questions']) > 0)
+
+        # Can also have titles for examples
+        out = ug_render_data(dict(
+            title="Hello <there>!",
+            text="This is a really good **example**",
+        ))
+        self.assertEqual(out, dict(
+            content="""
+<h3>Hello &lt;there&gt;!</h3>
+<div><p>This is a really good <strong>example</strong></p></div>
+            """.strip(),
+            tags=['type.example', 'review.mandatory'],
+            review_questions=out['review_questions'],
+        ))
+        self.assertTrue(len(out['review_questions']) > 0)
