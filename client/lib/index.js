@@ -139,7 +139,11 @@ StartView.prototype = new View(jQuery);
         return quiz.getAvailableLectures().then(function (subscriptions) {
             if (Object.keys(subscriptions.lectures).length === 0) {
                 twView.jqQuiz.empty();
-                twView.showAlert('info', 'You have no lectures loaded yet. Please click "Get more drill questions", and choose a department and tutorial from which you would like to learn.');
+                // TODO: Bodge in some links before we have proper sign-up
+                twView.showAlert('info', 'You have no lectures loaded yet. Subscribe to one of ' +
+                                         '<a href="/api/subscriptions/add?path=comp.crypto251.0">comp.crypto251.0</a>, ' +
+                                         '<a href="/api/subscriptions/add?path=math.612.0">math.612.0</a>, ' +
+                                         '<a href="/api/subscriptions/add?path=stats.545">stats.545</a>', 'html');
                 twView.updateActions(['logout', 'go-twhome']);
             } else {
                 twView.renderChooseLecture(
