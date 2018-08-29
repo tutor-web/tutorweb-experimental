@@ -1,6 +1,7 @@
 import logging
 
 from sqlalchemy import Sequence
+from sqlalchemy.orm.exc import NoResultFound
 
 from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.rst import to_rst
@@ -147,7 +148,14 @@ def incoming_to_db(alloc, in_a):
         # Log exception along with real error
         log.exception("Could not parse question ID %s" % in_a['uri'])
         raise ValueError("Could not parse question ID %s" % in_a['uri'])
-    ms = DBSession.query(Base.classes.material_source).filter_by(material_source_id=mss_id).one()
+    try:
+        ms = DBSession.query(Base.classes.material_source).filter_by(material_source_id=mss_id).one()
+    except NoResultFound:
+        log.exception("Could not parse question ID %s" % in_a['uri'])
+        raise ValueError("Cannot find question %s for user %s (are you logged in as the right user?)" % (
+            in_a['uri'],
+            alloc.db_student.user_name,
+        ))
 
     if 'type.template' in ms.material_tags and permutation < 10:
         # It's newly-written material, rather than a review. Assign new permutation

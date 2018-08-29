@@ -128,6 +128,12 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         self.assertEqual(out, [])
         self.assertEqual(additions, 0)
 
+        # Nonsense items cause an error
+        with self.assertRaisesRegexp(ValueError, 'example9.q.R'):
+            (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [
+                aq_dict(time_end=2013, uri='example9.q.R:1', grade_after=9.9)
+            ], 0)
+
         # Add some items into the queue, get them back again. Entries without time_end are ignored
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
         (out, additions) = sync_answer_queue(alloc, [
