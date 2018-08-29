@@ -102,7 +102,6 @@ def stage_material(request):
                 uri=alloc.to_public_id(ms.material_source_id, permutation),
                 initial_answered=ms.initial_answered,
                 initial_correct=ms.initial_correct,
-                online_only=False,  # TODO: How do we know?
                 _type='regular',  # TODO: ...or historical?
             ) for ms, permutation in requested_material
         ],

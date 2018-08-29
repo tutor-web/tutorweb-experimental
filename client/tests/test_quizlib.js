@@ -757,7 +757,7 @@ broken_test('_setQuestionAnswer', function (t) {
             {
                 "answerQueue": [],
                 "questions": [
-                    {"uri": "ut:tmplqn0", "online_only": false},  // NB: Would normally be true
+                    {"uri": "ut:tmplqn0"},
                 ],
                 "settings": { "hist_sel": 0 },
                 "uri": "ut:lecture0",
@@ -883,7 +883,7 @@ broken_test('_setQuestionAnswer', function (t) {
             {
                 "answerQueue": [],
                 "questions": [
-                    {"uri": "ut:ugqn0", "online_only": false},  // NB: Would normally be true
+                    {"uri": "ut:ugqn0"},
                 ],
                 "settings": { "hist_sel": 0 },
                 "uri": "ut:lecture0",

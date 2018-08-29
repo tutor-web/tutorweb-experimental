@@ -101,7 +101,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 var i;
 
                 for (i = 0; i < l.questions.length; i++) {
-                    if (!l.questions[i].online_only && !lsItems[l.questions[i].uri]) {
+                    if (!lsItems[l.questions[i].uri]) {
                         return false;
                     }
                 }
@@ -686,7 +686,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             }).then(function (curLecture) {
                 // Check if either we have no question bank yet, or we have missing questions
                 var missingQns = curLecture.questions.length === 0 || curLecture.questions.find(function (q) {
-                    return !q.online_only && (self.ls.getItem(q.uri) === null);
+                    return (self.ls.getItem(q.uri) === null);
                 });
 
                 if (missingQns) {
