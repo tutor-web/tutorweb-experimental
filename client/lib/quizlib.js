@@ -403,7 +403,13 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 iaalib.gradeAllocation(curLecture.settings, curLecture.answerQueue, curLecture);
                 a.lec_answered = (a.lec_answered || 0) + 1;
                 a.lec_correct = (a.lec_correct || 0) + (a.correct ? 1 : 0);
-                a.practice_answered = (a.practice_answered || 0) + (a.student_answer.practice ? 1 : 0);
+                if (a.hasOwnProperty('practice')) {
+                    a.practice_answered = (a.practice_answered || 0) + (a.practice ? 1 : 0);
+                } else if (a.hasOwnProperty('student_answer')) {
+                    a.practice_answered = (a.practice_answered || 0) + (a.student_answer.practice ? 1 : 0);
+                } else {
+                    a.practice_answered = (a.practice_answered || 0);
+                }
 
                 return {
                     qn: qn,
@@ -548,7 +554,14 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             // Update running totals
             a.lec_answered = runningTotal(a, 'lec_answered', a.time_end ? 1 : 0);
             a.lec_correct  = runningTotal(a, 'lec_correct',  a.correct ? 1 : 0);
-            a.practice_answered = runningTotal(a, 'practice_answered', a.student_answer.practice && a.time_end ? 1 : 0);
+            if (a.hasOwnProperty('practice')) {
+                a.practice_answered = runningTotal(a, 'practice_answered', a.practice && a.time_end ? 1 : 0);
+            } else if (a.hasOwnProperty('student_answer')) {
+                a.practice_answered = runningTotal(a, 'practice_answered', a.student_answer.practice && a.time_end ? 1 : 0);
+            } else {
+                a.practice_answered = runningTotal(a, 'practice_answered', 0);
+            }
+
             return a;
         });
     }
