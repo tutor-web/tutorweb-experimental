@@ -133,11 +133,16 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         self.assertTrue(float(out['grade_s']) < 100)
         old_grade_s = out['grade_s']
 
+        # Note down the global settings - these shouldn't change
+        global_settings = [dict(), dict()]
+        global_settings[0]['allocation_encryption_key'] = out['allocation_encryption_key']
+        global_settings[0]['allocation_seed'] = out['allocation_seed']
+
         # Can get same values again
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
-            allocation_encryption_key=out['allocation_encryption_key'],
-            allocation_seed=out['allocation_seed'],
+            allocation_encryption_key=global_settings[0]['allocation_encryption_key'],
+            allocation_seed=global_settings[0]['allocation_seed'],
             grade_s=out['grade_s'],
             hist_sel='0.5',
         ))
@@ -154,6 +159,11 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         self.assertTrue(float(out['grade_s']) >= 1)
         self.assertTrue(float(out['grade_s']) < 100)
         self.assertNotEqual(out['grade_s'], old_grade_s)
+        # Note down the global settings - these shouldn't change
+        global_settings[1]['allocation_encryption_key'] = out['allocation_encryption_key']
+        global_settings[1]['allocation_seed'] = out['allocation_seed']
+        self.assertNotEqual(global_settings[0]['allocation_encryption_key'], global_settings[1]['allocation_encryption_key'])
+        self.assertNotEqual(global_settings[0]['allocation_seed'], global_settings[1]['allocation_seed'])
 
         # Replace stage with a new version
         db_stage = self.replace_stage(db_stage, dict(
@@ -165,8 +175,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # Students get new value for hist_sel, keep old value of grade_s
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
-            allocation_encryption_key=out['allocation_encryption_key'],
-            allocation_seed=out['allocation_seed'],
+            allocation_encryption_key=global_settings[0]['allocation_encryption_key'],
+            allocation_seed=global_settings[0]['allocation_seed'],
             grade_s=out['grade_s'],
             grade_t=out['grade_t'],
             hist_sel='0.9',
@@ -186,8 +196,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # This time we replace s, but keep t
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
-            allocation_encryption_key=out['allocation_encryption_key'],
-            allocation_seed=out['allocation_seed'],
+            allocation_encryption_key=global_settings[0]['allocation_encryption_key'],
+            allocation_seed=global_settings[0]['allocation_seed'],
             grade_s=out['grade_s'],
             grade_t=out['grade_t'],
             hist_sel='0.9',
@@ -209,8 +219,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # This time we keep s, but remove t
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
-            allocation_encryption_key=out['allocation_encryption_key'],
-            allocation_seed=out['allocation_seed'],
+            allocation_encryption_key=global_settings[0]['allocation_encryption_key'],
+            allocation_seed=global_settings[0]['allocation_seed'],
             grade_s=out['grade_s'],
             hist_sel='0.9',
         ))
@@ -223,8 +233,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         ))
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
-            allocation_encryption_key=out['allocation_encryption_key'],
-            allocation_seed=out['allocation_seed'],
+            allocation_encryption_key=global_settings[0]['allocation_encryption_key'],
+            allocation_seed=global_settings[0]['allocation_seed'],
             hist_sel=None,
             grade_s=out['grade_s'],
         ))
@@ -236,8 +246,8 @@ class GetStudentSettingsTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         # This time we got nothing bar globals
         out = getStudentSettings(db_stage, studs[0])
         self.assertEqual(out, dict(
-            allocation_encryption_key=out['allocation_encryption_key'],
-            allocation_seed=out['allocation_seed'],
+            allocation_encryption_key=global_settings[0]['allocation_encryption_key'],
+            allocation_seed=global_settings[0]['allocation_seed'],
         ))
 
 

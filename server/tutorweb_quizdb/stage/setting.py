@@ -185,7 +185,10 @@ def getStudentSettings(db_stage, db_user):
         ).all()
         if len(x) > 0:
             (old_stage, old_ss) = x[0]
-            old_spec = SettingSpec(key, old_stage.stage_setting_spec.get(key, {}), _variantApplicable)
+            if key in GLOBAL_SPECS:
+                old_spec = SettingSpec(key, GLOBAL_SPECS[key], _variantApplicable)
+            else:
+                old_spec = SettingSpec(key, old_stage.stage_setting_spec.get(key, {}), _variantApplicable)
             equivalent = spec.equivalent(old_spec)
         else:
             equivalent = False
