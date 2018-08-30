@@ -87,11 +87,11 @@ def lec_import(tut_struct):
     path = Ltree(tut_struct['path'])
     for i in range(len(path)):
         tut_href = tut_struct.get('href', None) if (i == len(path) - 1) else None
-        upsert_syllabus(path[:i + 1], tut_struct['titles'][i], tut_href, tut_struct['requires_group'])
+        upsert_syllabus(path[:i + 1], tut_struct['titles'][i], tut_href, tut_struct.get('requires_group', None))
 
     # Add all lectures & stages
     for lec_name, lec_title, lec_href, *_unused_ in (l + [None, None] for l in tut_struct['lectures']):
-        db_lec = upsert_syllabus(path + Ltree(lec_name), lec_title, lec_href, tut_struct['requires_group'])
+        db_lec = upsert_syllabus(path + Ltree(lec_name), lec_title, lec_href, tut_struct.get('requires_group', None))
 
         # Get all current stages, put in dict
         db_stages = dict()
@@ -124,6 +124,21 @@ def lec_import(tut_struct):
             DBSession.flush()
 
 
+def multiple_lec_import(data):
+    """Import a list of lectures, allowing previous lectures to define defaults"""
+    if not isinstance(data, list):
+        # Only one lecture, just import it
+        lec_import(data)
+        return
+
+    for i in range(len(data)):
+        # Lecture i should be a combination of itself and everything before it
+        merged = {}
+        for j in range(i + 1):
+            merged.update(data[j])
+        lec_import(merged)
+
+
 def script():
     import argparse
     import sys
@@ -139,4 +154,4 @@ def script():
 
     with setup_script(argparse_arguments) as env:
         with env['args'].infile as f:
-            lec_import(json.load(f))
+            multiple_lec_import(json.load(f))
