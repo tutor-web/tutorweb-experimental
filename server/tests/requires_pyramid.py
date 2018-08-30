@@ -31,24 +31,30 @@ class RequiresPyramid():
                       stage_setting_spec_fn=lambda i: {},
                       material_tags_fn=lambda i: None,
                       lec_parent='dept.tutorial'):
+        from tutorweb_quizdb.syllabus.add import lec_import
         from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 
         lec_name = 'lec_%d' % random.randint(1000000, 9999999)
-        db_lec = Base.classes.syllabus(host_id=ACTIVE_HOST, path=Ltree(lec_parent + '.' + lec_name), title=lec_name)
-        DBSession.add(db_lec)
-
-        out = []
-        for i in range(total):
-            out.append(Base.classes.stage(
-                syllabus=db_lec,
-                stage_name='stage%d' % i, version=0,
+        lec_import(dict(
+            path=lec_parent,
+            titles=['UT %s' % p for p in lec_parent.split('.')],
+            requires_group=None,
+            lectures=[[lec_name, 'UT Lecture %s' % lec_name]],
+            stage_template=[dict(
+                name='stage%d' % i, version=0,
                 title='UT stage %s' % i,
-                stage_setting_spec=stage_setting_spec_fn(i),
                 material_tags=material_tags_fn(i),
-            ))
-            DBSession.add(out[-1])
-        DBSession.flush()
-        return out
+                setting_spec=stage_setting_spec_fn(i),
+            ) for i in range(total)],
+        ))
+
+        # Get the sqlalchemy objects back
+        stages = (DBSession.query(Base.classes.stage)
+                           .join(Base.classes.syllabus)
+                           .filter_by(host_id=ACTIVE_HOST)
+                           .filter_by(path=Ltree('%s.%s' % (lec_parent, lec_name)))
+                           .all())
+        return stages
 
     def create_students(self, total, student_group_fn=lambda i: ['accept_terms']):
         from tutorweb_quizdb.student.create import create_student

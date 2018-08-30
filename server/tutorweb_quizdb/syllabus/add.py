@@ -86,11 +86,11 @@ def lec_import(tut_struct):
     # Make sure the department & tutorial are available
     path = Ltree(tut_struct['path'])
     for i in range(len(path)):
-        tut_href = tut_struct['href'] if (i == len(path) - 1) else None
+        tut_href = tut_struct.get('href', None) if (i == len(path) - 1) else None
         upsert_syllabus(path[:i + 1], tut_struct['titles'][i], tut_href, tut_struct['requires_group'])
 
     # Add all lectures & stages
-    for (lec_name, lec_title, lec_href) in tut_struct['lectures']:
+    for lec_name, lec_title, lec_href, *_unused_ in (l + [None, None] for l in tut_struct['lectures']):
         db_lec = upsert_syllabus(path + Ltree(lec_name), lec_title, lec_href, tut_struct['requires_group'])
 
         # Get all current stages, put in dict
@@ -121,6 +121,7 @@ def lec_import(tut_struct):
                 material_tags=material_tags,
                 stage_setting_spec=setting_spec
             ))
+            DBSession.flush()
 
 
 def script():
