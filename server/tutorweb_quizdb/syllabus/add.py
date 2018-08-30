@@ -148,10 +148,12 @@ def script():
         dict(description='Import a tutorial/lecture/stage configuration'),
         dict(
             name='infile',
+            help='JSON syllabus file(s) to import, assumes STDIN if none given',
             type=argparse.FileType('r'),
+            nargs='*',
             default=sys.stdin),
     ]
 
     with setup_script(argparse_arguments) as env:
-        with env['args'].infile as f:
+        for f in env['args'].infile:
             multiple_lec_import(json.load(f))
