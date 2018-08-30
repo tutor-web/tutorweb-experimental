@@ -62,18 +62,12 @@ class RequiresPyramid():
 
         out = []
         for i in range(total):
-            groups = [
-                get_group(group_name, auto_create=True)
-                for group_name
-                in student_group_fn(i)
-            ]
-
             (user, pwd) = create_student(
                 self.request(),
                 'user%d' % i,
                 email='user%d@example.com' % i,
                 assign_password=True,
-                groups=groups,
+                group_names=student_group_fn(i),
             )
             out.append(user)
 

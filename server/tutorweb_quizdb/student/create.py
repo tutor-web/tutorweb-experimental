@@ -43,7 +43,7 @@ def create_student(request,
                    user_name,
                    email=None,
                    assign_password=False,
-                   groups=[],
+                   group_names=[],
                    subscribe=[]):
     """
     Add a new student
@@ -75,17 +75,19 @@ def create_student(request,
             # Send an e-mail, forget the generated password
             trigger_forgot_password(request, db_u)
             password = None
-
     DBSession.flush()
 
     # Make sure user is part of all the required groups
-    for g in groups:
+    for n in group_names:
+        g = get_group(n, auto_create=True)
         if g not in db_u.groups:
             db_u.groups.append(g)
+    DBSession.flush()
 
     # Make sure user is subscribed to everything required
     for s in subscribe:
         subscription_add(db_u, Ltree(s))
+    DBSession.flush()
 
     return (db_u, password)
 
@@ -143,8 +145,6 @@ def script_student_import():
     ]
 
     with setup_script(argparse_arguments) as env:
-        groups = [get_group(group_name, auto_create=True) for group_name in env['args'].groups]
-
         with env['args'].infile as f:
             new_user_names = filter(None, f.readlines())
 
@@ -159,7 +159,7 @@ def script_student_import():
                 new_user_name,
                 env['args'].email_address or new_user_name,
                 assign_password=env['args'].assign_passwords,
-                groups=groups,
+                group_names=env['args'].groups.split(','),
                 subscribe=env['args'].subscribe,
             )
             print("%s,%s,%s" % (

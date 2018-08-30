@@ -40,30 +40,31 @@
 """
 import json
 
-from sqlalchemy import func
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils import Ltree
 
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
+from tutorweb_quizdb.student import get_group
 
 
 def upsert_syllabus(path, title, href, requires_group):
     """Fetch / insert from the syllabus table something with path"""
-    requires_group_fn = func.public.get_group_id(requires_group) if requires_group else None
+    g_id = get_group(requires_group, auto_create=True).id if requires_group else None
+
     try:
         dbl = (DBSession.query(Base.classes.syllabus)
                         .filter_by(host_id=ACTIVE_HOST, path=path)
                         .one())
         dbl.title = title
         dbl.supporting_material_href = href
-        dbl.requires_group_id = requires_group_fn
+        dbl.requires_group_id = g_id
     except NoResultFound:
         dbl = Base.classes.syllabus(
             host_id=ACTIVE_HOST,
             path=path,
             title=title,
             supporting_material_href=href,
-            requires_group_id=requires_group_fn,
+            requires_group_id=g_id,
         )
         DBSession.add(dbl)
     DBSession.flush()
