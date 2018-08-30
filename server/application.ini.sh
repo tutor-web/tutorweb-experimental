@@ -37,7 +37,7 @@ mail.port = ${UWSGI_MAILPORT}
 EOF
 
 # Fish out all smileycoin settings from the environment
-set 2>&1 | grep -E '^APP_SMILEYCOIN_' | sed 's/APP_SMILEYCOIN_/smileycoin./g' >> ${OUTFILE}
+set 2>&1 | grep -E '^APP_SMILEYCOIN_' | sed 's/APP_SMILEYCOIN_/smileycoin./g' | sed "s/'//g" >> ${OUTFILE}
 
 cat <<EOF >> ${OUTFILE}
 
