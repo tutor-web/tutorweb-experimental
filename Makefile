@@ -13,6 +13,6 @@ lint:
 	for dir in $(SUBDIRS); do make -C $$dir $@; done
 
 fakesmtp:
-	python3 -m smtpd -n -c DebuggingServer localhost:25
+	python3 -m smtpd -n -c DebuggingServer localhost:8025
 
 .PHONY: compile start

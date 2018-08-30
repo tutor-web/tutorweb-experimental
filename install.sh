@@ -28,6 +28,8 @@ else
 fi
 UWSGI_SOCKET="${UWSGI_SOCKET-/tmp/${PROJECT_NAME}_uwsgi.${PROJECT_MODE}.sock}"
 UWSGI_MAILSENDER="${UWSGI_MAILSENDER-noreply@$SERVER_NAME}"
+UWSGI_MAILHOST="${UWSGI_MAILHOST-localhost}"
+UWSGI_MAILPORT="${UWSGI_MAILPORT-25}"
 
 DB_SUDO_USER="${DB_SUDO_USER-postgres}"  # The user that has root access to DB
 DB_HOST="${DB_HOST-/var/run/postgresql/}"  # The hostname / socket path to connect to

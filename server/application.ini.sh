@@ -31,6 +31,8 @@ tutorweb.script.server_name = ${SERVER_NAME}
 tutorweb.script.is_https = ${SERVER_IS_HTTPS}
 
 mail.default_sender = ${UWSGI_MAILSENDER}
+mail.host = ${UWSGI_MAILHOST}
+mail.port = ${UWSGI_MAILPORT}
 
 EOF
 

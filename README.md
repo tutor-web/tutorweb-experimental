@@ -44,6 +44,12 @@ smileycoin options, see ``tutorweb_quizdb/smileycoin.py``.
 
 ### Fake SMTP server for activation e-mails
 
+First reconfigure the backend to use a non-priveliged port:
+
+    cat <<EOF >> .local-conf
+    UWSGI_MAILPORT="8025"
+    EOF
+
 You can start a fake SMTP server to receive e-mails with:
 
-    sudo make fakesmtp
+    make fakesmtp
