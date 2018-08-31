@@ -58,7 +58,6 @@ class RequiresPyramid():
 
     def create_students(self, total, student_group_fn=lambda i: ['accept_terms']):
         from tutorweb_quizdb.student.create import create_student
-        from tutorweb_quizdb.student import get_group
 
         out = []
         for i in range(total):
