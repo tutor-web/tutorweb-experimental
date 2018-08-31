@@ -30,6 +30,18 @@ def get_current_student(request):
     return request.user
 
 
+def student_is_vetted(student, stage):
+    """Is this student vetted to review this stage in more detail?"""
+    # Consider vettings at the tutorial-level
+    group_name = 'vetted.%s' % stage.syllabus.path[:-1]
+    try:
+        vetted_group = get_group(group_name, auto_create=False)
+    except NoResultFound:
+        # No group exists, so student can't be vetted
+        return False
+    return vetted_group in student.groups
+
+
 def includeme(config):
     config.include('tutorweb_quizdb.student.details')
     config.include('tutorweb_quizdb.student.accept_terms')

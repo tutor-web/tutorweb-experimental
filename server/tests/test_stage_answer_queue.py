@@ -7,6 +7,7 @@ from .requires_materialbank import RequiresMaterialBank
 from tutorweb_quizdb.stage.allocation import get_allocation
 from tutorweb_quizdb.stage.setting import getStudentSettings
 from tutorweb_quizdb.stage.answer_queue import sync_answer_queue, request_review
+from tutorweb_quizdb.student import get_group
 
 
 AWARD_STAGE_ANSWERED = 1
@@ -343,6 +344,50 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[3])), [
                 dict(uri='template1.t.R:12'),
             ])
+
+        # If we mark Student 3 as vetted, then the correct questions are also available, for all stages
+        vetted_group = 'vetted.%s' % self.db_stages[1].syllabus.path[:-1]
+        self.db_studs[3].groups.append(get_group(vetted_group, auto_create=True))
+        DBSession.flush()
+        for i in range(10):
+            self.assertEqual(
+                request_review(get_alloc(self.db_stages[0], self.db_studs[0])),
+                dict(uri='template1.t.R:12'),
+            )
+            self.assertEqual(
+                request_review(get_alloc(self.db_stages[0], self.db_studs[1])),
+                dict(),
+            )
+            self.assertEqual(
+                request_review(get_alloc(self.db_stages[0], self.db_studs[2])),
+                dict(uri='template1.t.R:12'),
+            )
+            self.assertEqual(
+                request_review(get_alloc(self.db_stages[0], self.db_studs[3])),
+                dict(uri='template1.t.R:11'),  # Just :11 since this one is correct, and do correct ones first
+            )
+
+        # If Student 3 reviews, then they get to review 12 again.
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[3]), [
+            aq_dict(uri='template1.t.R:11', time_end=1131, student_answer=dict(choice="a2"), review=dict(comments="*nice*", content=12, presentation=12)),
+        ], 0)
+        for i in range(10):
+            self.assertEqual(
+                request_review(get_alloc(self.db_stages[0], self.db_studs[0])),
+                dict(uri='template1.t.R:12'),
+            )
+            self.assertEqual(
+                request_review(get_alloc(self.db_stages[0], self.db_studs[1])),
+                dict(),
+            )
+            self.assertEqual(
+                request_review(get_alloc(self.db_stages[0], self.db_studs[2])),
+                dict(uri='template1.t.R:12'),
+            )
+            self.assertEqual(
+                request_review(get_alloc(self.db_stages[0], self.db_studs[3])),
+                dict(uri='template1.t.R:12'),
+            )
 
         # We can still get student 0's work, after this diversion to student 1
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
