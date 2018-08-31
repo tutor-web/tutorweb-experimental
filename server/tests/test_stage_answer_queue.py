@@ -7,6 +7,7 @@ from .requires_materialbank import RequiresMaterialBank
 from tutorweb_quizdb.stage.allocation import get_allocation
 from tutorweb_quizdb.stage.setting import getStudentSettings
 from tutorweb_quizdb.stage.answer_queue import sync_answer_queue, request_review
+from tutorweb_quizdb.stage.material import stage_material
 from tutorweb_quizdb.student import get_group
 
 
@@ -366,6 +367,20 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
                 request_review(get_alloc(self.db_stages[0], self.db_studs[3])),
                 dict(uri='template1.t.R:11'),  # Just :11 since this one is correct, and do correct ones first
             )
+
+        # Student 3 gets special question, others don't.
+        self.assertEqual(
+            [x['name'] for x in stage_material(get_alloc(self.db_stages[0], self.db_studs[0]), ['template1.t.R:12'])['data']['template1.t.R:12']['review_questions']],
+            ['content', 'presentation', 'difficulty'],
+        )
+        self.assertEqual(
+            [x['name'] for x in stage_material(get_alloc(self.db_stages[0], self.db_studs[1]), ['template1.t.R:12'])['data']['template1.t.R:12']['review_questions']],
+            ['content', 'presentation', 'difficulty'],
+        )
+        self.assertEqual(
+            [x['name'] for x in stage_material(get_alloc(self.db_stages[0], self.db_studs[3]), ['template1.t.R:12'])['data']['template1.t.R:12']['review_questions']],
+            ['vetted', 'content', 'presentation', 'difficulty'],
+        )
 
         # If Student 3 reviews, then they get to review 12 again.
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[3]), [
