@@ -44,7 +44,10 @@ def mark_aq_entry(db_a, settings, grade_hwm):
             stage_id=db_a.stage_id,
         ))
 
-    if db_a.ug_reviews is None:
+    if db_a.ug_reviews is not None:
+        # Mark as UG material with reviews
+        mark_aq_entry_usergenerated(db_a, settings, db_a.ug_reviews)
+    else:
         # No UG review, consider as a regular question
         db_a.coins_awarded = 0
         if crossed_grade_boundary(5.000):
@@ -58,24 +61,13 @@ def mark_aq_entry(db_a, settings, grade_hwm):
                     break
             else:
                 db_a.coins_awarded += get_award_setting('tutorial_aced')
-        return
-
-    db_a.mark = mark_ug_reviews(db_a, settings, db_a.ug_reviews)
-    if db_a.correct is not None:
-        # Already reached a decision, don't change it
-        pass
-    elif db_a.mark > float(settings.get('ugreview_captrue', 3)):
-        db_a.correct = True
-        if db_a.coins_awarded == 0:
-            db_a.coins_awarded = get_award_setting('ugmaterial_correct')
-    elif db_a.mark < float(settings.get('ugreview_capfalse', -1)):
-        db_a.correct = False
-    else:
-        db_a.correct = None
 
 
-def mark_ug_reviews(db_a, settings, ug_reviews):
+def mark_aq_entry_usergenerated(db_a, settings, ug_reviews):
     """For a list of UG reviews, return a mark"""
+    def get_award_setting(award_type):
+        return round(float(settings.get('award_' + award_type, 0)))
+
     # Count / tally all review sections
     out_count = 0
     out_total = 0
@@ -97,11 +89,24 @@ def mark_ug_reviews(db_a, settings, ug_reviews):
 
     if db_a.review and db_a.review.get('superseded', False):
         # If this is superseded, also mark down to get rid of it
-        return -99
-    if out_count > 0:
+        db_a.mark = -99
+    elif out_count > 0:
         # Mark should be mean of all reviews
-        return out_total / max(int(settings.get('ugreview_minreviews', 3)), out_count)
-    return 0
+        db_a.mark = out_total / max(int(settings.get('ugreview_minreviews', 3)), out_count)
+    else:
+        db_a.mark = 0
+
+    if db_a.correct is not None:
+        # Already reached a decision, don't change it
+        pass
+    elif db_a.mark > float(settings.get('ugreview_captrue', 3)):
+        db_a.correct = True
+        if db_a.coins_awarded == 0:
+            db_a.coins_awarded = get_award_setting('ugmaterial_correct')
+    elif db_a.mark < float(settings.get('ugreview_capfalse', -1)):
+        db_a.correct = False
+    else:
+        db_a.correct = None
 
 
 def db_to_incoming(alloc, db_a):
