@@ -20,5 +20,7 @@ BEGIN
 END
 $do$;
 
+-- ugmaterial table was never finished, get rid of it
+DROP TABLE IF EXISTS ugmaterial;
 
 COMMIT;

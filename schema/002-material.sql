@@ -51,10 +51,4 @@ CREATE OR REPLACE VIEW all_material_tags AS
 COMMENT ON VIEW all_material_tags IS 'All currently used material_tags';
 
 
--- User-generated materials are stored separately 
-CREATE TABLE IF NOT EXISTS ugmaterial (
-    material_tags            TEXT[] NOT NULL DEFAULT '{}'
-);
-
-
 COMMIT;
