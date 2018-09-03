@@ -55,7 +55,7 @@ Reviewing material will look in the answer table and find work that hasn't
 been marked correct/incorrect, and render it to be answered. After answering a
 question, a questionnaire getting students to grade the material is shown (this
 questionnaire is currently defined in
-[usergenerated.py](../server/tutorweb_quizdb/material/renderer/usergenerated.py).
+`usergenerated.py <../server/tutorweb_quizdb/material/renderer/usergenerated.py>`_.
 Regardless of your selections, a there are no grade or SMLY rewards for
 reviewing.
 
@@ -70,7 +70,7 @@ other students will review it. If the material was considered correct, then awar
 ``award_ugmaterial_correct`` Milli-SMLY to the user.
 
 There's a number of "ugreview" settings that affect this process, see 
-[Tutor-web settings](settings.rst) for details.
+`Tutor-web settings <settings.rst>`_ for details.
 
 Vetted reviewers
 ================
@@ -85,7 +85,7 @@ user-generated-material as well as undecided material. If there is any, then
 the "correct" material will be reviewed first, since in theory it should be
 reasonable quality.
 
-Vetted reviewers will always have to answer [an extra review
-question](../server/tutorweb_quizdb/stage/material.py). This allows them to
+Vetted reviewers will always have to answer `an extra review
+question <../server/tutorweb_quizdb/stage/material.py>`_. This allows them to
 signal this material should be added to the main material bank, and
-[award_ugmaterial_accepted](settings.rst) given to the author of the question.
+`award_ugmaterial_accepted <settings.rst>`_ given to the author of the question.
