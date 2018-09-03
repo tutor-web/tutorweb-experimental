@@ -15,6 +15,7 @@ AWARD_STAGE_ANSWERED = 1
 AWARD_STAGE_ACED = 10
 AWARD_TUTORIAL_ACED = 100
 AWARD_UGMATERIAL_CORRECT = 1000
+AWARD_UGMATERIAL_ACCEPTED = 10000
 
 
 def aq_dict(**d):
@@ -74,6 +75,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             award_stage_aced=dict(value=AWARD_STAGE_ACED),
             award_tutorial_aced=dict(value=AWARD_TUTORIAL_ACED),
             award_ugmaterial_correct=dict(value=AWARD_UGMATERIAL_CORRECT),
+            award_ugmaterial_accepted=dict(value=AWARD_UGMATERIAL_ACCEPTED),
         ), material_tags_fn=lambda i: [
             'type.template',
             'lec050500',
@@ -93,6 +95,7 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
             award_stage_aced=dict(value=AWARD_STAGE_ACED),
             award_tutorial_aced=dict(value=AWARD_TUTORIAL_ACED),
             award_ugmaterial_correct=dict(value=AWARD_UGMATERIAL_CORRECT),
+            award_ugmaterial_accepted=dict(value=AWARD_UGMATERIAL_ACCEPTED),
         ), material_tags_fn=lambda i: [
             'type.question',
             'lec050500',
@@ -384,7 +387,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
 
         # If Student 3 reviews, then they get to review 12 again.
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[3]), [
-            aq_dict(uri='template1.t.R:11', time_end=1131, student_answer=dict(choice="a2"), review=dict(comments="*nice*", content=12, presentation=12)),
+            aq_dict(uri='template1.t.R:11', time_end=1131, student_answer=dict(choice="a2"), review=dict(vetted=48, comments="Top, accepted into question bank", content=12, presentation=12)),
         ], 0)
         for i in range(10):
             self.assertEqual(
@@ -403,6 +406,24 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
                 request_review(get_alloc(self.db_stages[0], self.db_studs[3])),
                 dict(uri='template1.t.R:12'),
             )
+
+        # Student 1 gets a major bonus thanks to the vetted review
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [], 0)
+        self.assertEqual(out, [
+            aq_dict(uri='template1.t.R:10', time_end=1010, correct=False, mark=-115, student_answer=dict(text="2"), review=dict(superseded=True), ug_reviews=[
+                dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, mark=-24),
+                dict(comments="<p>Bad</p>", content=-24, presentation=-300, mark=-324),
+            ]),
+            aq_dict(uri='template1.t.R:11', time_end=1020, correct=True, mark=140, student_answer=dict(text="3"), review=None, ug_reviews=[
+                dict(comments="<p><em>nice</em></p>", content=12, presentation=12, mark=24),
+                # NB: This is reviewed earlier than the bottom one
+                dict(comments="<p>Top, accepted into question bank</p>", vetted=48, content=12, presentation=12, mark=72),
+                dict(comments="<p>Good</p>", content=24, presentation=300, mark=324),
+            ]),
+            aq_dict(uri='template1.t.R:12', time_end=1030, correct=None, student_answer=dict(text="4"), review=None, ug_reviews=[]),
+            aq_dict(uri='template1.t.R:13', time_end=1040, correct=False, student_answer=dict(), review=dict()),
+        ])
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT + AWARD_UGMATERIAL_ACCEPTED)
 
         # We can still get student 0's work, after this diversion to student 1
         alloc = get_alloc(self.db_stages[0], self.db_studs[0])
@@ -440,7 +461,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             aq_dict(time_end=2002, uri='example1.q.R:1', grade_after=0.1),
         ])
         self.assertEqual(self.coins_awarded(self.db_studs[0]), 0)
-        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT + AWARD_UGMATERIAL_ACCEPTED)
 
         # Student 1 gets answered award (student 1 stays at same level)
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[1], self.db_studs[0]), [
@@ -454,7 +475,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             aq_dict(time_end=2005, uri='example1.q.R:1', grade_after=5.5),
         ])
         self.assertEqual(self.coins_awarded(self.db_studs[0]), AWARD_STAGE_ANSWERED)
-        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT + AWARD_UGMATERIAL_ACCEPTED)
 
         # Student 1 improves a little bit, no more awards
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[1], self.db_studs[0]), [
@@ -468,7 +489,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             aq_dict(time_end=2008, uri='example1.q.R:1', grade_after=8.5),
         ])
         self.assertEqual(self.coins_awarded(self.db_studs[0]), AWARD_STAGE_ANSWERED)
-        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT + AWARD_UGMATERIAL_ACCEPTED)
 
         # Student 1 repeatedly aces, but only gets aced award once
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[1], self.db_studs[0]), [
@@ -482,7 +503,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             aq_dict(time_end=2011, uri='example1.q.R:1', grade_after=9.9),
         ])
         self.assertEqual(self.coins_awarded(self.db_studs[0]), AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED)
-        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
+        self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT + AWARD_UGMATERIAL_ACCEPTED)
 
         # Ace other 2 stages, get stage awards but not the big prize
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [

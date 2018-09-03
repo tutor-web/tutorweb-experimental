@@ -71,6 +71,7 @@ def mark_aq_entry_usergenerated(db_a, settings, ug_reviews):
     # Count / tally all review sections
     out_count = 0
     out_total = 0
+    vetted_accepted = False
     for reviewer_user_id, review in ug_reviews:
         if not review:
             continue
@@ -79,6 +80,8 @@ def mark_aq_entry_usergenerated(db_a, settings, ug_reviews):
         for r_type, r_rating in review.items():
             if r_type == 'comments':
                 continue
+            if r_type == 'vetted' and int(r_rating) > 10:
+                vetted_accepted = True
             try:
                 review_total += int(r_rating)
             except ValueError:
@@ -107,6 +110,10 @@ def mark_aq_entry_usergenerated(db_a, settings, ug_reviews):
         db_a.correct = False
     else:
         db_a.correct = None
+
+    if vetted_accepted:
+        # Was accepted into main question bank, give major bonus
+        db_a.coins_awarded += get_award_setting('ugmaterial_accepted')
 
 
 def db_to_incoming(alloc, db_a):

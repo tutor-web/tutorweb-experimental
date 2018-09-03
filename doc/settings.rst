@@ -17,6 +17,7 @@ Coin awards for students:
 * ``award_stage_aced``: Milli-SMLY awarded for getting grade 10 in a stage. Default 0
 * ``award_tutorial_aced``: Milli-SMLY awarded for getting grade 10 in every stage in tutorial/class. Default 0
 * ``award_ugmaterial_correct``: Milli-SMLY awarded for ugmaterial being considered "correct". Default 0
+* ``award_ugmaterial_accepted``: Milli-SMLY awarded for ugmaterial being accepted into question bank by a vetted reviewer. Default 0
 
 Grading algorithm:
 
