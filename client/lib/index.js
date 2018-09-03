@@ -49,6 +49,7 @@ function StartView() {
                     link_el = h('a.link.pdf', {
                         href: data.supporting_material_href,
                         title: 'Download notes',
+                        target: '_blank',
                     }, [
                         h('img', {src: '/images/page_white_put.png'}),
                     ]);
