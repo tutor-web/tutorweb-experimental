@@ -314,7 +314,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             dict(client_id='01', uri='template1.t.R:1', time_start=1000, time_end=1010, correct=None, grade_after=0.1, student_answer=dict(text="2"), review=dict(superseded=True)),
         ], 0)
         self.assertEqual(out[0:1], [
-            aq_dict(uri='template1.t.R:10', time_end=1010, correct=False, mark=-99, student_answer=dict(text="2"), review=dict(superseded=True), ug_reviews=[
+            aq_dict(uri='template1.t.R:10', time_end=1010, correct=False, mark=-116, student_answer=dict(text="2"), review=dict(superseded=True), ug_reviews=[
                 dict(comments='<p>Absolutely <strong>terrible</strong></p>', content=-12, presentation=-12, mark=-24),
                 dict(comments="<p>Bad</p>", content=-24, presentation=-300, mark=-324),
             ]),

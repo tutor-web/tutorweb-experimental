@@ -87,16 +87,16 @@ def mark_aq_entry_usergenerated(db_a, settings, ug_reviews):
         out_total += review_total
         out_count += 1
 
-    if db_a.review and db_a.review.get('superseded', False):
-        # If this is superseded, also mark down to get rid of it
-        db_a.mark = -99
-    elif out_count > 0:
+    if out_count > 0:
         # Mark should be mean of all reviews
-        db_a.mark = out_total / max(int(settings.get('ugreview_minreviews', 3)), out_count)
+        db_a.mark = int(out_total / max(int(settings.get('ugreview_minreviews', 3)), out_count))
     else:
         db_a.mark = 0
 
-    if db_a.correct is not None:
+    if db_a.review and db_a.review.get('superseded', False):
+        # If this is superseded, then make sure it's incorrect to get rid of it
+        db_a.correct = False
+    elif db_a.correct is not None:
         # Already reached a decision, don't change it
         pass
     elif db_a.mark > float(settings.get('ugreview_captrue', 3)):
