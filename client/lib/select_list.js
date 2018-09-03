@@ -21,13 +21,9 @@ function select_list(orig_data, item_fn, on_select) {
         ]) : null;
     }
 
-    function toggle(li_el, open_close) {
+    function toggle(li_el, open_close, no_recurse) {
         var ul_el;
 
-        if (!li_el) {
-            // Recursed too deep, ignore
-            return;
-        }
         li_el.classList.toggle('selected', open_close);
 
         ul_el = li_el.lastElementChild;
@@ -38,7 +34,13 @@ function select_list(orig_data, item_fn, on_select) {
             } else {
                 // Shrink, remove selections below this item
                 ul_el.style['max-height'] = '';
-                toggle(ul_el.querySelector('.selected'), false);
+
+                if (!no_recurse) {
+                    // NB: QSA will recurse for us, so block further recursion
+                    Array.prototype.map.call(ul_el.querySelectorAll('.selected'), function (el) {
+                        toggle(el, false, true);
+                    });
+                }
             }
         }
     }
@@ -62,30 +64,37 @@ function select_list(orig_data, item_fn, on_select) {
         var link_el = e.target;
 
         // Find what was clicked on
-        while (link_el.nodeName !== 'A') {
+        while (link_el.nodeName !== 'LI') {
+            if (link_el.nodeName === 'A' && link_el.attributes.href && link_el.attributes.href.value !== '#') {
+                // We found a link to genuine content, so let defaults take hold and go to it
+                return;
+            }
             link_el = link_el.parentNode;
-            if (!link_el) {
-                // Fell outside the select-list, so no link
+
+            if (!link_el || !link_el.classList || link_el.classList.contains('select-list')) {
+                // Gone outside the select-list, give up.
                 return;
             }
         }
 
-        // Don't bother going to empty links
-        if (!link_el.attributes.href || link_el.attributes.href.value === '#') {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        // There was no useful link clicked on, so prevent defaults
+        e.preventDefault();
+        e.stopPropagation();
 
         // Toggle all sibling list litems, we should be the only ones selected
-        Array.prototype.map.call(link_el.parentNode.parentNode.childNodes, function (el) {
-            toggle(el, link_el.parentNode === el ? undefined : false);
+        Array.prototype.map.call(link_el.parentNode.childNodes, function (el) {
+            toggle(el, link_el === el ? undefined : false);
         });
 
         if (on_select) {
             on_select(selected_items(orig_data, sl_el));
         }
     }}, (orig_data || []).map(select_list_inner));
-    toggle(sl_el.querySelectorAll('ul.select-list > li:first-child')[0]);
+
+    if (sl_el.querySelector('ul.select-list > li')) {
+        toggle(sl_el.querySelectorAll('ul.select-list > li:first-child')[0]);
+    }
+
     if (on_select) {
         on_select(selected_items(orig_data, sl_el));
     }
