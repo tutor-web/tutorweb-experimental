@@ -311,6 +311,25 @@ function shuffleElements(jqEl) {
     return jqEl;
 }
 
+function renderReST($, jqEl) {
+    return Promise.all(jqEl.find('.parse-as-rst:not(.tex-preview.parse-as-rst)').toArray().map(function (el) {
+        console.log(el.innerText);
+        return (new AjaxApi($.ajax)).postJson('/api/rst/render', {data: el.innerText}).then(function (out) {
+            var output_el = document.createElement('DIV');
+
+            output_el.innerHTML = out.html;
+            el.parentNode.replaceChild(output_el, el);
+        }).catch(function (error) {
+            var output_el = document.createElement('DIV');
+
+            output_el.innerHTML = '(preview not available: ' + error.message + ')';
+            el.parentNode.replaceChild(output_el, el);
+        });
+    })).then(function () {
+        return jqEl;
+    });
+}
+
 module.exports.renderTex = function ($, jqEl) {
     var rt = new RenderTex($);
 
@@ -321,7 +340,12 @@ module.exports.renderTex = function ($, jqEl) {
         throw err;
     }
 
-    return rt.renderTex(jqEl).then(shuffleElements).then(renderGgb).then(renderPreviewDiv.bind(null, $)).then(function () {
-        jqEl.removeClass("busy");
-    })['catch'](promiseFatalError);
+    return Promise.resolve(jqEl)
+                  .then(renderReST.bind(null, $))
+                  .then(rt.renderTex.bind(rt))
+                  .then(shuffleElements)
+                  .then(renderGgb)
+                  .then(renderPreviewDiv.bind(null, $))
+                  .then(function () { jqEl.removeClass("busy"); })
+                  .catch(promiseFatalError);
 };

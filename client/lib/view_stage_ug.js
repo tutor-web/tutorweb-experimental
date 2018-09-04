@@ -10,12 +10,12 @@ function renderReview(twView, reviewData) {
         (reviewData.material.length === 0 ? h('p', "You haven't written anything yet") : null),
     ]);
     twView.jqQuiz.append(select_list(reviewData.material, function (data) {
-        var extras_el, content_el = h('div');
+        var extras_el, content_el;
 
         if (!(data.text || data.comments)) {
             return null;
         }
-        content_el.innerHTML = data.text || data.comments;
+        content_el = h('pre.parse-as-rst', (data.text || data.comments));
 
         if (data.correct !== undefined) {
             extras_el = h('div.extras', [h('abbr', { title: data.mark }, [
