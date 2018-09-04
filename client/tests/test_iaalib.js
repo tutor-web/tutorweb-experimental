@@ -958,6 +958,16 @@ test('GradingPracticeMode', function (t) {
 });
 
 test('Timeout', function (t) {
+    // No / zero settings get no timeout
+    t.equal(iaalib.qnTimeout({
+    }, 0), null);
+    t.equal(iaalib.qnTimeout({
+        "timeout_min": "3",
+    }, 0), null);
+    t.equal(iaalib.qnTimeout({
+        "timeout_max": "3",
+    }, 0), null);
+
     // Low grades get the tMax
     t.equal(iaalib.qnTimeout({
         "timeout_min": "3",

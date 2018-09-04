@@ -64,7 +64,7 @@ module.exports = function IAA() {
         }
         return {
             "uri": opts.question_uri || alloc.uri,
-            "allotted_time": alloc._type === 'template' ? null : this.qnTimeout(settings, oldGrade),
+            "allotted_time": this.qnTimeout(settings, oldGrade),
             "grade_before": oldGrade,
             "practice": !!opts.practice,
         };
@@ -257,10 +257,14 @@ module.exports = function IAA() {
 
     /** Given user's current grade, return how long they should have to do the next question in seconds */
     this.qnTimeout = function (settings, grade) {
-        var tMax = getSetting(settings, 'timeout_max', 10) * 60, // Parameter in mins, tMax in secs
-            tMin = getSetting(settings, 'timeout_min', 3) * 60, // Parameter in mins, tMin in secs
+        var tMax = getSetting(settings, 'timeout_max', 0) * 60, // Parameter in mins, tMax in secs
+            tMin = getSetting(settings, 'timeout_min', 0) * 60, // Parameter in mins, tMin in secs
             gStar = getSetting(settings, 'timeout_grade', 5),
             s = getSetting(settings, 'timeout_std', 2);
+
+        if (tMax === 0 || tMin === 0) {
+            return null;
+        }
 
         return tMax - Math.floor(
             (tMax - tMin) * Math.exp(-Math.pow(grade - gStar, 2) / (2 * Math.pow(s, 2)))
