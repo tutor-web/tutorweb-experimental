@@ -187,7 +187,11 @@ function RenderTex($) {
 
     /** Tell MathJax to render anything on the page */
     this.renderTex = function (jqEl) {
-        var jqTexElements = jqEl.hasClass('parse-as-tex') ? jqEl : jqEl.find('.parse-as-tex,span.math:not(.parse-as-tex span.math),div.math:not(.parse-as-tex div.math)').not('.transformed');
+        var jqTexElements = jqEl.hasClass('parse-as-tex') ? jqEl : jqEl.find([
+            '.parse-as-tex:not(.tex-preview.parse-as-tex)',  // i.e. don't pick up already-rendered preview-as-tex elements
+            'span.math:not(.parse-as-tex span.math)',  // Ignore ReST's blocks for MathJaX
+            'div.math:not(.parse-as-tex div.math)',  // Ignore ReST's blocks for MathJaX
+        ].join(',')).not('.transformed').not('[id^=MathJax-]');
         jqEl.addClass("busy");
         return Promise.all(jqTexElements.toArray().map(function (el) {
             return Promise.resolve(el)
@@ -216,7 +220,13 @@ function renderPreviewDiv($, jqParent) {
     return Promise.all(jqParent.find('.preview-as-tex,.preview-as-rst').toArray().map(function (el) {
         var jqEl = $(el),
             render_mode = el.classList.contains('preview-as-tex') ? 'tex' : 'rst',
-            jqPreview = $('<div class="tex-preview parse-as-"' + render_mode + '>');
+            jqPreview = $('<div class="tex-preview parse-as-' + render_mode + '">');
+
+        // Ignore already-altered text boxes
+        if (el.classList.contains('transformed')) {
+            return;
+        }
+        el.classList.add('transformed');
 
         function renderPreview(text) {
             var p;
