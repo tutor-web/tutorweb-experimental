@@ -38,6 +38,12 @@ function QuizView($) {
             self.updateActions(actionsOnChange);
         });
 
+        // Remove any reveal-on-answers with a placeholder
+        Array.prototype.map.call(jqForm[0].querySelectorAll('.reveal-on-answer'), function (el) {
+            var placeholder_el = h('div.reveal-on-answer-placeholder');
+            $(placeholder_el).data('orig', el.parentNode.replaceChild(placeholder_el, el));
+        });
+
         self.jqQuiz.empty().append([
             jqForm,
         ]);
@@ -46,14 +52,15 @@ function QuizView($) {
 
     /** Annotate with correct / incorrect selections */
     this.renderAnswer = function (a, answerData) {
-        var self = this,
-            parsedExplanation = $(jQuery.parseHTML(answerData.explanation));
-        self.jqQuiz.find('input,textarea').attr('disabled', 'disabled');
+        var self = this;
 
-        // If text in explanation is equivalent to nothing, then don't put anything out
-        if ($.trim(parsedExplanation.text()) === "") {
-            parsedExplanation = null;
-        }
+        // Disable any input controls
+        self.jqQuiz.find('input,textarea,select').attr('disabled', 'disabled');
+
+        // Replace placeholders with the real content
+        Array.prototype.map.call(self.jqQuiz[0].querySelectorAll('div.reveal-on-answer-placeholder'), function (el) {
+            el.parentNode.replaceChild($(el).data('orig'), el);
+        });
 
         self.jqQuiz.find('#answer_' + a.selected_answer).addClass('selected');
         // Mark all answers as correct / incorrect
@@ -69,14 +76,12 @@ function QuizView($) {
         });
 
         if (a.hasOwnProperty('correct')) {
-            self.jqQuiz.children('form').toggleClass('correct', a.correct);
-            self.jqQuiz.children('form').toggleClass('incorrect', !a.correct);
+            self.jqQuiz.children('form').toggleClass('undecided', a.correct === null);
+            self.jqQuiz.children('form').toggleClass('correct', a.correct === true);
+            self.jqQuiz.children('form').toggleClass('incorrect', a.correct === false);
         }
 
-        if (parsedExplanation) {
-            self.jqQuiz.children('form').append(el('div').attr('class', 'alert explanation').html(parsedExplanation));
-            self.renderMath();
-        }
+        self.renderMath();
     };
 
     /** Add on form to speak your branes */

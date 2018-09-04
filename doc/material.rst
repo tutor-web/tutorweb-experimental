@@ -20,3 +20,6 @@ span.math / div.math
 
 .geogebra_applet
     Add a GeoGebra applet.
+
+.reveal-on-answer
+    This element won't be added on-screen until the student has answered this question.
