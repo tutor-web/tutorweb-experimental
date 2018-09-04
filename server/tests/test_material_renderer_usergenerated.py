@@ -25,8 +25,8 @@ class UgRenderDataTest(unittest.TestCase):
   <li><label><input type="radio" name="answer" value="1667303700" /><p><em>This</em> is an answer</p></label></li>
   <li><label><input type="radio" name="answer" value="2125222665" /><p>This is a <em>wrong</em> answer</p></label></li>
   <li><label><input type="radio" name="answer" value="1822426278" /><p>This is <em>also</em> a wrong answer</p></label></li>
-  <div class="reveal-on-answer explanation"><p>Obvious, innit.</p></div>
 </ol>
+<div class="reveal-on-answer explanation"><p>Obvious, innit.</p></div>
             """.strip(),
             correct=dict(answer=['1667303700']),
             tags=['type.question', 'review.mandatory'],

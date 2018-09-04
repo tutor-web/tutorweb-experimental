@@ -13,10 +13,10 @@ UG_QUESTION = Template("""
 % for c in choice_incorrect:
   <li><label><input type="radio" name="answer" value="${digest_incorrect[loop.index] | h}" />${c | to_rst}</label></li>
 % endfor
-% if context.get('explanation', UNDEFINED):
-  <div class="reveal-on-answer explanation">${explanation | to_rst}</div>
-% endif
 </ol>
+% if context.get('explanation', UNDEFINED):
+<div class="reveal-on-answer explanation">${explanation | to_rst}</div>
+% endif
 """)
 
 
