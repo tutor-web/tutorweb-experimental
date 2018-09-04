@@ -28,7 +28,7 @@ function QuizView($) {
     this.renderNewQuestion = function (qn, a, actionsOnChange) {
         var self = this, jqForm = el('form');
 
-        jqForm.append(self.renderQuestion(qn, a));
+        jqForm.append(qn.content);
 
         jqForm.on('change', function () {
             self.updateActions(actionsOnChange);

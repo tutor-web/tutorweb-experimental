@@ -47,11 +47,6 @@ module.exports = function View($) {
         return $(document.createElement(name));
     }
 
-    /** Render a question into HTML */
-    this.renderQuestion = function (qn) {
-        return qn.content;
-    };
-
     /** Regenerate button collection to contain given buttons */
     this.updateActions = function (actions) {
         var self = this;
