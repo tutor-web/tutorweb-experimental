@@ -39,7 +39,6 @@ function QuizView($) {
         });
 
         self.jqQuiz.empty().append([
-            qn._type === 'usergenerated' ? el('div').attr('class', 'usergenerated alert alert-info').text('This question is written by a fellow student. Your answer to this question will not count towards your grade.') : null,
             jqForm,
         ]);
         return self.renderMath();
@@ -56,42 +55,27 @@ function QuizView($) {
             parsedExplanation = null;
         }
 
-        if (a.question_type === 'template') {
-            // No marking to do, just show a thankyou message
-            parsedExplanation = parsedExplanation || (a.student_answer && a.student_answer.text ?
-                                     'Thankyou for submitting a question' :
-                                     'Your question has not been saved');
-            self.jqQuiz.append(el('div').attr('class', 'alert explanation').html(parsedExplanation));
+        self.jqQuiz.find('#answer_' + a.selected_answer).addClass('selected');
+        // Mark all answers as correct / incorrect
+        Object.keys(answerData).map(function (k) {
+            if (Array.isArray(answerData[k])) {
+                // Find any form elements with key/value and mark as correct
+                self.jqQuiz.find('*[name=' + k + ']').each(function () {
+                    var correct = answerData[k].indexOf($(this).val()) > -1;
+                    this.classList.toggle('correct', correct);
+                    this.classList.toggle('incorrect', !correct);
+                });
+            }
+        });
+
+        if (a.hasOwnProperty('correct')) {
+            self.jqQuiz.children('form').toggleClass('correct', a.correct);
+            self.jqQuiz.children('form').toggleClass('incorrect', !a.correct);
+        }
+
+        if (parsedExplanation) {
+            self.jqQuiz.children('form').append(el('div').attr('class', 'alert explanation').html(parsedExplanation));
             self.renderMath();
-
-        } else if (a.question_type === 'usergenerated' && a.student_answer.hasOwnProperty('comments')) {
-            // Rated the question as well as answered it, just say thankyou
-            self.jqQuiz.find('div.alert.usergenerated').remove();
-            self.jqQuiz.append(el('div').attr('class', 'alert alert-info').text("Thank you for trying this question!"));
-
-        } else {
-            self.jqQuiz.find('#answer_' + a.selected_answer).addClass('selected');
-            // Mark all answers as correct / incorrect
-            Object.keys(answerData).map(function (k) {
-                if (Array.isArray(answerData[k])) {
-                    // Find any form elements with key/value and mark as correct
-                    self.jqQuiz.find('*[name=' + k + ']').each(function () {
-                        var correct = answerData[k].indexOf($(this).val()) > -1;
-                        this.classList.toggle('correct', correct);
-                        this.classList.toggle('incorrect', !correct);
-                    });
-                }
-            });
-
-            if (a.hasOwnProperty('correct')) {
-                self.jqQuiz.children('form').toggleClass('correct', a.correct);
-                self.jqQuiz.children('form').toggleClass('incorrect', !a.correct);
-            }
-
-            if (parsedExplanation) {
-                self.jqQuiz.children('form').append(el('div').attr('class', 'alert explanation').html(parsedExplanation));
-                self.renderMath();
-            }
         }
     };
 

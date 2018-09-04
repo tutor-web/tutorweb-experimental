@@ -49,39 +49,6 @@ module.exports = function View($) {
 
     /** Render a question into HTML */
     this.renderQuestion = function (qn) {
-        var previewTeX = this.previewTeX;
-
-        /** Lookup value in object with default */
-        function get(x, y, def) {
-            return x === undefined || x[y] === undefined ? def : x[y];
-        }
-
-        if (qn._type === 'template') {
-            qn.student_answer = qn.student_answer || {};
-            return [
-                el('h3').text(qn.title),
-                el('p').html(qn.hints),
-                previewTeX(el('textarea').attr('name', 'text').attr('placeholder', qn.example_text).text(qn.student_answer.text)),
-                el('label').text("Write the correct answer below"),
-                previewTeX(el('input').attr('type', 'text')
-                                      .attr('name', 'choice_' + '0')
-                                      .attr('placeholder', qn.example_choices[0] || "")
-                                      .attr('maxlength', '1000')
-                                      .attr('value', get(qn.student_answer.choices, 0, {}).answer)),
-                el('input').attr('type', 'hidden').attr('name', 'choice_' + '0' + '_correct').attr('value', 'on'),
-                el('label').text("Fill the rest of the boxes with incorrect answers:"),
-                el('div').append(qn.example_choices.slice(1).map(function (text, i) {
-                    return previewTeX(el('input').attr('type', 'text')
-                                      .attr('name', 'choice_' + (i + 1).toString())
-                                      .attr('placeholder', text)
-                                      .attr('maxlength', '1000')
-                                      .attr('value', get(qn.student_answer.choices, i + 1, {}).answer));
-                })),
-                el('label').text("Write an explanation below as to why it's a correct answer:"),
-                previewTeX(el('textarea').attr('name', 'explanation').attr('placeholder', qn.example_explanation).text(qn.student_answer.explanation))
-            ];
-        }
-
         return qn.content;
     };
 

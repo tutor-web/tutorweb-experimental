@@ -293,7 +293,6 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 var qn = args.qn, a = args.a;
 
                 a.uri = qn.uri; // The fetch question data might be slightly different
-                a.question_type = qn._type; // NB: The alloc has allocType as _type, question type is different.
 
                 a.time_start = a.time_start || curTime();
                 a.synced = false;
