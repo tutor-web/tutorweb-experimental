@@ -605,23 +605,6 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             postData.del_lec = opts.lectureDel;
         }
 
-        // Check for old-school _index structure
-        if (self.ls.getItem('_index')) {
-            // Make sure postData is an array, ready to append to
-            postData.add_lec = postData.add_lec ? [postData.add_lec] : [];
-
-            Object.keys(self.ls.getItem('_index')).map(function (tutUri) {
-                // Append every lecture in the tutorial to the list of things to subscribe to
-                Array.prototype.push.apply(postData.add_lec, self.ls.getItem(tutUri).lectures.map(function (l) {
-                    // Move lecture into it's own LS entry as we go
-                    self.ls.setItem(l.uri, l);
-                    return l.uri;
-                }));
-                self.ls.removeItem(tutUri);
-            });
-            self.ls.removeItem('_index');
-        }
-
         progressFn(3, 0, "Syncing subscriptions...");
         return self.ajaxApi.postJson('/api/subscriptions/list', postData).then(function (subscriptions) {
             self.ls.setItem('_subscriptions', subscriptions);
