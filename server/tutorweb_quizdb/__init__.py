@@ -94,7 +94,7 @@ def main(global_config, **settings):
     config.include('tutorweb_quizdb.exceptions')
     config.include('tutorweb_quizdb.logerror')
     config.include('tutorweb_quizdb.material')
-    config.include('tutorweb_quizdb.subscriptions.index')
+    config.include('tutorweb_quizdb.subscriptions')
     config.include('tutorweb_quizdb.stage')
     config.include('tutorweb_quizdb.student')
     config.include('tutorweb_quizdb.rst')

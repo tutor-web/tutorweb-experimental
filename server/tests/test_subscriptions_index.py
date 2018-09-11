@@ -6,6 +6,7 @@ from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
 
 from tutorweb_quizdb.subscriptions.index import add_syllabus, subscription_add, subscription_remove, view_subscription_list
+from tutorweb_quizdb.subscriptions.available import view_subscription_available
 
 
 class AddSyllabusTest(unittest.TestCase):
@@ -54,6 +55,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
             'dept0.tut1',
             'dept0.tut1.lec0',
             'dept0.tut1.lec1',
+            'dept1',
             'dept1.tut2',
             'dept1.tut2.lec0',
             'dept1.tut2.lec1',
@@ -239,4 +241,86 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                     }
                 ]
             },
+        ]})
+
+        # Still available though
+        out = view_subscription_available(self.request(user=self.db_studs[0]))
+        self.assertEqual(out, {'children': [
+            {
+                'path': Ltree('dept0'),
+                'subscribed': None,
+                'supporting_material_href': None,
+                'title': 'UT Lecture dept0',
+                'children': [
+                    {
+                        'path': Ltree('dept0.tut0'),
+                        'subscribed': Ltree('dept0.tut0'),
+                        'supporting_material_href': None,
+                        'title': 'UT Lecture dept0.tut0',
+                        'children': [
+                            {
+                                'path': Ltree('dept0.tut0.lec0'),
+                                'subscribed': Ltree('dept0.tut0'),  # NB: This is the root of our subscription
+                                'supporting_material_href': 'http://wikipedia.org/',
+                                'title': 'UT Lecture dept0.tut0.lec0',
+                                'children': [],
+                            }, {
+                                'path': Ltree('dept0.tut0.lec1'),
+                                'subscribed': Ltree('dept0.tut0'),  # NB: This is the root of our subscription
+                                'supporting_material_href': None,
+                                'title': 'UT Lecture dept0.tut0.lec1',
+                                'children': [],
+                            },
+                        ],
+                    }, {
+                        'path': Ltree('dept0.tut1'),
+                        'subscribed': None,
+                        'supporting_material_href': None,
+                        'title': 'UT Lecture dept0.tut1',
+                        'children': [
+                            {
+                                'path': Ltree('dept0.tut1.lec0'),
+                                'subscribed': None,
+                                'supporting_material_href': None,
+                                'title': 'UT Lecture dept0.tut1.lec0',
+                                'children': [],
+                            }, {
+                                'path': Ltree('dept0.tut1.lec1'),
+                                'subscribed': None,
+                                'supporting_material_href': None,
+                                'title': 'UT Lecture dept0.tut1.lec1',
+                                'children': [],
+                            },
+                        ],
+                    },
+                ],
+            }, {
+                'path': Ltree('dept1'),
+                'subscribed': None,
+                'supporting_material_href': None,
+                'title': 'UT Lecture dept1',
+                'children': [
+                    {
+                        'path': Ltree('dept1.tut2'),
+                        'subscribed': None,
+                        'supporting_material_href': None,
+                        'title': 'UT Lecture dept1.tut2',
+                        'children': [
+                            {
+                                'path': Ltree('dept1.tut2.lec0'),
+                                'subscribed': None,
+                                'supporting_material_href': None,
+                                'title': 'UT Lecture dept1.tut2.lec0',
+                                'children': [],
+                            }, {
+                                'path': Ltree('dept1.tut2.lec1'),
+                                'subscribed': None,
+                                'supporting_material_href': None,
+                                'title': 'UT Lecture dept1.tut2.lec1',
+                                'children': [],
+                            },
+                        ]
+                    }
+                ],
+            }
         ]})
