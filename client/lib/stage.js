@@ -255,15 +255,6 @@ QuizView.prototype = new View(jQuery);
         });
     };
 
-    twView.states['subscription-add'] = function () {
-        twView.updateActions([]);
-        return quiz.syncSubscriptions({ lectureAdd:  twView.curUrl.lecUri }, function (opTotal, opSucceeded, message) {
-            twView.renderProgress(opSucceeded, opTotal, message);
-        }).then(function () {
-            return 'set-lecture';
-        });
-    };
-
     twView.states['load-example'] = twView.states['quiz-real'] = twView.states['quiz-practice'] = function (curState, updateState) {
         twView.updateActions([]);
         return quiz.getNewQuestion({

@@ -6,6 +6,7 @@ var parse_qs = require('../lib/parse_qs.js').parse_qs;
 var view_extensions = [
     require('lib/view_stage_ug.js').extend,
     require('lib/view_terms.js').extend,
+    require('lib/view_subscription.js').extend,
 ];
 var AjaxApi = require('./ajaxapi.js');
 var isQuotaExceededError = require('./ls_utils.js').isQuotaExceededError;
@@ -26,7 +27,6 @@ module.exports = function View($) {
         "lecturemenu": "Main menu",
         "go-drill": "Take a drill",
         "go-slides": "View slides",
-        "go-twhome": "Get more tutorials",
         "go-login": "Log-in to Tutor-Web",
         "quiz-practice": "Practice question",
         "quiz-real": "New question",
@@ -37,8 +37,6 @@ module.exports = function View($) {
         "qn-startreview": "Leave feedback",
         "qn-submitreview": "Submit review",
         "userdetails-save": "Save and continue",
-        "subscription-remove": "Unsubscribe from this tutorial",
-        "subscription-add": "Subscribe to this tutorial",
         "" : ""
     };
 
@@ -310,9 +308,6 @@ module.exports = function View($) {
                     // Use normal hash URLs
                     window.location.href = 'quiz.html' + window.location.hash;
                 }
-                break;
-            case 'go-twhome':
-                window.location.href = self.portalRootUrl();
                 break;
             case 'go-profile':
                 window.location.href = '/auth/edit_profile';

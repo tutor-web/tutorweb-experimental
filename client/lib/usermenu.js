@@ -141,7 +141,7 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
                         { text: "Become a tutor", action: "popup:chat.html" }
                     );
                     menu.action.push(
-                        { text: "Get more tutorials", action: "twstate:go-twhome" },
+                        { text: "Get more tutorials", action: "twstate:subscription-menu" },
                         { text: "Edit your profile", action: "twstate:go-profile" },
                         { text: "Clear data and logout", action: "twstate:logout" }
                     );

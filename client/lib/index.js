@@ -85,16 +85,16 @@ StartView.prototype = new View(jQuery);
     // Create Quiz model
     twView.states.initial = function () {
         quiz = new Quiz(localStorage, new AjaxApi($.ajax));
+        twView.quiz = quiz;
         twMenu = new UserMenu($('#tw-usermenu'), quiz);
         twMenu.noop = 1; // NB: Keep JSLint quiet
         twView.updateActions(['logout', '']);
         return 'subscription-sync';
     };
 
-    twView.states['subscription-sync'] = twView.states['subscription-remove'] = twView.states['subscription-sync-force'] = function (curState) {
+    twView.states['subscription-sync'] = twView.states['subscription-sync-force'] = function (curState) {
         return quiz.syncSubscriptions({
             syncForce: curState === 'subscription-sync-force',
-            lectureDel: curState === 'subscription-remove' ? parse_qs({hash: twView.selectListHref()}).lecUri  : null,
         }, function (opTotal, opSucceeded, message) {
             twView.renderProgress(opSucceeded, opTotal, message);
         }).then(function () {
@@ -140,19 +140,13 @@ StartView.prototype = new View(jQuery);
         return quiz.getAvailableLectures().then(function (subscriptions) {
             if (Object.keys(subscriptions.lectures).length === 0) {
                 twView.jqQuiz.empty();
-                // TODO: Bodge in some links before we have proper sign-up
-                twView.showAlert('info', 'You have no lectures loaded yet. Subscribe to one of ' +
-                                         '<a href="/api/subscriptions/add?path=comp.crypto251.0">comp.crypto251.0</a>, ' +
-                                         '<a href="/api/subscriptions/add?path=math.612.0">math.612.0</a>, ' +
-                                         '<a href="/api/subscriptions/add?path=stats.545">stats.545</a>', 'html');
-                twView.updateActions(['logout', 'go-twhome']);
-            } else {
-                twView.renderChooseLecture(
-                    subscriptions,
-                    ['go-twhome', ''],
-                    ['go-twhome', 'subscription-remove', 'go-slides', 'go-drill']
-                );
+                return 'subscription-menu';
             }
+            twView.renderChooseLecture(
+                subscriptions,
+                ['go-twhome', ''],
+                ['go-twhome', 'subscription-remove', 'go-slides', 'go-drill']
+            );
 
             // Get all lecture titles from unsynced lectures
             unsyncedLectures = Object.keys(subscriptions.lectures)
