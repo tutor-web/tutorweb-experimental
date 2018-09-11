@@ -5,7 +5,7 @@ from sqlalchemy_utils import Ltree
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
 
-from tutorweb_quizdb.subscriptions.index import add_syllabus, subscription_add, view_subscription_list
+from tutorweb_quizdb.subscriptions.index import add_syllabus, subscription_add, subscription_remove, view_subscription_list
 
 
 class AddSyllabusTest(unittest.TestCase):
@@ -206,3 +206,37 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         subscription_add(self.db_studs[0], Ltree('dept0.tut1.lec1'))
         subscription_add(self.db_studs[1], Ltree('dept0.tut1'))
         DBSession.flush()
+
+        # Remove subscription from dept0.tut1.lec1, it disappears
+        subscription_remove(self.db_studs[0], Ltree('dept0.tut1.lec1'))
+        out = view_subscription_list(self.request(user=self.db_studs[0]))
+        self.assertEqual(out, {'children': [
+            {
+                'path': Ltree('dept0.tut0'),
+                'title': 'UT Lecture dept0.tut0',
+                'children': [
+                    {
+                        'path': Ltree('dept0.tut0.lec0'),
+                        'title': 'UT Lecture dept0.tut0.lec0',
+                        'supporting_material_href': 'http://wikipedia.org/',
+                        'children': [
+                            {
+                                'href': '/api/stage?path=dept0.tut0.lec0.stage0',
+                                'stage': 'stage0',
+                                'title': 'UT stage dept0.tut0.lec0.stage0'
+                            },
+                        ],
+                    }, {
+                        'path': Ltree('dept0.tut0.lec1'),
+                        'title': 'UT Lecture dept0.tut0.lec1',
+                        'children': [
+                            {
+                                'href': '/api/stage?path=dept0.tut0.lec1.stage0',
+                                'stage': 'stage0',
+                                'title': 'UT stage dept0.tut0.lec1.stage0'
+                            },
+                        ],
+                    }
+                ]
+            },
+        ]})

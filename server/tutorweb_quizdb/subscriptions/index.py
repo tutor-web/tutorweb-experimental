@@ -60,6 +60,25 @@ def subscription_add(student, path):
     return dbs
 
 
+def subscription_remove(student, path):
+    """
+    Ensure (student) is *not* subscribed to (path)
+    """
+    # Find the subscription
+    try:
+        dbs = (DBSession.query(Base.classes.subscription)
+                        .filter_by(user=student)
+                        .join(Base.classes.syllabus)
+                        .filter_by(host_id=ACTIVE_HOST, path=path)
+                        .one())
+    except NoResultFound:
+        return  # Nothing to do
+
+    # Remove it
+    DBSession.delete(dbs)
+    DBSession.flush()
+
+
 def view_subscription_list(request):
     student = get_current_student(request)
 
@@ -72,11 +91,14 @@ def view_subscription_list(request):
                  , sub_l.syllabus_id, sub_l.title, sub_l.path, sub_l.supporting_material_href
             FROM syllabus l, subscription s, syllabus sub_l
             WHERE s.syllabus_id = l.syllabus_id
+            AND l.host_id = :host_id
+            AND sub_l.host_id = :host_id
             AND s.user_id = :user_id
             AND (sub_l.requires_group_id IS NULL OR sub_l.requires_group_id = ANY(:group_ids))
             AND sub_l.path <@ l.path
             ORDER BY l.path, sub_l.path
             """, dict(
+                host_id=ACTIVE_HOST,
                 user_id=student.user_id,
                 group_ids=[g.id for g in student.groups],
             )).fetchall():
@@ -119,8 +141,18 @@ def view_subscription_add(request):
     return dict(success=True, path=path)
 
 
+def view_subscription_remove(request):
+    student = get_current_student(request)
+    path = Ltree(request.params['path'])
+
+    subscription_remove(student, path)
+    return dict(success=True, path=path)
+
+
 def includeme(config):
     config.add_view(view_subscription_list, route_name='view_subscription_list', renderer='json')
     config.add_route('view_subscription_list', '/subscriptions/list')
     config.add_view(view_subscription_add, route_name='view_subscription_add', renderer='json')
     config.add_route('view_subscription_add', '/subscriptions/add')
+    config.add_view(view_subscription_remove, route_name='view_subscription_remove', renderer='json')
+    config.add_route('view_subscription_remove', '/subscriptions/remove')
