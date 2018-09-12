@@ -35,6 +35,7 @@ def mark_aq_entry(db_a, alloc, grade_hwm):
              WHERE sy.syllabus_id = st.syllabus_id
                AND sy.path <@ :tut_path
                AND st.stage_id != :stage_id
+               AND st.next_stage_id IS NULL
             GROUP BY st.stage_id
         """, dict(
             user_id=db_a.user_id,
