@@ -1,10 +1,9 @@
 import time
 import urllib.parse
 
-from sqlalchemy_utils import Ltree
-
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.student import get_current_student
+from tutorweb_quizdb.syllabus import path_to_ltree
 from .allocation import get_allocation
 from .answer_queue import sync_answer_queue, request_review
 from .setting import getStudentSettings, clientside_settings
@@ -21,11 +20,6 @@ def stage_get(host_id, path):
     """
     Get the stage object, given a complete path
     """
-    if path.startswith('/api/stage'):
-        # Given a URL instead of a path, due to older client code. Unpack the path within
-        path = urllib.parse.parse_qs(urllib.parse.urlparse(path).query)['path'][0]
-    path = Ltree(path)
-
     return (DBSession.query(Base.classes.stage)
             .filter_by(stage_name=str(path[-1]))
             .filter_by(next_stage_id=None)
@@ -39,7 +33,7 @@ def stage_index(request):
     """
     Get all details for a stage
     """
-    db_stage = stage_get(ACTIVE_HOST, request.params['path'])
+    db_stage = stage_get(ACTIVE_HOST, path_to_ltree(request.params['path']))
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
     alloc = get_allocation(settings, db_stage, db_student)
@@ -84,7 +78,7 @@ def stage_request_review(request):
     params:
     - path: Stage path
     """
-    db_stage = stage_get(ACTIVE_HOST, request.params['path'])
+    db_stage = stage_get(ACTIVE_HOST, path_to_ltree(request.params['path']))
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
     alloc = get_allocation(settings, db_stage, db_student)

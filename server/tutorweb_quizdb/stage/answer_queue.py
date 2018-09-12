@@ -6,16 +6,17 @@ from sqlalchemy.orm.exc import NoResultFound
 from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.rst import to_rst
 from tutorweb_quizdb.student import student_is_vetted
+from tutorweb_quizdb.syllabus import path_to_ltree
 from tutorweb_quizdb.timestamp import timestamp_to_datetime, datetime_to_timestamp
 
 log = logging.getLogger(__name__)
 
 
-def mark_aq_entry(db_a, settings, grade_hwm):
+def mark_aq_entry(db_a, alloc, grade_hwm):
     """
     Update db_a.correct / db_a.mark / db_a.coins_awarded based on entry
     - db_a: answer_queue entry to modify
-    - settings: Stage settings for this student
+    - alloc: Stage allocation for this student
     - grade_hwm: The highest grade acheived so far
     """
     def crossed_grade_boundary(boundary):
@@ -23,7 +24,7 @@ def mark_aq_entry(db_a, settings, grade_hwm):
         return grade_hwm < boundary and db_a.grade >= boundary
 
     def get_award_setting(award_type):
-        return round(float(settings.get('award_' + award_type, 0)))
+        return round(float(alloc.settings.get('award_' + award_type, 0)))
 
     def get_sibling_hwms():
         """Return the high-water-mark for every other stage in the tutorial"""
@@ -32,21 +33,18 @@ def mark_aq_entry(db_a, settings, grade_hwm):
                  , (SELECT COALESCE(MAX(grade), 0) FROM answer WHERE stage_id = st.stage_id AND user_id = :user_id) grade_hwm
               FROM stage st, syllabus sy
              WHERE sy.syllabus_id = st.syllabus_id
+               AND sy.path <@ :tut_path
                AND st.stage_id != :stage_id
-               AND sy.path <@ (
-                   SELECT subpath(sy2.path, 0, -1)
-                     FROM syllabus sy2, stage st2
-                    WHERE sy2.syllabus_id = st2.syllabus_id
-                      AND st2.stage_id = :stage_id)
             GROUP BY st.stage_id
         """, dict(
             user_id=db_a.user_id,
             stage_id=db_a.stage_id,
+            tut_path=str(path_to_ltree("nearest-tut:%s" % alloc.db_stage.syllabus.path)),
         ))
 
     if db_a.ug_reviews is not None:
         # Mark as UG material with reviews
-        mark_aq_entry_usergenerated(db_a, settings, db_a.ug_reviews)
+        mark_aq_entry_usergenerated(db_a, alloc, db_a.ug_reviews)
     else:
         # No UG review, consider as a regular question
         db_a.coins_awarded = 0
@@ -63,10 +61,10 @@ def mark_aq_entry(db_a, settings, grade_hwm):
                 db_a.coins_awarded += get_award_setting('tutorial_aced')
 
 
-def mark_aq_entry_usergenerated(db_a, settings, ug_reviews):
+def mark_aq_entry_usergenerated(db_a, alloc, ug_reviews):
     """For a list of UG reviews, return a mark"""
     def get_award_setting(award_type):
-        return round(float(settings.get('award_' + award_type, 0)))
+        return round(float(alloc.settings.get('award_' + award_type, 0)))
 
     # Count / tally all review sections
     out_count = 0
@@ -92,7 +90,7 @@ def mark_aq_entry_usergenerated(db_a, settings, ug_reviews):
 
     if out_count > 0:
         # Mark should be mean of all reviews
-        db_a.mark = int(out_total / max(int(settings.get('ugreview_minreviews', 3)), out_count))
+        db_a.mark = int(out_total / max(int(alloc.settings.get('ugreview_minreviews', 3)), out_count))
     else:
         db_a.mark = 0
 
@@ -102,11 +100,11 @@ def mark_aq_entry_usergenerated(db_a, settings, ug_reviews):
     elif db_a.correct is not None:
         # Already reached a decision, don't change it
         pass
-    elif db_a.mark > float(settings.get('ugreview_captrue', 3)):
+    elif db_a.mark > float(alloc.settings.get('ugreview_captrue', 3)):
         db_a.correct = True
         if db_a.coins_awarded == 0:
             db_a.coins_awarded = get_award_setting('ugmaterial_correct')
-    elif db_a.mark < float(settings.get('ugreview_capfalse', -1)):
+    elif db_a.mark < float(alloc.settings.get('ugreview_capfalse', -1)):
         db_a.correct = False
     else:
         db_a.correct = None
@@ -274,7 +272,7 @@ def sync_answer_queue(alloc, in_queue, time_offset):
 
         # If reviews are present, update DB entry based on them
         db_entry.ug_reviews = stage_ug_reviews.get((db_entry.material_source_id, db_entry.permutation), None)
-        mark_aq_entry(db_entry, alloc.settings, grade_hwm)
+        mark_aq_entry(db_entry, alloc, grade_hwm)
         out.append(db_to_incoming(alloc, db_entry))
         if db_entry.grade > grade_hwm:
             grade_hwm = db_entry.grade

@@ -7,6 +7,7 @@ from sqlalchemy_utils import Ltree
 
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.student import get_current_student
+from tutorweb_quizdb.syllabus import path_to_ltree
 
 
 def add_syllabus(out, path, extras, level=0):
@@ -135,7 +136,7 @@ def view_subscription_list(request):
 
 def view_subscription_add(request):
     student = get_current_student(request)
-    path = Ltree(request.params['path'])
+    path = path_to_ltree(request.params['path'])
 
     subscription_add(student, path)
     return dict(success=True, path=path)
@@ -143,7 +144,7 @@ def view_subscription_add(request):
 
 def view_subscription_remove(request):
     student = get_current_student(request)
-    path = Ltree(request.params['path'])
+    path = path_to_ltree(request.params['path'])
 
     subscription_remove(student, path)
     return dict(success=True, path=path)
