@@ -45,9 +45,11 @@ module.exports['subscription-menu'] = function () {
                 final_item = selected_items[selected_items.length - 1];
                 if (final_item.subscribed) {
                     self.selected_item = final_item.subscribed;
+                    self.return_state = 'subscription-menu';
                     self.updateActions(['gohome', 'subscription-remove']);
                 } else {
                     self.selected_item = final_item.path;
+                    self.return_state = 'subscription-menu';
                     self.updateActions(['gohome', 'subscription-add']);
                 }
             }),
@@ -64,7 +66,7 @@ module.exports['subscription-add'] = module.exports['subscription-remove'] = fun
         return self.quiz.syncSubscriptions({}, function (opTotal, opSucceeded, message) {
             self.renderProgress(opSucceeded, opTotal, message);
         }).then(function () {
-            return 'subscription-menu';
+            return self.return_state;
         });
     });
 };

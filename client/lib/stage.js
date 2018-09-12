@@ -234,6 +234,8 @@ QuizView.prototype = new View(jQuery);
         })['catch'](function (err) {
             if (err.message.indexOf("Unknown lecture: ") === 0) {
                 twView.showAlert('info', 'You are not subscribed yet, you need to subscribe before taking drills. Do you wish to?');
+                twView.selected_item = 'nearest-tut:' + twView.curUrl.path;
+                twView.return_state = 'set-lecture';
                 twView.updateActions(['subscription-add']);
                 return;
             }
