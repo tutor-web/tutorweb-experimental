@@ -46,3 +46,36 @@ def view_material_render(request):
 def includeme(config):
     config.add_view(view_material_render, route_name='view_material_render', renderer='json')
     config.add_route('view_material_render', '/material/render')
+
+
+def script_material_render():
+    import json
+    import os.path
+    from tutorweb_quizdb import setup_script
+
+    argparse_arguments = [
+        dict(description='Render any material item from the bank'),
+        dict(
+            name='inpath',
+            help='Path to material file within question bank',
+            nargs='+'),
+    ]
+
+    with setup_script(argparse_arguments) as env:
+        bank_path = env['request'].registry.settings['tutorweb.material_bank.default']
+        for f in env['args'].inpath:
+            ms = DBSession.query(Base.classes.material_source).filter_by(
+                bank=bank_path,
+                path=os.path.relpath(f, bank_path),
+                next_material_source_id=None
+            ).one()
+
+            out = material_render(
+                ms,
+                permutation=1,
+            )
+            content = out['content']
+            del out['content']
+            print("")
+            print(content)
+            print(json.dumps(out, sort_keys=True, indent=4))
