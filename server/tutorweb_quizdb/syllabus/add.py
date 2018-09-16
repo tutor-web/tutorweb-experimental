@@ -91,7 +91,13 @@ def lec_import(tut_struct):
     path = Ltree(tut_struct['path'])
     for i in range(len(path)):
         tut_href = tut_struct.get('href', None) if (i == len(path) - 1) else None
-        upsert_syllabus(path[:i + 1], tut_struct['titles'][i], tut_href, tut_struct.get('requires_group', None))
+        upsert_syllabus(
+            path[:i + 1],
+            tut_struct['titles'][i],
+            tut_href,
+            # Only set the requires_group permission on the course/tutorial itself
+            tut_struct.get('requires_group', None) if i >= len(path) - 2 else None
+        )
 
     # Add all lectures & stages
     for lec_name, lec_title, lec_href, *_unused_ in (l + [None, None] for l in tut_struct['lectures']):
