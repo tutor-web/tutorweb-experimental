@@ -38,4 +38,4 @@ application.ini: ./application.ini.sh ../install.sh ../.local-conf
 start: compile
 	./bin/pserve application.ini
 
-.PHONY: compile test start
+.PHONY: compile test lint coverage start
