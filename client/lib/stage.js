@@ -260,7 +260,7 @@ QuizView.prototype = new View(jQuery);
     twView.states['load-example'] = twView.states['quiz-real'] = twView.states['quiz-practice'] = function (curState, updateState) {
         twView.updateActions([]);
         return quiz.getNewQuestion({
-            practice: curState.endsWith('-practice')
+            practice: curState === 'quiz-practice'
         }).then(function (args) {
             args.actions = ['qn-skip', 'qn-submit'];
 
@@ -292,7 +292,7 @@ QuizView.prototype = new View(jQuery);
     twView.states['qn-skip'] = twView.states['qn-submit'] = function (curState) {
         // Disable all controls and mark answer
         twView.updateActions([]);
-        return quiz.setQuestionAnswer(curState.endsWith('-skip') ? {} : serializeForm(twView.jqQuiz.children('form')[0])).then(function (args) {
+        return quiz.setQuestionAnswer(curState === 'qn-skip' ? {} : serializeForm(twView.jqQuiz.children('form')[0])).then(function (args) {
             twView.renderAnswer(args.a, args.answerData, args.qn);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             twMenu.syncAttempt(false);
