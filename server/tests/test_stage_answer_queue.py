@@ -49,6 +49,12 @@ def get_alloc(db_stage, db_student):
     return alloc
 
 
+def get_material(db_stage, db_student):
+    """Get available material for stage/student in public ID form"""
+    alloc = get_alloc(db_stage, db_student)
+    return [alloc.to_public_id(*x) for x in alloc.get_material()]
+
+
 class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgresql, unittest.TestCase):
     maxDiff = None
 
@@ -260,6 +266,33 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             aq_dict(uri='template1.t.R:1:12', time_end=1030, correct=None, student_answer=dict(text="4"), review=None, ug_reviews=[]),
         ])
 
+        # Test question updates - before we get version 1
+        self.assertEqual(get_material(self.db_stages[0], self.db_studs[1]), [
+            'template1.t.R:1:1',
+        ])
+
+        # Re-write questions mid-flow, doesn't affect question-writing / review
+        self.mb_write_file('example1.q.R', b'''
+# TW:TAGS=math099,Q-0990t0,lec050500,
+# TW:PERMUTATIONS=10
+# TW:DATAFRAMES=agelength
+
+question <- function(permutation, data_frames) { return(list(content = 'parp', correct = list())) }
+        ''')
+        self.mb_write_file('template1.t.R', b'''
+# TW:TAGS=math099,Q-0990t0,lec050500,
+# TW:PERMUTATIONS=1
+
+question <- function(permutation, data_frames) { return(list(content = 'parp', correct = list())) }
+        ''')
+        self.mb_update()
+
+        # Test question updates - after we get version 2
+        self.assertEqual(get_material(self.db_stages[0], self.db_studs[1]), [
+            'template1.t.R:2:1',
+        ])
+        # NB: In tests following we can still find and review version 1 questions
+
         # student 0 loses the ability to review 10 and 11, student 1 still gets no coins
         self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
             dict(uri='template1.t.R:1:12'),
@@ -312,7 +345,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         # Student 1 awarded coins for their efforts
         self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT)
 
-        # Student 1 marks question as superseded, still gets review output
+        # Student 1 marks question as superseded, still gets review output for old
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [
             dict(client_id='01', uri='template1.t.R:1:1', time_start=1000, time_end=1010, correct=None, grade_after=0.1, student_answer=dict(text="2"), review=dict(superseded=True)),
         ], 0)
@@ -336,17 +369,29 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             aq_dict(uri='template1.t.R:1:13', time_end=1040, correct=False, student_answer=dict(), review=dict()),
         ])
 
-        # ...and no-one gets to review it
+        # Student 1 writes a version with new template
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [
+            aq_dict(uri='template1.t.R:2:1', time_end=1210, correct=None, student_answer=dict(text="My new 2")),
+        ], 0)
+        self.assertEqual(out[-1:], [
+            aq_dict(uri='template1.t.R:2:14', time_end=1210, correct=None, student_answer=dict(text="My new 2")),
+        ])
+
+        # ...no-one gets to review the skipped question, but can the new-template question
         for i in range(10):
             self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
                 dict(uri='template1.t.R:1:12'),
+                dict(uri='template1.t.R:2:14'),
             ])
-            self.assertEqual(request_review(get_alloc(self.db_stages[0], self.db_studs[1])), dict())
+            self.assertEqual(request_review(get_alloc(self.db_stages[0], self.db_studs[1])), dict(
+            ))
             self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[2])), [
                 dict(uri='template1.t.R:1:12'),
+                dict(uri='template1.t.R:2:14'),
             ])
             self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[3])), [
                 dict(uri='template1.t.R:1:12'),
+                dict(uri='template1.t.R:2:14'),
             ])
 
         # If we mark Student 3 as vetted, then the correct questions are also available, for all stages
@@ -354,18 +399,18 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         self.db_studs[3].groups.append(get_group(vetted_group, auto_create=True))
         DBSession.flush()
         for i in range(10):
-            self.assertEqual(
-                request_review(get_alloc(self.db_stages[0], self.db_studs[0])),
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
                 dict(uri='template1.t.R:1:12'),
-            )
+                dict(uri='template1.t.R:2:14'),
+            ])
             self.assertEqual(
                 request_review(get_alloc(self.db_stages[0], self.db_studs[1])),
                 dict(),
             )
-            self.assertEqual(
-                request_review(get_alloc(self.db_stages[0], self.db_studs[2])),
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[2])), [
                 dict(uri='template1.t.R:1:12'),
-            )
+                dict(uri='template1.t.R:2:14'),
+            ])
             self.assertEqual(
                 request_review(get_alloc(self.db_stages[0], self.db_studs[3])),
                 dict(uri='template1.t.R:1:11'),  # Just :11 since this one is correct, and do correct ones first
@@ -390,22 +435,20 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             aq_dict(uri='template1.t.R:1:11', time_end=1131, student_answer=dict(choice="a2"), review=dict(vetted=48, comments="Top, accepted into question bank", content=12, presentation=12)),
         ], 0)
         for i in range(10):
-            self.assertEqual(
-                request_review(get_alloc(self.db_stages[0], self.db_studs[0])),
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[0])), [
                 dict(uri='template1.t.R:1:12'),
-            )
-            self.assertEqual(
-                request_review(get_alloc(self.db_stages[0], self.db_studs[1])),
-                dict(),
-            )
-            self.assertEqual(
-                request_review(get_alloc(self.db_stages[0], self.db_studs[2])),
+                dict(uri='template1.t.R:2:14'),
+            ])
+            self.assertEqual(request_review(get_alloc(self.db_stages[0], self.db_studs[1])), dict(
+            ))
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[2])), [
                 dict(uri='template1.t.R:1:12'),
-            )
-            self.assertEqual(
-                request_review(get_alloc(self.db_stages[0], self.db_studs[3])),
+                dict(uri='template1.t.R:2:14'),
+            ])
+            self.assertIn(request_review(get_alloc(self.db_stages[0], self.db_studs[3])), [
                 dict(uri='template1.t.R:1:12'),
-            )
+                dict(uri='template1.t.R:2:14'),
+            ])
 
         # Student 1 gets a major bonus thanks to the vetted review
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[1]), [], 0)
@@ -422,6 +465,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             ]),
             aq_dict(uri='template1.t.R:1:12', time_end=1030, correct=None, student_answer=dict(text="4"), review=None, ug_reviews=[]),
             aq_dict(uri='template1.t.R:1:13', time_end=1040, correct=False, student_answer=dict(), review=dict()),
+            aq_dict(uri='template1.t.R:2:14', time_end=1210, correct=None, student_answer=dict(text="My new 2")),
         ])
         self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT + AWARD_UGMATERIAL_ACCEPTED)
 
