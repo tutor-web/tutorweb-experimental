@@ -65,9 +65,6 @@ CREATE OR REPLACE VIEW stage_material AS
     FROM stage s
     JOIN material_source ms
       ON s.material_tags <@ ms.material_tags
-    LEFT JOIN answer_stats stats
-           ON ms.material_source_id = stats.material_source_id
-          AND s.stage_id = stats.stage_id
     WHERE ms.next_material_source_id IS NULL
       AND s.next_stage_id IS NULL;
 COMMENT ON VIEW stage_material IS 'All appropriate current material for all current stages, and their stats';
