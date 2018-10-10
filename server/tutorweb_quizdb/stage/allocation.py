@@ -155,35 +155,45 @@ class PassThroughAllocation(BaseAllocation):
         """
         Turn (mss_id, permutation) into a public question ID
         """
-        (mss_path,) = DBSession.execute(
-            'SELECT path'
-            ' FROM material_source'
-            ' WHERE material_source_id = :mss_id'
-            '   AND next_material_source_id IS NULL',
-            dict(
+        (mss_path,) = DBSession.execute("""
+            SELECT path
+             FROM material_source
+             WHERE material_source_id = :mss_id
+        """, dict(
+            mss_id=mss_id,
+        )).fetchone()
+
+        (version,) = DBSession.execute("""
+            SELECT COUNT(*)
+              FROM material_source
+             WHERE material_source_id <= :mss_id
+               AND path = :mss_path
+        """, dict(
                 mss_id=mss_id,
+                mss_path=mss_path,
             )
         ).fetchone()
 
-        return '%s:%d' % (mss_path, permutation)
+        return '%s:%d:%d' % (mss_path, version, permutation)
 
     def from_public_id(self, public_id):
         """
         Turn the public ID back into a (mss_id, permutation) tuple
         """
-        (mss_path, permutation) = public_id.split(":", 1)
-        (mss_id,) = DBSession.execute(
-            'SELECT material_source_id'
-            ' FROM material_source'
-            ' WHERE bank = :bank'
-            '   AND path = :path'
-            '   AND next_material_source_id IS NULL',
-            dict(
-                bank=self.bank,
-                path=mss_path,
+        (mss_path, version, permutation) = public_id.split(":", 2)
+
+        # Get all possible MSS IDs for this path, assume we want the version'th
+        mss_ids = DBSession.execute("""
+            SELECT material_source_id
+              FROM material_source
+             WHERE path = :mss_path
+          ORDER BY material_source_id
+        """, dict(
+                mss_path=mss_path
             )
-        ).fetchone()
-        return (mss_id, int(permutation),)
+        ).fetchall()
+
+        return (mss_ids[int(version) - 1][0], int(permutation),)
 
 
 class ExamAllocation(BaseAllocation):
