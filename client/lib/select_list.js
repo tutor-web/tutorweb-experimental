@@ -11,11 +11,11 @@ var h = require('hyperscript');
 function select_list(orig_data, item_fn, on_select) {
     var sl_el;
 
-    function select_list_inner(data) {
+    function select_list_inner(data, i) {
         var item = item_fn(data),
             has_children = (data.children || []).length;
 
-        return item ? h('li' + (has_children ? '.has-children' : ''), [
+        return item ? h('li' + (has_children ? '.has-children' : ''), { 'data-dataindex': i }, [
             item,
             has_children ? h('ul', data.children.map(select_list_inner)) : null,
         ]) : null;
@@ -46,13 +46,17 @@ function select_list(orig_data, item_fn, on_select) {
     }
 
     function selected_items(data, el) {
-        var i, child_els = el.childNodes;
+        var i, data_index, child_els = el.childNodes;
+        if (el.tagName !== "UL") {
+            return [];  // The lastElementChild wasn't a UL, stop recursion
+        }
 
-        for (i = 0; i < data.length; i++) {
+        for (i = 0; i < child_els.length; i++) {
             if (child_els[i].classList.contains('selected')) {
+                data_index = parseInt(child_els[i].getAttribute('data-dataindex'), 10);
                 // This item is selected, return an array with this concatenated to everything selected within
-                return [data[i]].concat(selected_items(
-                    data[i].children || [],
+                return [data[data_index]].concat(selected_items(
+                    data[data_index].children || [],
                     child_els[i].lastElementChild
                 ));
             }
