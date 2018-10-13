@@ -83,6 +83,30 @@ DROP TRIGGER IF EXISTS stage_next_stage_id_after_insert on stage;
 CREATE TRIGGER stage_next_stage_id_after_insert AFTER INSERT ON stage FOR EACH ROW EXECUTE PROCEDURE stage_next_stage_id_after_insert_fn();
 
 
+CREATE OR REPLACE VIEW all_stage_versions AS
+    WITH RECURSIVE all_stage_versions(v, stage_id, syllabus_id, stage_name, latest_stage_id, next_stage_id) AS (
+        SELECT 0 v
+             , stage.stage_id
+             , stage.syllabus_id
+             , stage.stage_name
+             , stage.stage_id latest_stage_id
+             , stage.next_stage_id
+          FROM stage
+         WHERE next_stage_id IS NULL
+            UNION ALL
+        SELECT (all_stage_versions.v + 1) v
+             , stage.stage_id
+             , stage.syllabus_id
+             , stage.stage_name
+             , all_stage_versions.latest_stage_id latest_stage_id
+             , stage.next_stage_id
+          FROM stage
+             , all_stage_versions
+         WHERE stage.next_stage_id = all_stage_versions.stage_id
+    )
+    SELECT COUNT(*) OVER (PARTITION BY all_stage_versions.latest_stage_id)::INT - all_stage_versions.v AS v
+         , stage_id, syllabus_id, stage_name, latest_stage_id, next_stage_id FROM all_stage_versions;
+COMMENT ON VIEW all_stage_versions IS 'IDs of all stage revisions, by the latest stage ID, with a numeric version';
 
 CREATE TABLE IF NOT EXISTS stage_setting (
     stage_id                 INTEGER NOT NULL,

@@ -30,7 +30,11 @@ def mark_aq_entry(db_a, alloc, grade_hwm):
         """Return the high-water-mark for every other stage in the tutorial"""
         return DBSession.execute("""
             SELECT st.stage_id
-                 , (SELECT COALESCE(MAX(grade), 0) FROM answer WHERE stage_id = st.stage_id AND user_id = :user_id) grade_hwm
+                 , (SELECT COALESCE(MAX(a.grade), 0)
+                      FROM answer a, all_stage_versions asv
+                     WHERE a.stage_id = asv.stage_id
+                       AND asv.latest_stage_id = st.stage_id -- i.e we want answer items for all versions of this stage
+                       AND a.user_id = :user_id) grade_hwm
               FROM stage st, syllabus sy
              WHERE sy.syllabus_id = st.syllabus_id
                AND sy.path <@ :tut_path
@@ -174,7 +178,7 @@ def incoming_to_db(alloc, in_a):
         permutation = DBSession.execute(Sequence("ug_question_id"))
 
     return Base.classes.answer(
-        stage_id=alloc.db_stage.stage_id,
+        stage_id=alloc.db_stage.stage_id,  # NB: Assume incoming answers are based on the latest stage
         user_id=alloc.db_student.id,
 
         material_source_id=mss_id,
@@ -193,9 +197,16 @@ def incoming_to_db(alloc, in_a):
 
 
 def sync_answer_queue(alloc, in_queue, time_offset):
+    # Fetch all past stage_ids for this stage_id, so we consider answers from older stave revisions
+    all_stages = [x[0] for x in DBSession.execute("""
+        SELECT stage_id FROM all_stage_versions WHERE latest_stage_id = :stage_id
+    """, dict(
+        stage_id=alloc.db_stage.stage_id,
+    ))]
+
     # Lock answer_queue for this student, to stop any concorrent updates
     db_queue = (DBSession.query(Base.classes.answer)
-                .filter(Base.classes.answer.stage_id == alloc.db_stage.stage_id)
+                .filter(Base.classes.answer.stage_id.in_(all_stages))
                 .filter(Base.classes.answer.user_id == alloc.db_student.id)
                 .order_by(Base.classes.answer.time_end, Base.classes.answer.time_offset)
                 .with_lockmode('update').all())
@@ -214,7 +225,7 @@ def sync_answer_queue(alloc, in_queue, time_offset):
                    AND 'type.template' = ANY(sms.material_tags))
             ORDER BY time_end
             """, dict(
-                stage_id=alloc.db_stage.stage_id,
+                stage_id=alloc.db_stage.stage_id,  # NB: This uses latest stage, since material will be carried over.
                 user_id=alloc.db_student.id,
             )):
         stage_ug_reviews[(mss_id, permutation)] = ug_reviews
@@ -300,7 +311,7 @@ def request_review(alloc):
                    AND 'type.template' = ANY(sms.material_tags))
             ORDER BY """ + ('correct,' if is_vetted else '') + """ JSONB_ARRAY_LENGTH(reviews), RANDOM()
             """, dict(
-                stage_id=alloc.db_stage.stage_id,
+                stage_id=alloc.db_stage.stage_id,  # NB: This uses latest stage, since material will be carried over.
                 user_id=alloc.db_student.id,
             )):
 

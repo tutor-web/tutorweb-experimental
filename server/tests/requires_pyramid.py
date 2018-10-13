@@ -56,6 +56,23 @@ class RequiresPyramid():
                            .all())
         return stages
 
+    def upgrade_stage(self, db_stage, setting_spec_updates):
+        from tutorweb_quizdb import DBSession, Base
+
+        # Add it, let the database worry about bumping version
+        new_spec = db_stage.stage_setting_spec.copy()
+        new_spec.update(setting_spec_updates)
+        new_stage = Base.classes.stage(
+            syllabus=db_stage.syllabus,
+            stage_name=db_stage.stage_name,
+            title=db_stage.title,
+            material_tags=db_stage.material_tags,
+            stage_setting_spec=new_spec,
+        )
+        DBSession.add(new_stage)
+        DBSession.flush()
+        return new_stage
+
     def create_students(self, total, student_group_fn=lambda i: ['accept_terms']):
         from tutorweb_quizdb.student.create import create_student
 

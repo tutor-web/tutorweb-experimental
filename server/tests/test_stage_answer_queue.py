@@ -521,6 +521,17 @@ question <- function(permutation, data_frames) { return(list(content = 'parp', c
         self.assertEqual(self.coins_awarded(self.db_studs[0]), AWARD_STAGE_ANSWERED)
         self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT + AWARD_UGMATERIAL_ACCEPTED)
 
+        # Upgrade stage, still get results since we fetch from previous
+        old_stage_id = self.db_stages[1].stage_id
+        self.db_stages[1] = self.upgrade_stage(self.db_stages[1], dict(
+            upgraded=dict(value="1"),
+        ))
+        self.assertNotEqual(old_stage_id, self.db_stages[1].stage_id)
+
+        (out, additions) = sync_answer_queue(get_alloc(self.db_stages[1], self.db_studs[0]), [
+        ], 0)
+        self.assertEqual(len(out), 6)
+
         # Student 1 improves a little bit, no more awards
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[1], self.db_studs[0]), [
             aq_dict(time_end=2006, uri='example1.q.R:1:1', grade_after=6.5),
@@ -548,6 +559,13 @@ question <- function(permutation, data_frames) { return(list(content = 'parp', c
         ])
         self.assertEqual(self.coins_awarded(self.db_studs[0]), AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED)
         self.assertEqual(self.coins_awarded(self.db_studs[1]), AWARD_UGMATERIAL_CORRECT + AWARD_UGMATERIAL_ACCEPTED)
+
+        # Upgrade stage again, we still get award even though these results are in the past
+        old_stage_id = self.db_stages[1].stage_id
+        self.db_stages[1] = self.upgrade_stage(self.db_stages[1], dict(
+            upgraded=dict(value="1"),
+        ))
+        self.assertNotEqual(old_stage_id, self.db_stages[1].stage_id)
 
         # Ace other 2 stages, get stage awards but not the big prize
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [
