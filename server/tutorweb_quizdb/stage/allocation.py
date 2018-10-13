@@ -169,10 +169,9 @@ class PassThroughAllocation(BaseAllocation):
              WHERE material_source_id <= :mss_id
                AND path = :mss_path
         """, dict(
-                mss_id=mss_id,
-                mss_path=mss_path,
-            )
-        ).fetchone()
+            mss_id=mss_id,
+            mss_path=mss_path,
+        )).fetchone()
 
         return '%s:%d:%d' % (mss_path, version, permutation)
 
@@ -189,9 +188,8 @@ class PassThroughAllocation(BaseAllocation):
              WHERE path = :mss_path
           ORDER BY material_source_id
         """, dict(
-                mss_path=mss_path
-            )
-        ).fetchall()
+            mss_path=mss_path
+        )).fetchall()
 
         return (mss_ids[int(version) - 1][0], int(permutation),)
 
