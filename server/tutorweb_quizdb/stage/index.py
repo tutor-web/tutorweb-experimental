@@ -5,7 +5,7 @@ from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.student import get_current_student
 from tutorweb_quizdb.syllabus import path_to_ltree
 from .allocation import get_allocation
-from .answer_queue import sync_answer_queue, request_review
+from .answer_queue import sync_answer_queue
 from .setting import getStudentSettings, clientside_settings
 
 
@@ -29,20 +29,27 @@ def stage_get(host_id, path):
             .one())
 
 
-def stage_index(request):
+def alloc_for_view(request):
     """
-    Get all details for a stage
+    Return a configured allocation object based in request params
     """
     db_stage = stage_get(ACTIVE_HOST, path_to_ltree(request.params['path']))
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
-    alloc = get_allocation(settings, db_stage, db_student)
+    return get_allocation(settings, db_stage, db_student)
+
+
+def stage_index(request):
+    """
+    Get all details for a stage
+    """
+    alloc = alloc_for_view(request)
 
     # Parse incoming JSON body
     incoming = request.json_body if request.body else {}
 
     # Work out how far off client clock is to ours, to nearest 10s (we're interested in clock-setting issues, request-timing)
-    time_offset = round(time.time() - incoming.get('current_time'), -2)
+    time_offset = round(time.time() - incoming.get('current_time', time.time()), -2)
 
     # Sync answer queue
     (answer_queue, additions) = sync_answer_queue(alloc, incoming.get('answerQueue', []), time_offset)
@@ -60,34 +67,16 @@ def stage_index(request):
             path=request.params['path'],
         )),
         path=request.params['path'],
-        user=db_student.username,
-        title=db_stage.title,
-        settings=clientside_settings(settings),
-        material_tags=db_stage.material_tags,
+        user=alloc.db_student.username,
+        title=alloc.db_stage.title,
+        settings=clientside_settings(alloc.settings),
+        material_tags=alloc.db_stage.material_tags,
         questions=questions,
         answerQueue=answer_queue,
         time_offset=time_offset,
     )
 
 
-def stage_request_review(request):
-    """
-    Request to review some material for this allocation, assuming alloc has
-    template questions
-
-    params:
-    - path: Stage path
-    """
-    db_stage = stage_get(ACTIVE_HOST, path_to_ltree(request.params['path']))
-    db_student = get_current_student(request)
-    settings = getStudentSettings(db_stage, db_student)
-    alloc = get_allocation(settings, db_stage, db_student)
-
-    return request_review(alloc)
-
-
 def includeme(config):
     config.add_view(stage_index, route_name='stage_index', renderer='json')
-    config.add_view(stage_request_review, route_name='stage_request_review', renderer='json')
     config.add_route('stage_index', '/stage')
-    config.add_route('stage_request_review', '/stage/request-review')
