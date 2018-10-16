@@ -12,10 +12,17 @@ function renderReview(twView, reviewData) {
     twView.jqQuiz.append(select_list(reviewData.material, function (data) {
         var extras_el, content_el;
 
-        if (!(data.text || data.comments)) {
-            return null;
+        if (data.uri) {
+            if (!data.text) {
+                // Ignore anything that has no text
+                return null;
+            }
+            content_el = h('pre.parse-as-rst', data.text);
+        } else {
+            // Comments are already rendered as HTML when we get them
+            content_el = h('div');
+            content_el.innerHTML = data.comments || '<p>(reviewed without comment)</p>';
         }
-        content_el = h('pre.parse-as-rst', (data.text || data.comments));
 
         if (data.correct !== undefined) {
             extras_el = h('div.extras', [h('abbr', { title: data.mark }, [
