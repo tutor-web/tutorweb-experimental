@@ -8,6 +8,7 @@ var View = require('lib/view.js');
 var AjaxApi = require('lib/ajaxapi.js');
 var Timer = require('lib/timer.js');
 var UserMenu = require('lib/usermenu.js');
+var deSerializeForm = require('lib/deSerializeForm.js').deSerializeForm;
 var serializeForm = require('@f/serialize-form');
 var h = require('hyperscript');
 
@@ -47,6 +48,11 @@ function QuizView($) {
         self.jqQuiz.empty().append([
             jqForm,
         ]);
+
+        if (a.student_answer) {
+            deSerializeForm(jqForm[0], a.student_answer);
+        }
+
         return self.renderMath();
     };
 
