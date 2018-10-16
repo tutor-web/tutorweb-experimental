@@ -1,5 +1,6 @@
 /*jslint nomen: true, plusplus: true, browser:true, regexp: true, unparam: true, todo: true */
 /*global require, Promise */
+"use strict";
 var jQuery = require('jquery');
 require('es6-promise').polyfill();
 var Quiz = require('lib/quizlib.js');
@@ -15,7 +16,6 @@ var h = require('hyperscript');
   *    $: jQuery
   */
 function QuizView($) {
-    "use strict";
     this.jqGrade = $('#tw-grade');
     this.jqAnswers = $('#tw-answers');
 
@@ -173,7 +173,6 @@ function QuizView($) {
 QuizView.prototype = new View(jQuery);
 
 (function (window, $) {
-    "use strict";
     var quiz, twView, twTimer, twMenu;
     // Do nothing if not on the right page
     if (!window) { return; }
