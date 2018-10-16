@@ -20,11 +20,16 @@ class RequiresPyramid():
 
         super(RequiresPyramid, self).tearDown()
 
-    def request(self, settings={}, user=None):
+    def request(self, settings={}, user=None, params={}):
         request = testing.DummyRequest()
         request.registry.settings.update(settings)
         if user:
             request.user = user
+        request.params = params
+
+        if 'sqlalchemy.ext.automap.stage' in str(request.params.get('path', None).__class__):
+            # Munge a stage option into the required path
+            request.params['path'] = str(request.params['path'].syllabus.path + Ltree(request.params['path'].stage_name))
         return request
 
     def create_stages(self, total,

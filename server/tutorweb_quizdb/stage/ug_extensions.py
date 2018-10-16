@@ -1,3 +1,7 @@
+from zope.sqlalchemy import mark_changed
+
+from tutorweb_quizdb import DBSession
+
 from .index import alloc_for_view
 from .answer_queue import request_review
 
@@ -14,6 +18,46 @@ def view_stage_request_review(request):
     return request_review(alloc)
 
 
+def view_stage_ug_rewrite(request):
+    """
+    Request to rewrite given question, marks as superseded and points at template
+
+    params:
+    - path: Stage path
+    - uri: Old URI of question
+    """
+    alloc = alloc_for_view(request)
+    old_uri = request.params['uri']
+
+    # Update any matching alllocation as rewritten, fetching old answer in process
+    (old_mss_id, old_permutation) = alloc.from_public_id(old_uri)
+    session = DBSession()  # Get a real session, not just a sessionmaker factory, so we can mark_changed
+    r = session.execute("""
+        UPDATE answer
+           SET review = '{"superseded": true}'::JSONB
+         WHERE user_id = :user_id
+           AND material_source_id = :old_mss_id
+           AND permutation = :old_permutation
+     RETURNING answer_id, student_answer
+    """, dict(
+        user_id=alloc.db_student.id,
+        old_mss_id=old_mss_id,
+        old_permutation=old_permutation,
+    )).fetchall()
+    if len(r) != 1:
+        raise ValueError("Expected to find one answer, not %d" % len(r))
+    (answer_id, student_answer) = r[0]
+    mark_changed(session)  # Mark this session changed, so sqlalchemy commits
+
+    # TODO: Assume there's only one permutation? We can't reproduce this
+    return dict(
+        uri=alloc.to_public_id(old_mss_id, 1),
+        student_answer=student_answer,
+    )
+
+
 def includeme(config):
     config.add_view(view_stage_request_review, route_name='stage_request_review', renderer='json')
     config.add_route('stage_request_review', '/stage/request-review')
+    config.add_view(view_stage_ug_rewrite, route_name='stage_ug_rewrite', renderer='json')
+    config.add_route('stage_ug_rewrite', '/stage/ug-rewrite')
