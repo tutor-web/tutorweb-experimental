@@ -176,6 +176,17 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         ])
         self.assertEqual(additions, 0)
 
+        # Once the review is there it doesn't get removed
+        alloc = get_alloc(self.db_stages[0], self.db_studs[0])
+        (out, additions) = sync_answer_queue(alloc, [
+            dict(client_id='01', uri='example1.q.R:1:4', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="ignored"), review=None),
+        ], 0)
+        self.assertEqual(out, [
+            aq_dict(uri='example1.q.R:1:4', time_start=1000, time_end=1010, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2"), review=dict(hard="yes")),
+            aq_dict(uri='example1.q.R:1:5', time_start=1010, time_end=1020, time_offset=0, correct=True, grade_after=0.1, student_answer=dict(answer="2")),
+        ])
+        self.assertEqual(additions, 0)
+
         # Can add items with differing time_offsets
         (out, additions) = sync_answer_queue(alloc, [
             dict(client_id='01', uri='example2.q.R:1:1', time_start=1000, time_end=1010, correct=True, grade_after=0.1, student_answer=dict(answer="late"), review=None),

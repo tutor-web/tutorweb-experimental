@@ -264,7 +264,9 @@ def sync_answer_queue(alloc, in_queue, time_offset):
 
         if cmp == 0:
             # Matching items, update any review
-            db_queue[db_i].review = in_queue[in_i].get('review', None)
+            # NB: Only update the review when there's something to replace it with, so view_stage_ug_rewrite is saved
+            if in_queue[in_i].get('review', None):
+                db_queue[db_i].review = in_queue[in_i]['review']
             db_entry = db_queue[db_i]
             db_i += 1
             in_i += 1
