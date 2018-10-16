@@ -313,7 +313,6 @@ function shuffleElements(jqEl) {
 
 function renderReST($, jqEl) {
     return Promise.all(jqEl.find('.parse-as-rst:not(.tex-preview.parse-as-rst)').toArray().map(function (el) {
-        console.log(el.innerText);
         return (new AjaxApi($.ajax)).postJson('/api/rst/render', {data: el.innerText}).then(function (out) {
             var output_el = document.createElement('DIV');
 
