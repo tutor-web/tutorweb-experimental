@@ -61,7 +61,7 @@ python-dateutil==2.6.1
 reg==0.11
 repoze.lru==0.7
 repoze.sendmail==4.4.1
-requests==2.18.4
+requests==2.20.0
 rpy2==2.9.2
 rst2html5==1.9.4
 rst2html5-tools==0.5.3
