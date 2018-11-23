@@ -23,6 +23,7 @@ module.exports = function View($) {
     this.locale = {
         "reload": "Restart",
         "initial": "Back",
+        "logout-force": "Force clear and logout",
         "gohome": "Back to main menu",
         "lecturemenu": "Main menu",
         "go-drill": "Take a drill",
@@ -243,6 +244,13 @@ module.exports = function View($) {
         window.location.href = '/auth/login';
     };
 
+    this.states['logout-force'] = function () {
+        if (window.confirm("Any answers that you have given since the last sync may be lost. Are you sure?")) {
+            localStorage.clear();
+            window.location.href = '/auth/logout';
+        }
+    };
+
     this.states['error-quota'] = function () {
         twView.showAlert('warning', 'You have run out of storage space. Please go back to the main menu and unsubscribe to old lectures');
         twView.updateActions(['gohome']);
@@ -342,7 +350,7 @@ module.exports = function View($) {
                 // Stop any other actions
                 self.jqQuiz.removeClass('busy');
                 $('.tw-action').remove();
-                self.updateActions(['gohome', 'reload']);
+                self.updateActions(['gohome', 'logout-force', 'reload']);
             }
         }
 
