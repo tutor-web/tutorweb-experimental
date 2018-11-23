@@ -78,7 +78,7 @@ module.exports.extend = function (twView) {
         }
     });
 
-    twView.locale['subscription-menu'] = "Get more tutorials";
+    twView.locale['subscription-menu'] = "Manage your subscriptions";
     twView.locale['subscription-remove'] = "Unsubscribe from this tutorial";
     twView.locale['subscription-add'] = "Subscribe to this tutorial";
 };
