@@ -328,6 +328,25 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         });
     };
 
+    this.rewriteUgMaterial = function (old_a) {
+        var self = this;
+
+        return self.ajaxApi.getJson('/api/stage/ug-rewrite?path=' + encodeURIComponent(self.lecUri) + '&uri=' + encodeURIComponent(old_a.uri)).then(function (data) {
+            return self._withLecture(null, function (curLecture) {
+                var a = data, lastAns = arrayLast(curLecture.answerQueue, {});
+
+                a.lec_answered = lastAns && lastAns.lec_answered ? lastAns.lec_answered : 0;
+                a.lec_correct = lastAns && lastAns.lec_correct ? lastAns.lec_correct : 0;
+                a.practice_answered = lastAns && lastAns.practice_answered ? lastAns.practice_answered : 0;
+                a.client_id = self._getClientId();
+                curLecture.answerQueue.push(a);
+            }).then(function () {
+                // Re-run getNewQuestion to perform normal init
+                return self.getNewQuestion({});
+            });
+        });
+    };
+
     /** Returns a promise with the question data, either from localstorage or HTTP */
     this._getQuestionData = function (uri, cachedOkay) {
         var qn, promise, self = this;

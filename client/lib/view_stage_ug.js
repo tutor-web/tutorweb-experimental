@@ -37,6 +37,14 @@ function renderReview(twView, reviewData) {
             extras_el,
             content_el,
         ]);
+    }, function (items) {
+        if (items.length > 0) {
+            twView.selected_item = items[0];
+            twView.updateActions(['gohome', 'ug-review-material', 'ug-rewrite', 'ug-write']);
+        } else {
+            twView.selected_item = null;
+            twView.updateActions(['gohome', 'ug-review-material', 'ug-write']);
+        }
     }));
     twView.renderMath();
 }
@@ -51,7 +59,6 @@ module.exports['ug-review'] = function () {
         return this.quiz.fetchReview(this.curUrl.lecUri);
     }.bind(this)).then(function (review) {
         renderReview(this, review);
-        this.updateActions(['gohome', 'ug-review-material', 'ug-write']);
     }.bind(this));
 };
 
@@ -66,11 +73,9 @@ module.exports['ug-review-material'] = function () {
     }.bind(this));
 };
 
-module.exports['ug-write'] = function (curState) {
+module.exports['ug-write'] = module.exports['ug-rewrite'] = function (curState) {
     this.updateActions([]);
-    return this.quiz.getNewQuestion({
-        question_uri: curState === 'rewrite-question' ? this.selectedQn : null,
-    }).then(function (args) {
+    return (curState === 'ug-write' ? this.quiz.getNewQuestion({}) : this.quiz.rewriteUgMaterial(this.selected_item)).then(function (args) {
         args.actions = ['qn-skip', 'qn-submit'];
 
         this.quiz.lectureGradeSummary(this.curUrl.lecUri).then(this.renderGradeSummary.bind(this));
@@ -94,5 +99,5 @@ module.exports.extend = function (twView) {
     twView.locale['ug-review'] = "Review material written by you";
     twView.locale['ug-review-material'] = "Review material written by others";
     twView.locale['ug-write'] = "Write new material";
-    twView.locale['ug-rerewrite'] = "Rewrite this question";
+    twView.locale['ug-rewrite'] = "Remove this material and rewrite it";
 };
