@@ -188,7 +188,7 @@ function RenderTex($) {
     /** Tell MathJax to render anything on the page */
     this.renderTex = function (jqEl) {
         var jqTexElements = jqEl.hasClass('parse-as-tex') ? jqEl : jqEl.find([
-            '.parse-as-tex:not(.tex-preview.parse-as-tex)',  // i.e. don't pick up already-rendered preview-as-tex elements
+            '.parse-as-tex:not(.preview-box>.parse-as-tex)',  // i.e. don't pick up already-rendered preview-as-tex elements
             'span.math:not(.parse-as-tex span.math)',  // Ignore ReST's blocks for MathJaX
             'div.math:not(.parse-as-tex div.math)',  // Ignore ReST's blocks for MathJaX
         ].join(',')).not('.transformed').not('[id^=MathJax-]');
@@ -213,14 +213,14 @@ function RenderTex($) {
 function renderPreviewDiv($, jqParent) {
     function intelligentText(t) {
         return t.split(/(\n)/).map(function (part, i) {
-            return i % 2 === 1 ? $('<br/>') : document.createTextNode(part);
-        });
+            return i % 2 === 1 ? '<br/>' : new Option(part).innerHTML;
+        }).join("\n");
     }
 
     return Promise.all(jqParent.find('.preview-as-tex,.preview-as-rst').toArray().map(function (el) {
         var jqEl = $(el),
             render_mode = el.classList.contains('preview-as-tex') ? 'tex' : 'rst',
-            jqPreview = $('<div class="tex-preview parse-as-' + render_mode + '">');
+            jqPreview = $('<div class="preview-box"><div>Preview: <a href="https://github.com/tutor-web/tutor-web/blob/master/doc/markup-notes-' + render_mode + '.rst" target="_blank" rel="noopener noreferrer">help</a></div><div class="parse-as-' + render_mode + '"></div></div>');
 
         // Ignore already-altered text boxes
         if (el.classList.contains('transformed')) {
@@ -234,19 +234,19 @@ function renderPreviewDiv($, jqParent) {
             if (render_mode === 'rst') {
                 // Ask server to turn text into HTML
                 p = (new AjaxApi($.ajax)).postJson('/api/rst/render', {data: text}).then(function (out) {
-                    jqPreview[0].innerHTML = out.html;
+                    return out.html;
                 }).catch(function (error) {
-                    jqPreview[0].innerHTML = '(preview not available: ' + error.message + ')';
+                    return '(preview not available: ' + error.message + ')';
                 });
             } else {
                 // Reverse intelligentText operation as part of renderTex
-                p = Promise.resolve();
-                jqPreview.empty().append(intelligentText(text));
+                p = Promise.resolve(intelligentText(text));
             }
 
-            return p.then(function () {
-                jqPreview.removeClass('transformed');
-                module.exports.renderTex($, jqPreview);
+            return p.then(function (html_content) {
+                jqPreview[0].lastChild.innerHTML = html_content;
+                jqPreview[0].lastChild.classList.remove('transformed');
+                module.exports.renderTex($, $(jqPreview[0].lastChild));
             });
         }
 
@@ -312,7 +312,7 @@ function shuffleElements(jqEl) {
 }
 
 function renderReST($, jqEl) {
-    return Promise.all(jqEl.find('.parse-as-rst:not(.tex-preview.parse-as-rst)').toArray().map(function (el) {
+    return Promise.all(jqEl.find('.parse-as-rst:not(.preview-box>.parse-as-rst)').toArray().map(function (el) {
         return (new AjaxApi($.ajax)).postJson('/api/rst/render', {data: el.innerText}).then(function (out) {
             var output_el = document.createElement('DIV');
 
