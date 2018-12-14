@@ -49,7 +49,7 @@ clean:
 clean-unused:
 	for f in $(filter-out \
 	    $(foreach f,$(OUT_FILES),$(shell dirname $(f))/$(shell readlink $(f))), \
-	    $(wildcard www/*/*.min.r*.*) \
+	    $(wildcard www/*/*.min.r*.* www/*/*/*.min.r*.*) \
 	); do rm -- $$f; done
 
 watch:
