@@ -63,8 +63,9 @@ yarn.lock:
 	touch $@
 
 # Move minified output to a version with sha1 hash in it's name, symlink to proper output
+# (extension), (source-tempfile), (symlink-dest)
 sha1_symlink = \
-    REV_FILE="www/$(1)/$$(basename $(3) .min.$(1)).min.r$$(sha1sum $(2) | head -c7).$(1)"; \
+    REV_FILE="$$(dirname $(3))/$$(basename $(3) .min.$(1)).min.r$$(sha1sum $(2) | head -c7).$(1)"; \
     mv $(2) $$REV_FILE; \
     ln -rsf $$REV_FILE $(3)
 
@@ -108,9 +109,10 @@ www/css/%.min.css: lib/%.css lib/*.css package.json
 	(cd www/css && ln -sf ../../lib .)
 	$(NODE_CMD) node_modules/postcss-cli/bin/postcss \
 	    --config postcss.config.js \
-	    -o $@ \
+	    -o $@.mktmp \
 	    $<
-	$(call sha1_symlink,css,$@,$@)
+	mv $@.mktmp.map $@.map
+	$(call sha1_symlink,css,$@.mktmp,$@)
 
 www/%.html: lib/%.html lib/base.html $(filter-out %.html,$(OUT_FILES)) \
     ../.local-conf \
