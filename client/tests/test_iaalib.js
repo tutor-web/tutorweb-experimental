@@ -957,6 +957,72 @@ test('GradingPracticeMode', function (t) {
     t.end();
 });
 
+test('gradeAllocation:scorrect', function (t) {
+    var settings = {
+        grade_algorithm: "scorrect",
+        grade_s: 3,
+    };
+
+    function grade(queue) {
+        var i, answerQueue = [];
+
+        for (i = 0; i < queue.length; i++) {
+            answerQueue.push(queue[i]);
+            iaalib.gradeAllocation(settings, answerQueue);
+        }
+
+        return answerQueue[answerQueue.length - 1];
+    }
+
+    // Get full marks if you get (grade_s) items correct
+    t.equal(grade([
+        {"correct": true, "time_end": 1234},
+    ]).grade_after, 3.33);
+    t.equal(grade([
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+    ]).grade_after, 6.67);
+    t.equal(grade([
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+    ]).grade_after, 10);
+
+    // Extra incorrect answers make no difference
+    t.equal(grade([
+        {"correct": false, "time_end": 1234},
+    ]).grade_after, 0);
+    t.equal(grade([
+        {"correct": false, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+        {"correct": false, "time_end": 1234},
+        {"correct": false, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+    ]).grade_after, 6.67);
+
+    // grade_s can be altered
+    settings.grade_s = 5;
+    t.equal(grade([
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+    ]).grade_after, 4);
+    t.equal(grade([
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+    ]).grade_after, 8);
+    t.equal(grade([
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+        {"correct": true, "time_end": 1234},
+    ]).grade_after, 10);
+
+    t.end();
+});
+
 test('Timeout', function (t) {
     // No / zero settings get no timeout
     t.equal(iaalib.qnTimeout({

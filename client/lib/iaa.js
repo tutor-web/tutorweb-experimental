@@ -181,6 +181,18 @@ module.exports = function IAA() {
             return round(qns_correct / lecture.questions.length, 100);
         };
 
+        // (s) items should be correct
+        algorithms.scorrect = function (aq) {
+            var i, qns_correct = 0;
+
+            for (i = 0; i < aq.length; i++) {
+                qns_correct += aq[i].correct ? 1 : 0;
+            }
+
+            // Return grade 0..10, rounded to 2 d.p
+            return round(qns_correct / getSetting(settings, 'grade_s', 3), 100);
+        };
+
         // Choose algorithm
         grade = algorithms[getSetting(settings, 'grade_algorithm', 'weighted')];
 

@@ -21,7 +21,12 @@ Coin awards for students:
 
 Grading algorithm:
 
-* ``grade_algorithm``: Grading algorithm to use. One of weighted, ratiocorrect. Default 'weighted'
+* ``grade_algorithm``: Grading algorithm to use. Default 'weighted'
+
+  * ``weighted``: Most recent answers have greatest affect.
+  * ``ratiocorrect``: Score is proportion of correct to total number of questions. Used for exam mode.
+  * ``scorrect``: Student should give ``grade_s`` correct answers to ace, incorrect answers ignored. Used for user-generated material.
+
 * ``grade_nmin``: Minimum number of questions to consider during grading. Default 8
 * ``grade_nmax``: Maximum number of questions to consdier during grading. Default 30
 * ``grade_alpha``: Default 0.125
