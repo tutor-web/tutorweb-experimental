@@ -59,6 +59,8 @@ module.exports['ug-review'] = function () {
         return this.quiz.fetchReview(this.curUrl.lecUri);
     }.bind(this)).then(function (review) {
         renderReview(this, review);
+        // Re-render grade summary with new results
+        return this.quiz.lectureGradeSummary(this.curUrl.lecUri).then(this.renderGradeSummary.bind(this));
     }.bind(this));
 };
 
