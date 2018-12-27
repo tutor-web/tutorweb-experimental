@@ -521,29 +521,6 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         });
     };
 
-    /** Insert tutorial directly into localStorage, for testing */
-    this.insertTutorial = function (tutId, tutTitle, lectures, questions) {
-        var self = this;
-
-        return this._getSubscriptions(true).then(function (subscriptions) {
-            lectures.map(function (l) {
-                if (!l.title) {
-                    l.title = "Lecture " + l.uri;
-                }
-                self.ls.setItem(l.uri, l);
-            });
-
-            subscriptions.children.push({
-                id: tutId,
-                title: tutTitle,
-                children: lectures.map(function (l) { return { uri: l.uri, title: l.title }; }),
-            });
-
-            self.ls.setItem('_subscriptions', subscriptions);
-            self.insertQuestions(questions);
-        });
-    };
-
     // 3 queues, before-sync, current, and fresh-from-server
     function _queueMerge(preQ, currentQ, serverQ) {
         var totals = {};

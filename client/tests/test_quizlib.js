@@ -139,6 +139,25 @@ function setCurLec(quiz, tutUri, lecUri) {
         lecUri: lecUri,
     });
 }
+function insertTutorial(quiz, tutId, tutTitle, lectures, questions) {
+    return quiz._getSubscriptions(true).then(function (subscriptions) {
+        lectures.map(function (l) {
+            if (!l.title) {
+                l.title = "Lecture " + l.uri;
+            }
+            quiz.ls.setItem(l.uri, l);
+        });
+
+        subscriptions.children.push({
+            id: tutId,
+            title: tutTitle,
+            children: lectures.map(function (l) { return { uri: l.uri, title: l.title }; }),
+        });
+
+        quiz.ls.setItem('_subscriptions', subscriptions);
+        quiz.insertQuestions(questions);
+    });
+}
 function newTutorial(quiz, tut_uri, extra_settings, question_counts) {
     var question_objects = {},
         settings = { "hist_sel": '0' };
@@ -147,7 +166,7 @@ function newTutorial(quiz, tut_uri, extra_settings, question_counts) {
         settings[k] = extra_settings[k];
     });
 
-    return quiz.insertTutorial(tut_uri, 'UT tutorial', question_counts.map(function (question_count, lec_i) {
+    return insertTutorial(quiz, tut_uri, 'UT tutorial', question_counts.map(function (question_count, lec_i) {
         // Make an array (question_count) elements long
         var x_long_arr = [];
         x_long_arr.length = question_count;
@@ -258,7 +277,7 @@ function test_utils() {
 
     /** Configure a simple tutorial/lecture, ready for questions */
     utils.defaultLecture = function (quiz, settings) {
-        return quiz.insertTutorial('ut:tutorial0', 'UT tutorial', [
+        return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial', [
             {
                 "answerQueue": [],
                 "questions": [
@@ -341,12 +360,12 @@ broken_test('_removeUnusedObjects', function (t) {
     // Load associated questions and a random extra
     ls.setItem('camel', 'yes');
 
-    return quiz.insertTutorial(
+    return insertTutorial(quiz,
         'ut:tutorial0',
         utils.utTutorial.title,
         utils.utTutorial.lectures,
         utils.utQuestions
-    ).then(function () {
+        ).then(function () {
 
         t.deepEqual(Object.keys(ls.obj).sort(), [
             '_subscriptions',
@@ -415,7 +434,7 @@ broken_test('_syncLecture', function (t) {
         opStatus = { succeeded: s, total: t, message: msg };
     }
 
-    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial', [
+    return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial', [
         {
             "answerQueue": [],
             "questions": [
@@ -753,7 +772,7 @@ broken_test('_setQuestionAnswer', function (t) {
 
     // Add a tutorial with a template question
     }).then(function (args) {
-        return quiz.insertTutorial('ut:tmpltutorial', 'UT template qn tutorial', [
+        return insertTutorial(quiz, 'ut:tmpltutorial', 'UT template qn tutorial', [
             {
                 "answerQueue": [],
                 "questions": [
@@ -779,7 +798,7 @@ broken_test('_setQuestionAnswer', function (t) {
 
     // Add a tutorial with a usergenerated question
     }).then(function (args) {
-        return quiz.insertTutorial('ut:ugtutorial', 'UT template qn tutorial', [
+        return insertTutorial(quiz, 'ut:ugtutorial', 'UT template qn tutorial', [
             {
                 "answerQueue": [],
                 "questions": [
@@ -1006,7 +1025,7 @@ broken_test('_gradeSummaryStrings', function (t) {
         utils = test_utils();
 
     // Insert tutorial, no answers yet.
-    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial', [
+    return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial', [
         {
             "answerQueue": [],
             "questions": [
@@ -1093,7 +1112,7 @@ test('_gradeSummarylastEight', function (t) {
         utils = test_utils();
 
     // Insert tutorial, no answers yet.
-    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial', [
+    return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial', [
         {
             "answerQueue": [],
             "questions": [
@@ -1252,7 +1271,7 @@ broken_test('_questionUpdate ', function (t) {
     }
 
     // Insert tutorial, no answers yet.
-    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial', [
+    return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial', [
         {
             "answerQueue": [],
             "questions": [
@@ -1311,7 +1330,7 @@ test('getQuestionReviewForm', function (t) {
         }
     });
 
-    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial', [
+    return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial', [
         {
             "uri": "ut:lecture0",
             "answerQueue": [],
@@ -1362,7 +1381,7 @@ test('_setCurrentLecture_practiceAllowed', function (t) {
         quiz = new Quiz(ls, aa),
         utils = test_utils();
 
-    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial', [
+    return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial', [
         {
             "uri": "ut:lecture0",
             "question_uri": "ut:lecture0:all-questions",
@@ -1472,7 +1491,7 @@ broken_test('_getNewQuestion', function (t) {
         startTime = Math.round((new Date()).getTime() / 1000) - 1,
         utils = test_utils();
 
-    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial', [
+    return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial', [
         {
             "answerQueue": [],
             "questions": [
@@ -1766,7 +1785,7 @@ test('_setCurrentLecture', function (t) {
 
     t.ok(!quiz.isLectureSelected());
     utils.defaultLecture(quiz);
-    quiz.insertTutorial('ut:tutorial0', 'UT tutorial 0', [
+    insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial 0', [
         {
             "answerQueue": [],
             "questions": [ {"uri": "ut:question0", "chosen": 20, "correct": 100} ],
@@ -1859,7 +1878,7 @@ test('_fetchSlides', function (t) {
         quiz = new Quiz(ls, aa),
         utils = test_utils();
 
-    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial 0', [
+    return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial 0', [
         {
             "answerQueue": [],
             "questions": [ {"uri": "ut:question0", "chosen": 20, "correct": 100} ],
@@ -1914,7 +1933,7 @@ broken_test('_fetchReview', function (t) {
         quiz = new Quiz(ls, aa),
         utils = test_utils();
 
-    return quiz.insertTutorial('ut:tutorial0', 'UT tutorial 0', [
+    return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial 0', [
         {
             "answerQueue": [],
             "questions": [ {"uri": "ut:question0", "chosen": 20, "correct": 100} ],
@@ -1968,7 +1987,7 @@ test('_updateAward', function (t) {
         aa = new MockAjaxApi(),
         quiz = new Quiz(ls, aa);
 
-    return quiz.insertTutorial('ut://tutorial0/camels/badgers/thing', 'UT tutorial 0', [
+    return insertTutorial(quiz, 'ut://tutorial0/camels/badgers/thing', 'UT tutorial 0', [
         {
             "answerQueue": [],
             "questions": [ {"uri": "ut:question0", "chosen": 20, "correct": 100} ],
@@ -2041,7 +2060,7 @@ broken_test('_updateUserDetails', function (t) {
         aa = new MockAjaxApi(),
         quiz = new Quiz(ls, aa);
 
-    return quiz.insertTutorial('ut://tutorial0/camels/badgers/thing', 'UT tutorial 0', [
+    return insertTutorial(quiz, 'ut://tutorial0/camels/badgers/thing', 'UT tutorial 0', [
         {
             "answerQueue": [],
             "questions": [ {"uri": "ut:question0", "chosen": 20, "correct": 100} ],
