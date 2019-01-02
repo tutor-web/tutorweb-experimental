@@ -300,12 +300,20 @@ function test_utils() {
 }
 
 function syncMockSubscriptions(quiz, default_settings) {
-    var p = quiz.syncSubscriptions({ syncForce: true }, function () {
+    var p = quiz.syncSubscriptions({ syncForce: true, lectureAdd: "x", lectureDel: "y" }, function () {
         return null;
     });
 
-    return quiz.ajaxApi.waitForQueue(["POST /api/subscriptions/list 0"]).then(function () {
-        quiz.ajaxApi.setResponse("POST /api/subscriptions/list", 0, { children: [
+    return quiz.ajaxApi.waitForQueue(["POST /api/subscriptions/add?path=x 0"]).then(function () {
+        quiz.ajaxApi.setResponse("POST /api/subscriptions/add?path=x", 0, {});
+
+        return quiz.ajaxApi.waitForQueue(["POST /api/subscriptions/remove?path=y 1"]);
+    }).then(function () {
+        quiz.ajaxApi.setResponse("POST /api/subscriptions/remove?path=y", 1, {});
+
+        return quiz.ajaxApi.waitForQueue(["POST /api/subscriptions/list 2"]);
+    }).then(function () {
+        quiz.ajaxApi.setResponse("POST /api/subscriptions/list", 2, { children: [
             { "path": "t0", title: "UT Tutorial 0", children: [
                 { "path": "t0.l0", "title": "UT Lecture 0", children: [
                     { "path": "t0.l0.s0", "title": "UT Lecture 0 Stage 0", href: "/api/stage?path=t0.l0.s0" },
@@ -313,9 +321,9 @@ function syncMockSubscriptions(quiz, default_settings) {
             ] },
         ]});
 
-        return quiz.ajaxApi.waitForQueue(["POST /api/stage?path=t0.l0.s0 1"]);
+        return quiz.ajaxApi.waitForQueue(["POST /api/stage?path=t0.l0.s0 3"]);
     }).then(function () {
-        quiz.ajaxApi.setResponse("POST /api/stage?path=t0.l0.s0", 1, {
+        quiz.ajaxApi.setResponse("POST /api/stage?path=t0.l0.s0", 3, {
             "answerQueue": [],
             "material_tags": ["path.t0.l0.s0"],
             "questions": [
@@ -328,9 +336,9 @@ function syncMockSubscriptions(quiz, default_settings) {
             "path": "t0.l0.s0",
         });
 
-        return quiz.ajaxApi.waitForQueue(["GET /api/stage/material?path=t0.l0.s0 2"]);
+        return quiz.ajaxApi.waitForQueue(["GET /api/stage/material?path=t0.l0.s0 4"]);
     }).then(function () {
-        quiz.ajaxApi.setResponse("GET /api/stage/material?path=t0.l0.s0", 2, {
+        quiz.ajaxApi.setResponse("GET /api/stage/material?path=t0.l0.s0", 4, {
             data: test_utils().utQuestions,
             stats: [
                 { initial_answered: 0, initial_correct: 0, chosen: 0, correct: 0, uri: "ut:question0" },

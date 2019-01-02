@@ -58,16 +58,18 @@ module.exports['subscription-menu'] = function () {
 };
 
 module.exports['subscription-add'] = module.exports['subscription-remove'] = function (curState) {
-    var self = this,
-        endpoint = curState === 'subscription-add' ? 'add' : 'remove';
+    var self = this, opts = {};
 
     self.updateActions([]);
-    return ajaxApi.postJson('/api/subscriptions/' + endpoint + '?path=' + encodeURIComponent(self.selected_item)).then(function () {
-        return self.quiz.syncSubscriptions({}, function (opTotal, opSucceeded, message) {
-            self.renderProgress(opSucceeded, opTotal, message);
-        }).then(function () {
-            return self.return_state;
-        });
+    if (curState === 'subscription-add') {
+        opts.lectureAdd = self.selected_item;
+    } else {
+        opts.lectureDel = self.selected_item;
+    }
+    return self.quiz.syncSubscriptions(opts, function (opTotal, opSucceeded, message) {
+        self.renderProgress(opSucceeded, opTotal, message);
+    }).then(function () {
+        return self.return_state;
     });
 };
 

@@ -574,8 +574,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
       * - message: Message describing current state
      */
     this.syncSubscriptions = function (opts, progressFn) {
-        var self = this,
-            postData = {};
+        var self = this;
 
         // Apply promise-returning fn to values in batches of batchSize
         function batchPromise(values, batchSize, fn) {
@@ -593,16 +592,18 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             return p;
         }
 
-        if (opts.lectureAdd) {
-            postData.add_lec = opts.lectureAdd;
-        }
-
-        if (opts.lectureDel) {
-            postData.del_lec = opts.lectureDel;
-        }
-
         progressFn(3, 0, "Syncing subscriptions...");
-        return self.ajaxApi.postJson('/api/subscriptions/list', postData).then(function (subscriptions) {
+        return Promise.resolve().then(function () {
+            if (opts.lectureAdd) {
+                return self.ajaxApi.postJson('/api/subscriptions/add?path=' + encodeURIComponent(opts.lectureAdd));
+            }
+        }).then(function () {
+            if (opts.lectureDel) {
+                return self.ajaxApi.postJson('/api/subscriptions/remove?path=' + encodeURIComponent(opts.lectureDel));
+            }
+        }).then(function () {
+            return self.ajaxApi.postJson('/api/subscriptions/list', {});
+        }).then(function (subscriptions) {
             self.ls.setItem('_subscriptions', subscriptions);
             if (!opts.skipCleanup && opts.lectureDel) {
                 // Removing something, so tidy up now in case quota is full
