@@ -1677,41 +1677,6 @@ broken_test('_getNewQuestion', function (t) {
     });
 });
 
-test('_getNewQuestion_redirect', function (t) {
-    var ls = new MockLocalStorage(),
-        quiz = new Quiz(ls),
-        utils = test_utils();
-
-    return utils.defaultLecture(quiz).then(function (args) {
-        return args;
-
-    // Create a question that references another question
-    }).then(function (args) {
-        quiz.insertQuestions({
-            "ut:question0": { uri: "ut:question0a", text: "Question 0a", choices: [], shuffle: [0], answer: {}},
-            "ut:question1": { uri: "ut:question1a", text: "Question 1a", choices: [], shuffle: [0], answer: {}},
-            "ut:question2": { uri: "ut:question2a", text: "Question 2a", choices: [], shuffle: [0], answer: {}},
-        });
-        return args;
-
-    // Fetch question
-    }).then(function (args) {
-        return (getQn(quiz, false));
-
-    // Should get back one of the question(x)a URIs
-    }).then(function (args) {
-        t.equal(args.qn.uri, args.a.uri);
-        t.equal(args.qn.uri.slice(-1), "a");
-
-    }).then(function (args) {
-        t.end();
-    }).catch(function (err) {
-        console.log(err.stack);
-        t.fail(err);
-        t.end();
-    });
-});
-
 test('_getQuestionData', function (t) {
     var ls = new MockLocalStorage(),
         quiz = new Quiz(ls);
