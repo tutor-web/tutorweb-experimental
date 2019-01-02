@@ -299,23 +299,72 @@ function test_utils() {
     return utils;
 }
 
-broken_test('_getAvailableLectures', function (t) {
-    var ls = new MockLocalStorage(),
-        quiz = new Quiz(ls),
-        utils = test_utils();
+function syncMockSubscriptions(quiz, default_settings) {
+    var p = quiz.syncSubscriptions({ syncForce: true }, function () {
+        return null;
+    });
 
-    return utils.defaultLecture(quiz).then(function (args) {
+    return quiz.ajaxApi.waitForQueue(["POST /api/subscriptions/list 0"]).then(function () {
+        quiz.ajaxApi.setResponse("POST /api/subscriptions/list", 0, { children: [
+            { "path": "t0", title: "UT Tutorial 0", children: [
+                { "path": "t0.l0", "title": "UT Lecture 0", children: [
+                    { "path": "t0.l0.s0", "title": "UT Lecture 0 Stage 0", href: "/api/stage?path=t0.l0.s0" },
+                ] },
+            ] },
+        ]});
+
+        return quiz.ajaxApi.waitForQueue(["POST /api/stage?path=t0.l0.s0 1"]);
+    }).then(function () {
+        quiz.ajaxApi.setResponse("POST /api/stage?path=t0.l0.s0", 1, {
+            "answerQueue": [],
+            "material_tags": ["path.t0.l0.s0"],
+            "questions": [
+                {"uri": "ut:question0", "chosen": 20, "correct": 100},
+                {"uri": "ut:question1", "chosen": 40, "correct": 100},
+                {"uri": "ut:question2", "chosen": 40, "correct": 100},
+            ],
+            "settings": default_settings || {},
+            "uri": "/api/stage?path=t0.l0.s0",
+            "path": "t0.l0.s0",
+        });
+
+        return quiz.ajaxApi.waitForQueue(["GET /api/stage/material?path=t0.l0.s0 2"]);
+    }).then(function () {
+        quiz.ajaxApi.setResponse("GET /api/stage/material?path=t0.l0.s0", 2, {
+            data: test_utils().utQuestions,
+            stats: [
+                { initial_answered: 0, initial_correct: 0, chosen: 0, correct: 0, uri: "ut:question0" },
+                { initial_answered: 0, initial_correct: 0, chosen: 0, correct: 0, uri: "ut:question1" },
+                { initial_answered: 0, initial_correct: 0, chosen: 0, correct: 0, uri: "ut:question2" },
+            ],
+        });
+
+        return quiz.ajaxApi.waitForQueue([]);
+    }).then(function () {
+        return p;
+    });
+}
+
+
+test('_getAvailableLectures', function (t) {
+    var ls = new MockLocalStorage(),
+        quiz = new Quiz(ls, new MockAjaxApi());
+
+    return syncMockSubscriptions(quiz).then(function (args) {
         // At the start, everything should be synced
         return quiz.getAvailableLectures();
     }).then(function (subs) {
         t.deepEqual(subs.subscriptions, { children: [
-            { id: 'ut:tutorial0', title: 'UT tutorial', children: [
-                { uri: 'ut:lecture0', title: 'Lecture ut:lecture0' },
-            ]},
+            { "path": "t0", title: "UT Tutorial 0", children: [
+                { "path": "t0.l0", "title": "UT Lecture 0", children: [
+                    { "path": "t0.l0.s0", "title": "UT Lecture 0 Stage 0", href: "/api/stage?path=t0.l0.s0" },
+                ] },
+            ] },
         ]});
         t.deepEqual(subs.lectures, {
-            'ut:lecture0': { grade: '', synced: true, offline: true },
+            '/api/stage?path=t0.l0.s0': { title: undefined, grade: 0, stats: undefined, synced: true, offline: true },
         });
+        return quiz.setCurrentLecture({ lecUri: '/api/stage?path=t0.l0.s0' });
     }).then(function (args) {
         // Answer a question
         return (getQn(quiz, false));
@@ -325,22 +374,7 @@ broken_test('_getAvailableLectures', function (t) {
         // Now one is unsynced
         return quiz.getAvailableLectures();
     }).then(function (subs) {
-        var gradeStr;
-
-        if (JSON.parse(ls.getItem('ut:lecture0')).answerQueue[0].correct) {
-            gradeStr = 'Answered 1 questions, 1 correctly.\nYour grade: 3.5';
-        } else {
-            gradeStr = 'Answered 1 questions, 0 correctly.\nYour grade: 0';
-        }
-
-        t.deepEqual(subs.subscriptions, { children: [
-            { id: 'ut:tutorial0', title: 'UT tutorial', children: [
-                { uri: 'ut:lecture0', title: 'Lecture ut:lecture0' },
-            ]},
-        ]});
-        t.deepEqual(subs.lectures, {
-            'ut:lecture0': { grade: gradeStr, synced: false, offline: true },
-        });
+        t.deepEqual(subs.lectures['/api/stage?path=t0.l0.s0'].synced, false);
 
     }).then(function (args) {
         t.end();
