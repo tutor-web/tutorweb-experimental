@@ -1751,7 +1751,6 @@ test('_setCurrentLecture', function (t) {
         utils = test_utils();
 
     t.ok(!quiz.isLectureSelected());
-    utils.defaultLecture(quiz);
     insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial 0', [
         {
             "answerQueue": [],
