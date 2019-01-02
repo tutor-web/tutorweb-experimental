@@ -43,24 +43,26 @@ function MockAjaxApi() {
     this.data = {};
 
     this.getHtml = function (uri) {
-        return this.block('GET ' + uri + ' ' + this.count++, undefined);
+        return this.block('GET ' + uri, undefined);
     };
 
     this.getJson = function (uri) {
-        return this.block('GET ' + uri + ' ' + this.count++, undefined);
+        return this.block('GET ' + uri, undefined);
     };
 
     this.postJson = function (uri, data) {
-        return this.block('POST ' + uri + ' ' + this.count++, data);
+        return this.block('POST ' + uri, data);
     };
 
     this.ajax = function (call) {
-        return this.block(call.type + ' ' + call.url + ' ' + this.count++);
+        return this.block(call.type + ' ' + call.url, undefined);
     };
 
-    /** Block until responses[promiseId] contains something to resolve to */
-    this.block = function (promiseId, data) {
-        var self = this, timerTick = 10;
+    /** Block until responses[method + count] contains something to resolve to */
+    this.block = function (method, data) {
+        var self = this,
+            timerTick = 10,
+            promiseId = [method, this.count++].join(' ');
         //console.trace(promiseId);
         self.responses[promiseId] = null;
         this.data[promiseId] = data;
@@ -119,8 +121,8 @@ function MockAjaxApi() {
         });
     };
 
-    this.setResponse = function (promiseId, ret) {
-        this.responses[promiseId] = ret;
+    this.setResponse = function (method, promiseCount, ret) {
+        this.responses[method + ' ' + promiseCount] = ret;
         return ret;
     };
 }
@@ -385,12 +387,12 @@ broken_test('_removeUnusedObjects', function (t) {
             {"uri": "ut:question0", "chosen": 20, "correct": 100},
             {"uri": "ut:question3", "chosen": 20, "correct": 100},
         ];
-        aa.setResponse('POST ut:lecture0 0', utils.utTutorial.lectures[0]);
+        aa.setResponse('POST ut:lecture0', 0, utils.utTutorial.lectures[0]);
         return aa.waitForQueue(["GET ut:question3 1"]);
 
     }).then(function () {
         // Give it the question too, wait for finish.
-        aa.setResponse('GET ut:question3 1', utils.utQuestions['ut:question1']);
+        aa.setResponse('GET ut:question3', 1, utils.utQuestions['ut:question1']);
         return ajaxPromise;
     }).then(function () {
         // syncLecture tidies up the questions
@@ -467,7 +469,7 @@ broken_test('_syncLecture', function (t) {
     }).then(function () {
         t.deepEqual(opStatus, { succeeded: 0, total: 3, message: 'Fetching lecture...' });
         t.deepEqual(aa.data['POST ut:lecture0 0'].answerQueue, []);
-        aa.setResponse('POST ut:lecture0 0', aa.data['POST ut:lecture0 0']);
+        aa.setResponse('POST ut:lecture0', 0, aa.data['POST ut:lecture0 0']);
         return ajaxPromise;
 
     // Answer some questions
@@ -511,7 +513,7 @@ broken_test('_syncLecture', function (t) {
 
     // Finish the AJAX call
     }).then(function (args) {
-        aa.setResponse('POST ut:lecture0 1', {
+        aa.setResponse('POST ut:lecture0', 1, {
             "answerQueue": [ {"camel" : 3, "time_end": 5, "lec_answered": 8, "lec_correct": 3, "synced" : true} ],
             "questions": [
                 {"uri": "ut:question0", "chosen": 20, "correct": 100},
@@ -528,7 +530,7 @@ broken_test('_syncLecture', function (t) {
     // The missing question was fetched
     }).then(function () {
         t.deepEqual(opStatus, { succeeded: 1, total: 4, message: 'Fetching questions...' });
-        aa.setResponse('GET ut:question8 2', {
+        aa.setResponse('GET ut:question8', 2, {
             "text": '<div>The symbol for the set of all irrational numbers is... (a)</div>',
             "choices": [
                 '<div>$\\mathbb{R} \\backslash \\mathbb{Q}$ (me)</div>',
@@ -586,7 +588,7 @@ broken_test('_syncLecture', function (t) {
         return aa.waitForQueue(["POST ut:lecture0 3"]);
 
     }).then(function () {
-        aa.setResponse('POST ut:lecture0 3', {
+        aa.setResponse('POST ut:lecture0', 3, {
             "answerQueue": [ {"camel" : 3, "synced" : true} ],
             "questions": [
                 {"uri": "ut:question0", "chosen": 20, "correct": 100},
@@ -621,7 +623,7 @@ broken_test('_syncLecture', function (t) {
     }).then(function () {
         return setAns(quiz, 0);
     }).then(function (args) {
-        aa.setResponse('POST ut:lecture0 4', {
+        aa.setResponse('POST ut:lecture0', 4, {
             "answerQueue": [ {"camel" : 3, "lec_answered": 8, "lec_correct": 3, "synced" : true} ],
             "questions": [
                 {"uri": "ut:question0", "chosen": 20, "correct": 100},
@@ -648,7 +650,7 @@ broken_test('_syncLecture', function (t) {
         var syncPromise = quiz.syncLecture(null, false);
 
         return aa.waitForQueue(['POST ut:lecture0 5']).then(function (args) {
-            aa.setResponse('POST ut:lecture0 5', {
+            aa.setResponse('POST ut:lecture0', 5, {
                 "answerQueue": [
                     {"correct": true,  "practice": false, "synced" : true, "time_end": 1 },
                     {"correct": true,  "practice": false, "synced" : true, "time_end": 2 },
@@ -688,7 +690,7 @@ broken_test('_syncLecture', function (t) {
         return aa.waitForQueue(['POST ut:lecture0 6']);
 
     }).then(function (args) {
-        aa.setResponse('POST ut:lecture0 6', {
+        aa.setResponse('POST ut:lecture0', 6, {
             "answerQueue": [],
             "user": "not_the_user_you_are_looking_for",
             "questions": [],
@@ -710,7 +712,7 @@ broken_test('_syncLecture', function (t) {
         ajaxPromise = quiz.syncLecture(null, true);
         return aa.waitForQueue(['POST ut:lecture0 7']);
     }).then(function (args) {
-        aa.setResponse('POST ut:lecture0 7', {
+        aa.setResponse('POST ut:lecture0', 7, {
             "answerQueue": [],
             "user": 'ut_student',
             "questions": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(function (i) {
@@ -729,7 +731,7 @@ broken_test('_syncLecture', function (t) {
                 text: "This is Question " + i,
             };
         });
-        aa.setResponse('GET ut:lecture0:all-questions 8', newQuestions);
+        aa.setResponse('GET ut:lecture0:all-questions', 8, newQuestions);
         return ajaxPromise.then(function () {
             // All new questions updated
             Object.keys(newQuestions).map(function (k) {
@@ -1612,12 +1614,12 @@ broken_test('_getNewQuestion', function (t) {
 
     // Returning a fail should result in another attempt
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 0', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 0, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 1"]);
 
     // Return actual promise which should get us a question
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 1', utils.utQuestions["ut:question0"]);
+        aa.setResponse('GET ut:question-a', 1, utils.utQuestions["ut:question0"]);
         return promise;
     }).then(function (args) {
         t.equal(args.qn.text, '<div>The symbol for the set of all irrational numbers is... (a)</div>');
@@ -1628,37 +1630,37 @@ broken_test('_getNewQuestion', function (t) {
         promise = quiz.getNewQuestion({practice: false});
         return aa.waitForQueue(["GET ut:question-a 2"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 2', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 2, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 3"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 3', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 3, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 4"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 4', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 4, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 5"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 5', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 5, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 6"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 6', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 6, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 7"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 7', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 7, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 8"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 8', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 8, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 9"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 9', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 9, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 10"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 10', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 10, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 11"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 11', new Error("Go away"));
+        aa.setResponse('GET ut:question-a', 11, new Error("Go away"));
         return aa.waitForQueue(["GET ut:question-a 12"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a 12', new Error("Go away now!"));
+        aa.setResponse('GET ut:question-a', 12, new Error("Go away now!"));
         return promise.then(function () { t.fail(); }).catch(function (err) {
             t.equal(err.message, "Go away now!");
         }).then(function () {
@@ -1902,7 +1904,7 @@ test('_fetchSlides', function (t) {
         promise = quiz.fetchSlides();
         return aa.waitForQueue(["GET http://slide-url-for-lecture0 0"]);
     }).then(function (args) {
-        aa.setResponse('GET http://slide-url-for-lecture0 0', "<blink>hello</blink>");
+        aa.setResponse('GET http://slide-url-for-lecture0', 0, "<blink>hello</blink>");
         return promise;
     }).then(function (args) {
         // Returned our fake data
@@ -1966,7 +1968,7 @@ broken_test('_fetchReview', function (t) {
         promise = quiz.fetchReview();
         return aa.waitForQueue(["GET http://review-url-for-lecture1 0"]);
     }).then(function (args) {
-        aa.setResponse('GET http://review-url-for-lecture1 0', {camels: "yes"});
+        aa.setResponse('GET http://review-url-for-lecture1', 0, {camels: "yes"});
         return promise;
     }).then(function (args) {
         // Returned our fake data
@@ -2005,7 +2007,7 @@ test('_updateAward', function (t) {
         t.deepEqual(aa.getQueue(), [
             'POST /api/coin/award 0',
         ]);
-        aa.setResponse('POST /api/coin/award 0', {"things": true});
+        aa.setResponse('POST /api/coin/award', 0, {"things": true});
         return promise;
 
     }).then(function (args) {
@@ -2019,7 +2021,7 @@ test('_updateAward', function (t) {
         t.deepEqual(aa.getQueue(), [
             'POST /api/coin/award 1',
         ]);
-        aa.setResponse('POST /api/coin/award 1', {"things": true});
+        aa.setResponse('POST /api/coin/award', 1, {"things": true});
         return promise;
 
     }).then(function (args) {
@@ -2037,7 +2039,7 @@ test('_updateAward', function (t) {
             aa.data['POST /api/coin/award 2'],
             {"walletId": 'WaLlEt', captchaResponse: '12345'}
         );
-        aa.setResponse('POST /api/coin/award 2', {"things": false});
+        aa.setResponse('POST /api/coin/award', 2, {"things": false});
         return promise;
 
     }).then(function (args) {
@@ -2078,7 +2080,7 @@ broken_test('_updateUserDetails', function (t) {
         t.deepEqual(aa.getQueue(), [
             'POST ut://tutorial0/@@quizdb-student-updatedetails 0',
         ]);
-        aa.setResponse('POST ut://tutorial0/@@quizdb-student-updatedetails 0', {"things": true});
+        aa.setResponse('POST ut://tutorial0/@@quizdb-student-updatedetails', 0, {"things": true});
         return promise;
 
     }).then(function (args) {
@@ -2096,7 +2098,7 @@ broken_test('_updateUserDetails', function (t) {
             aa.data['POST ut://tutorial0/@@quizdb-student-updatedetails 1'],
             {email: "bob@geldof.com"}
         );
-        aa.setResponse('POST ut://tutorial0/@@quizdb-student-updatedetails 1', {"things": false});
+        aa.setResponse('POST ut://tutorial0/@@quizdb-student-updatedetails', 1, {"things": false});
         return promise;
 
     }).then(function (args) {
@@ -2188,7 +2190,7 @@ broken_test('_syncSubscriptions_upgrade', function (t) {
                 add_lec: ['ut:t0lecture0', 'ut:t0lecture1', 'ut:t1lectureA'],
             });
 
-            aa.setResponse("POST /@@quizdb-subscriptions 0", { children: [
+            aa.setResponse("POST /@@quizdb-subscriptions", 0, { children: [
                 { title: "UT Tutorial 0", children: [
                     { uri: "ut:t0lecture0", "title": "UT Lecture 0" },
                     { uri: "ut:t0lecture1", "title": "UT Lecture 1" },
@@ -2202,7 +2204,7 @@ broken_test('_syncSubscriptions_upgrade', function (t) {
         }).then(function () {
             return aa.waitForQueue(["POST ut:t0lecture0 1"]);
         }).then(function () {
-            aa.setResponse("POST ut:t0lecture0 1", {
+            aa.setResponse("POST ut:t0lecture0", 1, {
                 "answerQueue": [{
                     "time_end": 5,
                     "camel" : 3,
@@ -2223,7 +2225,7 @@ broken_test('_syncSubscriptions_upgrade', function (t) {
         }).then(function () {
             return aa.waitForQueue(["GET ut:question0 2"]);
         }).then(function () {
-            aa.setResponse("GET ut:question0 2", { text: "Question data" });
+            aa.setResponse("GET ut:question0", 2, { text: "Question data" });
             return promise;
         });
     }).then(function (args) {
