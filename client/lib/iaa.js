@@ -29,6 +29,7 @@ module.exports = function IAA() {
             questions = curLec.questions || [],
             settings = curLec.settings || {},
             answerQueue = curLec.answerQueue || [],
+            student_answer = {},
             oldGrade = arrayLast(answerQueue, {}).grade_after || 0;
 
         // Find a question in a question bank
@@ -62,11 +63,14 @@ module.exports = function IAA() {
         if (!alloc) {
             throw new Error("tutorweb::noquestions::No suitable questions in lecture (" + curLec.uri + ")");
         }
+        if (opts.practice) {
+            student_answer.practice = true;
+        }
         return {
             "uri": opts.question_uri || alloc.uri,
             "allotted_time": this.qnTimeout(settings, oldGrade),
             "grade_before": oldGrade,
-            "practice": !!opts.practice,
+            "student_answer": student_answer,
         };
     };
 
@@ -126,7 +130,7 @@ module.exports = function IAA() {
             }
         });
 
-        if (a.practice) {
+        if (a.student_answer.practice) {
             // Practice mode: Question shouldn't be graded directly
             a.student_answer.practice_correct = correct;
             a.student_answer.practice = true;

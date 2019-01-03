@@ -53,7 +53,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
     function practiceAllowed(curLec) {
         var aq = curLec.answerQueue,
             settings = curLec.settings,
-            answers_real = aq.filter(function (a) { return a && !a.practice; }).length,
+            answers_real = aq.filter(function (a) { return a && (!a.student_answer || !a.student_answer.practice); }).length,
             rv;
 
         // Work out number of questions we're allowed to do
@@ -226,13 +226,18 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         this.lecUri = params.lecUri;
 
         return self._getLecture().then(function (lecture) {
-            var lastAns = arrayLast(lecture.answerQueue);
+            var continuing = false, lastAns = arrayLast(lecture.answerQueue);
+
             self.lecUri = lecture.uri;
             iaalib.gradeAllocation(lecture.settings, lecture.answerQueue, lecture);
 
+            if (lastAns && !lastAns.time_end) {
+                continuing = lastAns.student_answer && lastAns.student_answer.practice ? 'practice' : 'real';
+            }
+
             return {
                 a: lastAns,
-                continuing: (lastAns && !lastAns.time_end ? lastAns.practice ? 'practice' : 'real' : false),
+                continuing: continuing,
                 lecUri: lecture.uri,
                 lecTitle: lecture.title,
                 material_tags: lecture.material_tags,
@@ -317,7 +322,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             return self._withLecture(null, function (curLecture) {
                 var a = data, lastAns = arrayLast(curLecture.answerQueue);
 
-                a.practice = true;  // NB: We shouldn't be graded directly for this, so use practice mode
+                a.student_answer = {practice: true};  // NB: We shouldn't be graded directly for this, so use practice mode
                 a.lec_answered = lastAns && lastAns.lec_answered ? lastAns.lec_answered : 0;
                 a.lec_correct = lastAns && lastAns.lec_correct ? lastAns.lec_correct : 0;
                 a.practice_answered = lastAns && lastAns.practice_answered ? lastAns.practice_answered : 0;
@@ -392,7 +397,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
             // Fetch question off answer queue, add answer
             a.time_end = curTime();
-            a.student_answer = formData;
+            Object.keys(formData).map(function (k) { a.student_answer[k] = formData[k]; });
             a.synced = false;
 
             // Get question data and mark
@@ -421,9 +426,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 iaalib.gradeAllocation(curLecture.settings, curLecture.answerQueue, curLecture);
                 a.lec_answered = (a.lec_answered || 0) + 1;
                 a.lec_correct = (a.lec_correct || 0) + (a.correct ? 1 : 0);
-                if (a.hasOwnProperty('practice')) {
-                    a.practice_answered = (a.practice_answered || 0) + (a.practice ? 1 : 0);
-                } else if (a.hasOwnProperty('student_answer')) {
+                if (a.hasOwnProperty('student_answer')) {
                     a.practice_answered = (a.practice_answered || 0) + (a.student_answer.practice ? 1 : 0);
                 } else {
                     a.practice_answered = (a.practice_answered || 0);
@@ -549,9 +552,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             // Update running totals
             a.lec_answered = runningTotal(a, 'lec_answered', a.time_end ? 1 : 0);
             a.lec_correct  = runningTotal(a, 'lec_correct',  a.correct ? 1 : 0);
-            if (a.hasOwnProperty('practice')) {
-                a.practice_answered = runningTotal(a, 'practice_answered', a.practice && a.time_end ? 1 : 0);
-            } else if (a.hasOwnProperty('student_answer')) {
+            if (a.hasOwnProperty('student_answer')) {
                 a.practice_answered = runningTotal(a, 'practice_answered', a.student_answer.practice && a.time_end ? 1 : 0);
             } else {
                 a.practice_answered = runningTotal(a, 'practice_answered', 0);
@@ -742,7 +743,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         }
         a = arrayLast(lecture.answerQueue) || {};
 
-        if (a.practice) {
+        if (a.student_answer && a.student_answer.practice) {
             out.practice = "Practice mode";
             if (a.hasOwnProperty('practice_answered')) {
                 out.practiceStats = "Answered " + a.practice_answered + " practice questions.";
@@ -769,7 +770,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
         out.lastEight = [];
         for (i = lecture.answerQueue.length - 1; i >= 0 && out.lastEight.length < 8; i--) {
-            if (lecture.answerQueue[i].time_end && !lecture.answerQueue[i].practice) {
+            if (lecture.answerQueue[i].time_end && !lecture.answerQueue[i].student_answer.practice) {
                 out.lastEight.push(lecture.answerQueue[i]);
             }
         }

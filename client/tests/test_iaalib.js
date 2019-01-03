@@ -28,7 +28,7 @@ test('InitialAlloc', function (t) {
     var a = iaalib.newAllocation(exampleLec(), {practice: false});
     t.ok(a.uri.match(/ut:question[0-4]/));
     t.equal(a.grade_before, 0);
-    t.equal(a.practice, false);
+    t.deepEqual(a.student_answer, {});
 
     t.end();
 });
@@ -259,10 +259,10 @@ test('ItemAllocationPracticeMode', function (t) {
     // Item allocation passes through practice mode
     var alloc;
     alloc = iaalib.newAllocation(exampleLec(), {practice: false});
-    t.equal(alloc.practice, false, "Practice mode not in allocation");
+    t.equal(alloc.student_answer.practice, undefined, "Practice mode not in allocation");
 
     alloc = iaalib.newAllocation(exampleLec(), {practice: true});
-    t.equal(alloc.practice, true, "Practice mode not in allocation");
+    t.equal(alloc.student_answer.practice, true, "Practice mode not in allocation");
 
     t.end();
 });
@@ -273,13 +273,13 @@ test('ForceAllocation', function (t) {
     // We can force which question comes back with question_uri
     a = iaalib.newAllocation(exampleLec(), {practice: false, question_uri: "ut:question0"});
     t.equal(a.uri, "ut:question0");
-    t.equal(a.practice, false);
+    t.equal(a.student_answer.practice, undefined);
     a = iaalib.newAllocation(exampleLec(), {practice: true, question_uri: "ut:question1"});
     t.equal(a.uri, "ut:question1");
-    t.equal(a.practice, true);
+    t.equal(a.student_answer.practice, true);
     a = iaalib.newAllocation(exampleLec(), {practice: false, question_uri: "ut:question2?some_opts=yes"});
     t.equal(a.uri, "ut:question2?some_opts=yes");
-    t.equal(a.practice, false);
+    t.equal(a.student_answer.practice, undefined);
 
     // Unknown question generates error
     try {
@@ -1104,20 +1104,18 @@ test('markAnswer', function (t) {
     t.equal(iaalib.markAnswer({student_answer: {correct: "yes"}}, {correct: ["yes"], _start_with: null}), null);
 
     // Practice mode: Always null, real answer annotated in student answer object
-    a = {practice: true, student_answer: {correct: "no"}};
+    a = {student_answer: {practice: true, correct: "no"}};
     t.equal(iaalib.markAnswer(a, {correct: ["yes"]}), null);
     t.deepEqual(a, {
-        practice: true,
         student_answer: {
             correct: "no",
             practice: true,
             practice_correct: false,
         },
     });
-    a = {practice: true, student_answer: {correct: "yes"}};
+    a = {student_answer: {practice: true, correct: "yes"}};
     t.equal(iaalib.markAnswer(a, {correct: ["yes"]}), null);
     t.deepEqual(a, {
-        practice: true,
         student_answer: {
             correct: "yes",
             practice: true,

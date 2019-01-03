@@ -133,7 +133,7 @@ function getQn(quiz, practiceMode) {
 function setAns(quiz, choice) {
     return quiz.setQuestionAnswer(
         typeof choice === "object" ? choice
-            : [{name: "answer", value: choice}]
+            : {"answer": choice}
     );
 }
 function setCurLec(quiz, tutUri, lecUri) {
@@ -694,11 +694,11 @@ broken_test('_syncLecture', function (t) {
         return aa.waitForQueue(['POST ut:lecture0 5']).then(function (args) {
             aa.setResponse('POST ut:lecture0', 5, {
                 "answerQueue": [
-                    {"correct": true,  "practice": false, "synced" : true, "time_end": 1 },
-                    {"correct": true,  "practice": false, "synced" : true, "time_end": 2 },
-                    {"correct": false, "practice": true,  "synced" : true, "time_end": 3 },
-                    {"correct": true,  "practice": true,  "synced" : true, "time_end": 4 },
-                    {"correct": true,  "practice": false, "synced" : true, "time_end": 5 },
+                    {"correct": true,  "student_answer": { "practice": false }, "synced" : true, "time_end": 1 },
+                    {"correct": true,  "student_answer": { "practice": false }, "synced" : true, "time_end": 2 },
+                    {"correct": false, "student_answer": { "practice": true },  "synced" : true, "time_end": 3 },
+                    {"correct": true,  "student_answer": { "practice": true },  "synced" : true, "time_end": 4 },
+                    {"correct": true,  "student_answer": { "practice": false }, "synced" : true, "time_end": 5 },
                 ],
                 "questions": [
                     {"uri": "ut:question0", "chosen": 20, "correct": 100},
@@ -802,7 +802,7 @@ broken_test('_setQuestionAnswer', function (t) {
         return (getQn(quiz, false));
     }).then(function (args) {
         assignedQns.push(args.a);
-        return (setAns(quiz, []));
+        return (setAns(quiz, {}));
 
     // Fail to answer question, should get a null for the student answer
     }).then(function (args) {
@@ -872,9 +872,7 @@ broken_test('_setQuestionAnswer', function (t) {
     }).then(function (args) {
         return (getQn(quiz, false));
     }).then(function (args) {
-        return (setAns(quiz, [
-            { name: "answer", value: args.a.ordering.indexOf(0).toString() }
-        ]));
+        return setAns(quiz, args.a.ordering.indexOf(0).toString());
     }).then(function (args) {
         t.equal(args.answerData.explanation, "It'd be boring otherwise");
         t.ok(!args.a.hasOwnProperty("correct"));
@@ -893,10 +891,10 @@ broken_test('_setQuestionAnswer', function (t) {
 
     // Try again with a comment, even empty should be properly answered
     }).then(function (args) {
-        return (setAns(quiz, [
-            { name: "answer", value: args.a.ordering.indexOf(0).toString() },
-            { name: "comments", value: "" },
-        ]));
+        return (setAns(quiz, {
+            "answer": args.a.ordering.indexOf(0).toString(),
+            "comments": "",
+        }));
     }).then(function (args) {
         t.ok(!args.a.hasOwnProperty("correct")); // NB: Never have correct
         t.ok(args.a.hasOwnProperty("time_end"));
@@ -906,11 +904,11 @@ broken_test('_setQuestionAnswer', function (t) {
     }).then(function (args) {
         return (getQn(quiz, false));
     }).then(function (args) {
-        return (setAns(quiz, [
-            { name: "answer", value: args.a.ordering.indexOf(1).toString() },
-            { name: "comments", value: "Boo!" },
-            { name: "rating", value: "50" },
-        ]));
+        return (setAns(quiz, {
+            "answer": args.a.ordering.indexOf(1).toString(),
+            "comments": "Boo!",
+            "rating": "50",
+        }));
     }).then(function (args) {
         t.ok(!args.a.hasOwnProperty("correct")); // NB: Never have correct
         t.ok(args.a.hasOwnProperty("time_end"));
@@ -1809,14 +1807,14 @@ test('_setCurrentLecture', function (t) {
             "title": "UT Lecture 1 (no answers)",
         },
         {
-            "answerQueue": [ { practice: true} ],
+            "answerQueue": [ { student_answer: {practice: true} } ],
             "questions": [ {"uri": "ut:question0", "chosen": 20, "correct": 100} ],
             "settings": {},
             "uri": "ut:lecture-currentpract",
             "title": "UT Lecture: Currently practicing",
         },
         {
-            "answerQueue": [ { practice: false} ],
+            "answerQueue": [ { student_answer: {practice: false} } ],
             "questions": [ {"uri": "ut:question0", "chosen": 20, "correct": 100} ],
             "settings": {},
             "uri": "ut:lecture-currentreal",
