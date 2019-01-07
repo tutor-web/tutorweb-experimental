@@ -298,7 +298,7 @@ function renderGgb(jqEl) {
 }
 
 function shuffleElements(jqEl) {
-    Array.prototype.map.call(jqEl[0].querySelectorAll('ol.shuffle'), function (olEl) {
+    Array.prototype.map.call(jqEl[0].querySelectorAll('ol.shuffle:not(.transformed)'), function (olEl) {
         var children = olEl.children,
             tmparr = [],
             i;
@@ -306,6 +306,7 @@ function shuffleElements(jqEl) {
         for (i = 0; i < children.length; i++) { tmparr[i] = children[i]; }
         tmparr.sort(function () { return 0.5 - Math.random(); });
         for (i = 0; i < tmparr.length; i++) { olEl.appendChild(tmparr[i]); }
+        olEl.classList.add('transformed');
     });
 
     return jqEl;
