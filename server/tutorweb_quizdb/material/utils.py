@@ -66,6 +66,13 @@ def _file_revision(material_bank, path, prev_revision):
     return "%s+%d" % (git_revision, rev_count) if rev_count > 0 else git_revision
 
 
+def material_bank_open(material_bank, path, *args):
+    combined_path = os.path.normpath(os.path.join(material_bank, path))
+    if not combined_path.startswith(material_bank):
+        raise ValueError("%s not in %s" % (path, material_bank))
+    return open(combined_path, *args)
+
+
 def path_to_materialsource(material_bank, path, prev_revision):
     """
     Read in metadata from file, turn into dict of options
@@ -74,7 +81,7 @@ def path_to_materialsource(material_bank, path, prev_revision):
     file_metadata = dict(TAGS='')
     setting_re = re.compile(r'^[#]\s*TW:(\w+)=(.*)')
     try:
-        with open(os.path.join(material_bank, path), 'r') as f:
+        with material_bank_open(material_bank, path, 'r') as f:
             for line in f:
                 m = setting_re.search(line)
                 if m:
