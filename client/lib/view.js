@@ -173,30 +173,6 @@ module.exports = function View($) {
         return $('ul.select-list a.selected').attr('href');
     };
 
-    /** Render a progress bar in the box */
-    this.renderProgress = function (count, max, message) {
-        var self = this,
-            jqBar = self.jqQuiz.find('div.progress div.bar'),
-            perc;
-        if (!jqBar.length && count === 'increment') {
-            throw new Error("Need existing bar to increment count");
-        }
-
-        if (jqBar.length) {
-            perc = count === 'increment' ? parseInt(jqBar[0].style.width, 10) + Math.round((1 / max) * 100)
-                                         : Math.round((count / max) * 100);
-            jqBar.css({"width": perc + '%'});
-            self.jqQuiz.find('p.message').text(message);
-        } else {
-            perc = Math.round((count / max) * 100);
-            self.jqQuiz.empty().append([
-                el('p').attr('class', 'message').text(message),
-                el('div').attr('class', 'progress').append(el('div').attr('class', 'bar').css({"width": perc + '%'})),
-                null
-            ]);
-        }
-    };
-
     /**
       * Return a URL that points to doc (or null for the same doc), and
       * Combines the opts with any existing ones

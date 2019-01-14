@@ -8,6 +8,7 @@ var View = require('lib/view.js');
 var AjaxApi = require('lib/ajaxapi.js');
 var Timer = require('lib/timer.js');
 var UserMenu = require('lib/usermenu.js');
+var render_progress = require('lib/progress.js').render_progress;
 var deSerializeForm = require('lib/deSerializeForm.js').deSerializeForm;
 var serializeForm = require('@f/serialize-form');
 var h = require('hyperscript');
@@ -248,7 +249,7 @@ QuizView.prototype = new View(jQuery);
             if (err.message.indexOf("Subscriptions not yet downloaded") === 0) {
                 twView.updateActions([]);
                 return quiz.syncSubscriptions({}, function (opTotal, opSucceeded, message) {
-                    twView.renderProgress(opSucceeded, opTotal, message);
+                    render_progress(twView.jqQuiz, opSucceeded, opTotal, message);
                 }).then(function () {
                     return 'set-lecture';
                 });

@@ -10,6 +10,7 @@ var parse_qs = require('../lib/parse_qs.js').parse_qs;
 var isQuotaExceededError = require('./ls_utils.js').isQuotaExceededError;
 var h = require('hyperscript');
 var select_list = require('lib/select_list.js').select_list;
+var render_progress = require('lib/progress.js').render_progress;
 
 function StartView() {
     /** Generate expanding list for tutorials / lectures */
@@ -96,7 +97,7 @@ StartView.prototype = new View(jQuery);
         return quiz.syncSubscriptions({
             syncForce: curState === 'subscription-sync-force',
         }, function (opTotal, opSucceeded, message) {
-            twView.renderProgress(opSucceeded, opTotal, message);
+            render_progress(twView.jqQuiz, opSucceeded, opTotal, message);
         }).then(function () {
             return 'lecturemenu';
         })['catch'](function (err) {

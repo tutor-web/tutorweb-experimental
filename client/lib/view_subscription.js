@@ -3,6 +3,7 @@
 "use strict";
 var AjaxApi = require('lib/ajaxapi.js');
 var select_list = require('lib/select_list.js').select_list;
+var render_progress = require('lib/progress.js').render_progress;
 var h = require('hyperscript');
 var jQuery = require('jquery');
 
@@ -67,7 +68,7 @@ module.exports['subscription-add'] = module.exports['subscription-remove'] = fun
         opts.lectureDel = self.selected_item;
     }
     return self.quiz.syncSubscriptions(opts, function (opTotal, opSucceeded, message) {
-        self.renderProgress(opSucceeded, opTotal, message);
+        render_progress(self.jqQuiz, opSucceeded, opTotal, message);
     }).then(function () {
         return self.return_state;
     });
