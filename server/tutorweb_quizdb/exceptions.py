@@ -11,6 +11,7 @@ def view_exception(e, request):
     print_stack = getattr(e, 'print_stack', True)
     request.response.status = getattr(e, 'status_code', 500)
     return {level: dict(
+        type=e.__class__.__name__,
         message=(e.__class__.__name__ + ": " if print_stack else "") + str(e),
         stack=traceback.format_exc() if print_stack else None,
     )}
