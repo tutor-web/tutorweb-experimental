@@ -110,7 +110,7 @@ def path_to_materialsource(material_bank, path, prev_revision):
         revision=revision,
         permutation_count=file_metadata['PERMUTATIONS'],
         material_tags=file_metadata['TAGS'],
-        dataframe_paths=list(parse_list(file_metadata.get('DATAFRAMES', ''))),  # TODO: Should path be relative?
+        dataframe_paths=list(parse_list(file_metadata.get('DATAFRAMES', ''))),
         initial_answered=int(file_metadata.get('TIMESANSWERED', 0)),
         initial_correct=int(file_metadata.get('TIMESCORRECT', 0)),
     )

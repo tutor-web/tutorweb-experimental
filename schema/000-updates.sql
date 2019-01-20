@@ -23,4 +23,7 @@ $do$;
 -- ugmaterial table was never finished, get rid of it
 DROP TABLE IF EXISTS ugmaterial;
 
+-- dataframe table not used, we just use existence on the path
+DROP TABLE IF EXISTS dataframe;
+
 COMMIT;

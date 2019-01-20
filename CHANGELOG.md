@@ -1,3 +1,4 @@
+* server/dataframe: Add dataframe storage per student
 * client/rendertex: Shuffling elements should only be done once
 * client: Fix support for practice questions
 * client/iaa: Add scorrect grade_algorithm, for user-generated material

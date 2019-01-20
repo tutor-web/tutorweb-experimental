@@ -2,17 +2,6 @@
 -- Material: question / example/proof / etc.
 BEGIN;
 
-
-CREATE TABLE IF NOT EXISTS dataframe (
-    path                     TEXT NOT NULL,
-    revision                 CHAR(40) NOT NULL,
-    PRIMARY KEY (path, revision),
-
-    next_revision         CHAR(40)
-);
-COMMENT ON TABLE  dataframe IS 'material repository source for data frame definitions';
-
-
 CREATE TABLE IF NOT EXISTS material_source (
     material_source_id       SERIAL PRIMARY KEY,
 

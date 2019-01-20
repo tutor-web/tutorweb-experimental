@@ -7,6 +7,11 @@ from pyramid import testing
 from tutorweb_quizdb import initialize_dbsession
 
 
+class FakeBody():
+    def __init__(self, body):
+        self.data = body
+
+
 class RequiresPyramid():
     def setUp(self):
         super(RequiresPyramid, self).setUp()
@@ -20,12 +25,14 @@ class RequiresPyramid():
 
         super(RequiresPyramid, self).tearDown()
 
-    def request(self, settings={}, user=None, params={}):
-        request = testing.DummyRequest()
+    def request(self, settings={}, user=None, params={}, method='GET', body=None):
+        request = testing.DummyRequest(method=method)
         request.registry.settings.update(settings)
         if user:
             request.user = user
         request.params = params
+        if body:
+            setattr(request, 'json', FakeBody(body))
 
         if 'sqlalchemy.ext.automap.stage' in str(request.params.get('path', None).__class__):
             # Munge a stage option into the required path
