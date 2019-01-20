@@ -3,13 +3,28 @@ from .renderer.usergenerated import ug_render
 from .renderer.r import r_render
 
 
-def material_render(ms, permutation):
+class MissingDataException(Exception):
+    status_code = 400
+
+    def __init__(self, missing):
+        self.missing = missing
+
+    def __str__(self):
+        return ", ".join(self.missing)
+
+
+def material_render(ms, permutation, student_dataframes={}):
     """
     Render a question
     """
+    # If we don't have everything we need, bleat.
+    missing = [x for x in ms.dataframe_paths if x not in student_dataframes]
+    if len(missing) > 0:
+        raise MissingDataException(missing)
+
     if 'type.template' in ms.material_tags and permutation > ms.permutation_count:
         # For templates, permutations > ms.permutation_count are user-generated material
-        out = ug_render(ms, permutation)
+        out = ug_render(ms, permutation, student_dataframes)
     elif ms.permutation_count < permutation:
         # Otherwise, permutation should be in range
         raise ValueError("Question %s only has %d permutations, not %d" % (
@@ -18,7 +33,7 @@ def material_render(ms, permutation):
             permutation,
         ))
     elif ms.path.endswith('.R'):
-        out = r_render(ms, permutation)
+        out = r_render(ms, permutation, student_dataframes)
     else:
         raise ValueError("Don't know how to render %s" % ms.path)
 

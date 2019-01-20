@@ -4,7 +4,7 @@ import time
 
 import rpy2.robjects as robjects
 
-from tutorweb_quizdb.material.render import material_render
+from tutorweb_quizdb.material.render import material_render, MissingDataException
 from tutorweb_quizdb.material.renderer.r import rob_to_dict
 
 from .requires_materialbank import RequiresMaterialBank
@@ -66,6 +66,31 @@ question <- function(permutation, data_frames) {
         # We fall over if permutation count is too high
         with self.assertRaisesRegexp(ValueError, r'100 permutations'):
             out = material_render(self.mb_fake_ms('example.q.R'), 101)
+
+    def test_material_dataframe(self):
+        """We check that requested data frames are available"""
+        self.mb_write_file('example.q.R', b'''
+# TW:TAGS=math099,Q-0990t0,lec050500,
+# TW:PERMUTATIONS=100
+# TW:DATAFRAMES=agelength
+question <- function(permutation, data_frames) {
+    return(list(
+        content = '<p class="hints">You should write a question</p>',
+        correct = list('choice_correct' = list(nonempty = TRUE))
+    ))
+}
+        ''')
+        # Without dataframe, get an error
+        with self.assertRaisesRegexp(MissingDataException, 'agelength'):
+            out = material_render(self.mb_fake_ms('example.q.R'), 1)
+
+        # Dataframe provided, question renders
+        out = material_render(self.mb_fake_ms('example.q.R'), 1, dict(agelength=dict()))
+        self.assertEqual(out, dict(
+            content='<p class="hints">You should write a question</p>',
+            correct={'choice_correct': {'nonempty': [True]}},
+            tags=['math099', 'Q-0990t0', 'lec050500', 'type.question'],
+        ))
 
     def test_multithread_safe(self):
         """Make sure we can make multiple calls to the the render concurrently"""

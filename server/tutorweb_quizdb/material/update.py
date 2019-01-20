@@ -43,7 +43,8 @@ def update(material_bank):
         DBSession.add(new_m)
         # Make sure this new item renders before we carry on
         if new_m.permutation_count > 0:
-            print("%s: %s" % (new_m.path, material_render(new_m, 1)))
+            fake_data = dict((k, None) for k in new_m.dataframe_paths)
+            print("%s: %s" % (new_m.path, material_render(new_m, 1, fake_data)))
     DBSession.flush()
 
 

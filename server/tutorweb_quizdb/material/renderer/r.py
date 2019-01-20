@@ -30,7 +30,7 @@ def rob_to_dict(a):
             for x in a]
 
 
-def r_render(ms, permutation):
+def r_render(ms, permutation, student_dataframes={}):
     """Execute R script to generate content"""
     # TODO: Caching of question objects?
     old_wd = os.getcwd()
