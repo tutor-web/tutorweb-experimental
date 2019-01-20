@@ -49,7 +49,6 @@ class MaterialRenderTest(RequiresMaterialBank, unittest.TestCase):
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=100
-# TW:DATAFRAMES=agelength
 question <- function(permutation, data_frames) {
     return(list(
         content = '<p class="hints">You should write a question</p>',
@@ -73,7 +72,6 @@ question <- function(permutation, data_frames) {
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=100
-# TW:DATAFRAMES=agelength
 question <- function(permutation, data_frames) {
     return(list(
         content = paste0('<p class="hints">You should write question ', permutation, '</p>'),

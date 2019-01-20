@@ -29,7 +29,6 @@ class ViewMaterialUpdateTest(RequiresPyramid, RequiresMaterialBank, RequiresPost
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=100
-# TW:DATAFRAMES=agelength
 
 question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
@@ -52,7 +51,6 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=100
-# TW:DATAFRAMES=agelength
 
 question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
@@ -65,7 +63,6 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,hello.mum
 # TW:PERMUTATIONS=100
-# TW:DATAFRAMES=agelength
 
 question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
@@ -78,7 +75,6 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         self.mb_write_file('example.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=100
-# TW:DATAFRAMES=agelength
 
 question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')

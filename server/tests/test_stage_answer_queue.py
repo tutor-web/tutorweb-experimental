@@ -115,14 +115,12 @@ class SyncAnswerQueueTest(RequiresMaterialBank, RequiresPyramid, RequiresPostgre
         self.mb_write_file('example1.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=10
-# TW:DATAFRAMES=agelength
 
 question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
         self.mb_write_file('example2.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=10
-# TW:DATAFRAMES=agelength
 
 question <- function(permutation, data_frames) { return(list(content = '', correct = list())) }
         ''')
@@ -286,7 +284,6 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         self.mb_write_file('example1.q.R', b'''
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=10
-# TW:DATAFRAMES=agelength
 
 question <- function(permutation, data_frames) { return(list(content = 'parp', correct = list())) }
         ''')
