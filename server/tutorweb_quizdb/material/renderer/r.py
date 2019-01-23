@@ -1,10 +1,13 @@
+import json
 import os
 import threading
 
 import rpy2.rinterface
 import rpy2.robjects as robjects
+from rpy2.robjects.packages import importr
 
 R_INTERPRETER_LOCK = threading.Lock()
+jsonlite = importr("jsonlite")
 
 
 def rob_to_dict(a):
@@ -39,9 +42,10 @@ def r_render(ms, permutation, student_dataframes={}):
             robjects.r('''question <- function () stop("R question script did not define a question function")''')
             robjects.r('''setwd''')(os.path.dirname(os.path.join(ms.bank, ms.path)))
             robjects.r('''source''')(os.path.join(ms.bank, ms.path))
-            # TODO: data.frames support
-
-            rob = robjects.globalenv['question'](permutation, [])
+            r_student_dataframes = jsonlite.fromJSON(
+                json.dumps(student_dataframes),
+            )
+            rob = robjects.globalenv['question'](permutation, r_student_dataframes)
             # TODO: Stacktraces?
             try:
                 rv = rob_to_dict(rob)

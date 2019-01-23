@@ -75,7 +75,7 @@ question <- function(permutation, data_frames) {
 # TW:DATAFRAMES=agelength
 question <- function(permutation, data_frames) {
     return(list(
-        content = '<p class="hints">You should write a question</p>',
+        content = paste('<p class="hints">You should write a question</p>', data_frames),
         correct = list('choice_correct' = list(nonempty = TRUE))
     ))
 }
@@ -85,9 +85,9 @@ question <- function(permutation, data_frames) {
             out = material_render(self.mb_fake_ms('example.q.R'), 1)
 
         # Dataframe provided, question renders
-        out = material_render(self.mb_fake_ms('example.q.R'), 1, dict(agelength=dict()))
+        out = material_render(self.mb_fake_ms('example.q.R'), 1, dict(agelength=dict(data=[1, 2, 3])))
         self.assertEqual(out, dict(
-            content='<p class="hints">You should write a question</p>',
+            content='<p class="hints">You should write a question</p> list(data = 1:3)',
             correct={'choice_correct': {'nonempty': [True]}},
             tags=['math099', 'Q-0990t0', 'lec050500', 'type.question'],
         ))
