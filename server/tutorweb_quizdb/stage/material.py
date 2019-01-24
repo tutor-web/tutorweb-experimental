@@ -19,6 +19,27 @@ VETTED_REVIEW_TEMPLATE = dict(
 )
 
 
+def material_student_dataframes(ms_arr, student):
+    """
+    Fetch all student-set dataframes given a list of paths
+    """
+    # Work out all the dataframes we need, by bank
+    bank_dataframe_paths = {}
+    for ms in ms_arr:
+        bank_dataframe_paths[ms.bank] = bank_dataframe_paths.get(ms.bank, set()).union(ms.dataframe_paths)
+
+    # For each bank, fetch everything the student has filled in
+    student_dataframes = {}
+    for bank in bank_dataframe_paths.keys():
+        student_dataframes[bank] = dict()
+        for sd in DBSession.query(Base.classes.student_dataframe).filter_by(
+            user_id=student.user_id,
+            bank=bank,
+        ).filter(Base.classes.student_dataframe.dataframe_path.in_(bank_dataframe_paths[bank])):
+            student_dataframes[bank][sd.dataframe_path] = sd.data
+    return student_dataframes
+
+
 def stage_material(alloc, requested_ids):
     """Turn list of (mss_id, permutation) or public ID into a structure with both material stats and data"""
     # Given public IDs, make them mss_id/permutation tuples
@@ -44,8 +65,12 @@ def stage_material(alloc, requested_ids):
     )
     update_stats(alloc, out['stats'])
 
+    student_dataframes = material_student_dataframes(
+        (ms for ms, _ in requested_material),
+        alloc.db_student
+    )
     for ms, permutation in requested_material:
-        rendered = material_render(ms, permutation)
+        rendered = material_render(ms, permutation, student_dataframes[ms.bank])
 
         if 'type.template' in ms.material_tags and permutation > ms.permutation_count:
             # It's a user-generated question, add in special review boxes for vetted reviewers
