@@ -16,11 +16,13 @@ OUT_FILES = \
     $(foreach O,$(OUTPUTS),www/$(O).html www/js/$(O).min.js www/css/$(O).min.css)
 
 LIBRARIES_JS = \
+    handsontable \
     jquery \
 
 LIBRARIES_CSS = \
     node_modules/bootstrap/dist/css/bootstrap-reboot.min.css \
     node_modules/bootstrap/dist/css/bootstrap-grid.min.css \
+    node_modules/handsontable/dist/handsontable.min.css \
 
 all: test lint compile
 
