@@ -19,7 +19,7 @@ def view_stage_dataframe(request):
     """
     alloc = alloc_for_view(request)
     session = None
-    new_data = request.json.data if request.method == 'PUT' else {}
+    new_data = request.json['data'] if request.method == 'PUT' else {}
 
     out = dict()
     for (bank, dataframe_path) in DBSession.execute("""

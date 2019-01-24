@@ -90,10 +90,10 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             user=self.db_studs[0],
             params=dict(path=self.db_stages[0]),
             method='PUT',
-            body={
+            body=dict(data={
                 lec_1_key_cow: dict(cow='bessie'),
                 lec_2_key_pig: dict(pig='george'),  # NB: This isn't part of lec1, gets ignored
-            },
+            }),
         ))
         self.assertEqual(lec_1_df, {
             lec_1_key_cow: dict(template=dict(cow='moo'), data=dict(cow='bessie')),
@@ -111,10 +111,10 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
             user=self.db_studs[0],
             params=dict(path=self.db_other_stages[0]),
             method='PUT',
-            body={
+            body=dict(data={
                 lec_2_key_cow: dict(cow='freda'),
                 lec_2_key_pig: dict(pig='gary'),
-            },
+            }),
         ))
         self.assertEqual(lec_2_df, {
             lec_2_key_cow: dict(template=dict(cow='moo'), data=dict(cow='freda')),

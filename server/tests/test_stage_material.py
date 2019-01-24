@@ -83,9 +83,9 @@ question <- function(permutation, data_frames) { return(list(content = paste('q3
             user=self.db_studs[0],
             params=dict(path=self.db_stages[0]),
             method='PUT',
-            body={
+            body=dict(data={
                 df_key_cow: dict(cow='bessie'),
-            },
+            }),
         ))
         lec_1_material = view_stage_material(self.request(user=self.db_studs[0], params=dict(path=self.db_stages[0])))
         self.assertEqual(lec_1_material['data'], {
@@ -102,10 +102,10 @@ question <- function(permutation, data_frames) { return(list(content = paste('q3
             user=self.db_studs[0],
             params=dict(path=self.db_other_stages[0]),
             method='PUT',
-            body={
+            body=dict(data={
                 df_key_cow: dict(cow='bessie'),
                 df_key_pig: dict(pig='george'),
-            },
+            }),
         ))
         lec_2_material = view_stage_material(self.request(user=self.db_studs[0], params=dict(path=self.db_other_stages[0])))
         self.assertEqual(lec_2_material['data'], {
@@ -116,5 +116,5 @@ question <- function(permutation, data_frames) { return(list(content = paste('q3
         })
 
         # The other user doesn't get anything
-        with self.assertRaisesRegex(MissingDataException, 'df/data_a.json'):
+        with self.assertRaisesRegex(MissingDataException, 'df/data_[ab]\.json'):
             lec_2_material = view_stage_material(self.request(user=self.db_studs[1], params=dict(path=self.db_other_stages[0])))
