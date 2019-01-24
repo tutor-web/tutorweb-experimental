@@ -1,3 +1,4 @@
+import hashlib
 import json
 
 from zope.sqlalchemy import mark_changed
@@ -30,7 +31,7 @@ SELECT DISTINCT bank, UNNEST(dataframe_paths) dataframe_path
         user_id=alloc.db_student.user_id,
         stage_id=alloc.db_stage.stage_id,
     )):
-        public_name = '%s:%s' % (bank, dataframe_path)  # hashlib.md5(('%s:%s' % (bank, dataframe_path)).encode('utf8')).hexdigest()
+        public_name = hashlib.md5(('%s:%s' % (bank, dataframe_path)).encode('utf8')).hexdigest()
 
         # Fetch JSON for dataframe from material bank
         out[public_name] = dict(
