@@ -29,7 +29,8 @@ def update(material_bank):
             m.next_material_source_id = new_m.material_source_id
             # Make sure this new item renders before we carry on
             if new_m.permutation_count > 0:
-                print("%s: %s" % (new_m.path, material_render(new_m, 1)))
+                fake_data = dict((k, None) for k in new_m.dataframe_paths)
+                print("%s: %s" % (new_m.path, material_render(new_m, 1, fake_data)))
 
         # This path considered, remove from dict
         try:
