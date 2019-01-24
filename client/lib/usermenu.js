@@ -132,6 +132,7 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
 
                 if (curUrl.hasOwnProperty('path')) {
                     menu.action.unshift(
+                        { text: "Edit data for this lecture", action: "twstate:data-display" },
                         { text: "Sync with server", action: "menustate:sync-force" },
                         { text: "Get some help on this lecture", action: "popup:chat.html#!lecUri=" + encodeURIComponent(curUrl.lecUri) }
                     );

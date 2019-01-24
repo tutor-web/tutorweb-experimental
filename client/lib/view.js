@@ -4,6 +4,7 @@ var renderTex = require('./rendertex.js').renderTex;
 require('es6-promise').polyfill();
 var parse_qs = require('../lib/parse_qs.js').parse_qs;
 var view_extensions = [
+    require('lib/view_data.js').extend,
     require('lib/view_stage_ug.js').extend,
     require('lib/view_terms.js').extend,
     require('lib/view_subscription.js').extend,
@@ -347,6 +348,9 @@ module.exports = function View($) {
             } else if (message.indexOf('tutorweb::notacceptedterms::') > -1) {
                 newState = 'terms-display';
                 self.lastError = 'You need to accept Tutor-Web terms and conditions';
+            } else if (message.indexOf('tutorweb::error::MissingDataException') > -1) {
+                newState = 'data-display';
+                self.lastError = "Fill in the following tables for this lecture";
             } else if (message.indexOf('tutorweb::') > -1) {
                 parts = message.split(/\:\:/);
                 newState = 'error-' + parts[1];
