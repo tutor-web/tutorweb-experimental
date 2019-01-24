@@ -218,7 +218,7 @@ module.exports = function View($) {
     this.ajaxApi = new AjaxApi($.ajax);
 
     this.states['go-login'] = function () {
-        window.location.href = '/auth/login';
+        window.location.href = '/auth/login?next=' + encodeURIComponent(window.location.pathname + window.location.search);
     };
 
     this.states['logout-force'] = function () {
