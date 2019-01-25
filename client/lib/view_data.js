@@ -52,6 +52,16 @@ module.exports['data-save'] = function () {
         }
         return response.json();
     }.bind(this)).then(function () {
+        return this.quiz.syncLecture(this.quiz.lecUri, {
+            ifMissing: 'fetch',
+            syncForce: true,
+            skipQuestions: false,
+            forceQuestions: true,
+            skipCleanup: false,
+        }, function (opTotal, opSucceeded, message) {
+            render_progress(this.jqQuiz, opSucceeded, opTotal, message);
+        }.bind(this));
+    }.bind(this)).then(function () {
         window.location.reload();
     }.bind(this));
 };

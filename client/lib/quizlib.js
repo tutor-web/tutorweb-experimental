@@ -678,7 +678,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 }, opts.ifMissing === 'fetch');
             }).then(function (curLecture) {
                 // Check if either we have no question bank yet, or we have missing questions
-                var missingQns = curLecture.questions.length === 0 || curLecture.questions.find(function (q) {
+                var missingQns = opts.forceQuestions || curLecture.questions.length === 0 || curLecture.questions.find(function (q) {
                     return (self.ls.getItem(q.uri) === null);
                 });
 
