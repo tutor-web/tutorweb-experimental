@@ -2005,7 +2005,7 @@ test('_updateAward', function (t) {
     ], {}).then(function (args) {
         return args;
 
-    // Fetch without wallet ID
+    // Fetch without Smileycoin address
     }).then(function (args) {
         var promise = quiz.updateAward(null);
         t.deepEqual(aa.getQueue(), [
@@ -2019,7 +2019,7 @@ test('_updateAward', function (t) {
         t.deepEqual(args, {"things": true});
         return true;
 
-    // Fetch with wallet ID, no captcha does the same
+    // Fetch with Smileycoin address, no captcha does the same
     }).then(function (args) {
         var promise = quiz.updateAward("WallEt");
         t.deepEqual(aa.getQueue(), [
@@ -2033,7 +2033,7 @@ test('_updateAward', function (t) {
         t.deepEqual(args, {"things": true});
         return true;
 
-    // Fetch with wallet ID and captcha
+    // Fetch with Smileycoin address and captcha
     }).then(function (args) {
         var promise = quiz.updateAward("WaLlEt", "12345");
         t.deepEqual(aa.getQueue(), [
