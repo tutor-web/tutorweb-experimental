@@ -260,6 +260,7 @@ QuizView.prototype = new View(jQuery);
             if (err.message.indexOf('tutorweb::unauth::') === 0) {
                 return 'go-login';
             }
+            throw err;
         });
     };
 
