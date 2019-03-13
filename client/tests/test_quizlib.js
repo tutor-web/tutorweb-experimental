@@ -28,7 +28,7 @@ function MockLocalStorage() {
     this.getParsedItem = function (key) {
         var jsonls = new JSONLocalStorage(this);
         return jsonls.getItem(key);
-    }
+    };
 
     this.setItem = function (key, value) {
         if (!this.obj.hasOwnProperty(key)) {
