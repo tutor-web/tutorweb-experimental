@@ -1060,7 +1060,7 @@ broken_test('_explanationDelay', function (t) {
 });
 
 /** We should get various strings encouraging users */
-broken_test('_gradeSummaryStrings', function (t) {
+test('_gradeSummaryStrings', function (t) {
     var ls = new MockLocalStorage(),
         quiz = new Quiz(ls),
         assignedQns = [],
@@ -1105,7 +1105,7 @@ broken_test('_gradeSummaryStrings', function (t) {
         return quiz.lectureGradeSummary().then(function (grade_summary) {
             t.equal(grade_summary.practice, undefined);
             t.equal(grade_summary.practiceStats, undefined);
-            t.equal(grade_summary.stats, 'Answered 0 questions, 0 correctly.');
+            t.equal(grade_summary.stats, 'Answered 0 questions.');
             t.equal(grade_summary.grade, 'Your grade: 0');
             t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this lecture, bonus 11 SMLY for acing whole tutorial');
             return (setAns(quiz, chooseAnswer(args, true)));
@@ -1115,7 +1115,7 @@ broken_test('_gradeSummaryStrings', function (t) {
     }).then(function (grade_summary) {
         t.equal(grade_summary.practice, undefined);
         t.equal(grade_summary.practiceStats, undefined);
-        t.equal(grade_summary.stats, 'Answered 1 questions, 1 correctly.');
+        t.equal(grade_summary.stats, 'Answered 1 questions.');
         t.equal(grade_summary.grade, 'Your grade: 3.5');
         t.equal(grade_summary.encouragement, 'If you get the next question right: 6');
 
@@ -1124,8 +1124,8 @@ broken_test('_gradeSummaryStrings', function (t) {
     }).then(function (args) {
         return quiz.lectureGradeSummary().then(function (grade_summary) {
             t.equal(grade_summary.practice, "Practice mode");
-            t.equal(grade_summary.practiceStats, "Answered 0 practice questions, 0 correctly.");
-            t.equal(grade_summary.stats, 'Answered 1 questions, 1 correctly.');
+            t.equal(grade_summary.practiceStats, "Answered 0 practice questions.");
+            t.equal(grade_summary.stats, 'Answered 1 questions.');
             t.equal(grade_summary.grade, 'Your grade: 3.5');
             t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this lecture, bonus 11 SMLY for acing whole tutorial');
             return (setAns(quiz, chooseAnswer(args, false)));
@@ -1134,7 +1134,7 @@ broken_test('_gradeSummaryStrings', function (t) {
         return quiz.lectureGradeSummary();
     }).then(function (grade_summary) {
         t.equal(grade_summary.practice, "Practice mode");
-        t.equal(grade_summary.practiceStats, "Answered 1 practice questions, 0 correctly.");
+        t.equal(grade_summary.practiceStats, "Answered 1 practice questions.");
 
     // Stop it and tidy up
     }).then(function (args) {
