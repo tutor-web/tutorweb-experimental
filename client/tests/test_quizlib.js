@@ -1526,13 +1526,13 @@ test('_setCurrentLecture_practiceAllowed', function (t) {
     });
 });
 
-broken_test('_getNewQuestion', function (t) {
+test('_getNewQuestion', function (t) {
     var ls = new MockLocalStorage(),
         aa = new MockAjaxApi(),
         promise,
         quiz = new Quiz(ls, aa),
         assignedQns = [],
-        startTime = Math.round((new Date()).getTime() / 1000) - 1,
+        startTime = Math.round((new Date()).getTime() / 1000) - 2,
         utils = test_utils();
 
     return insertTutorial(quiz, 'ut:tutorial0', 'UT tutorial', [
@@ -1543,7 +1543,7 @@ broken_test('_getNewQuestion', function (t) {
                 {"uri": "ut:question1", "chosen": 40, "correct": 100},
                 {"uri": "ut:question2", "chosen": 40, "correct": 100},
             ],
-            "settings": { "hist_sel": '0' },
+            "settings": { hist_sel: '0', timeout_std: "2", timeout_min: 3, timeout_max: 10, timeout_grade: 5 },
             "uri": "ut:lecture0",
             "question_uri": "ut:lecture0:all-questions",
         },
@@ -1552,7 +1552,7 @@ broken_test('_getNewQuestion', function (t) {
             "questions": [
                 {"uri": "ut:question-a", "chosen": 20, "correct": 100, "online-only": "true"},
             ],
-            "settings": { "hist_sel": '0' },
+            "settings": { hist_sel: '0', timeout_std: "2", timeout_min: 3, timeout_max: 10, timeout_grade: 5 },
             "uri": "ut:lecture-online",
             "question_uri": "ut:lecture0:all-questions",
         },
@@ -1561,8 +1561,7 @@ broken_test('_getNewQuestion', function (t) {
     }).then(function () {
         return quiz.getNewQuestion({practice: false});
     }).then(function (args) {
-        var qn = args.qn, a = args.a,
-            fixedOrdering = Array.apply(null, {length: qn.choices.length}).map(Number.call, Number);
+        var qn = args.qn, a = args.a;
 
         assignedQns.push(a);
         // Question data has been set up
@@ -1571,10 +1570,6 @@ broken_test('_getNewQuestion', function (t) {
             // Not shuffling everything, so last item should always be last question.
             qn.shuffle[qn.shuffle.length - 1] = 2;
         }
-        t.deepEqual(
-            a.ordering.slice(0).sort(0),  // NB: Slice first to avoid modifying entry
-            fixedOrdering
-        );
         t.ok(a.time_start > startTime);
         t.equal(a.allotted_time, 582);
         t.equal(a.allotted_time, a.remaining_time);
@@ -1643,23 +1638,22 @@ broken_test('_getNewQuestion', function (t) {
         t.equal(a.lec_answered, 3);
         t.ok(a.lec_correct <= a.lec_answered);
         t.equal(a.practice_answered, 1);
-        t.ok(a.practice_correct <= a.practice_answered);
 
     // Fetch an online question 
     }).then(function () {
         return quiz.setCurrentLecture({'lecUri': 'ut:lecture-online'});
     }).then(function () {
         promise = quiz.getNewQuestion({practice: false});
-        return aa.waitForQueue(["GET ut:question-a 0"]);
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 0"]);
 
     // Returning a fail should result in another attempt
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 0, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 1"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 0, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 1"]);
 
     // Return actual promise which should get us a question
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 1, utils.utQuestions["ut:question0"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 1, {data: {"ut:question-a": utils.utQuestions["ut:question0"]}});
         return promise;
     }).then(function (args) {
         t.equal(args.qn.text, '<div>The symbol for the set of all irrational numbers is... (a)</div>');
@@ -1668,39 +1662,39 @@ broken_test('_getNewQuestion', function (t) {
     // If we keep failing, eventually the error bubbles up.
     }).then(function () {
         promise = quiz.getNewQuestion({practice: false});
-        return aa.waitForQueue(["GET ut:question-a 2"]);
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 2"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 2, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 3"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 2, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 3"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 3, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 4"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 3, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 4"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 4, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 5"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 4, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 5"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 5, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 6"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 5, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 6"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 6, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 7"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 6, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 7"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 7, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 8"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 7, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 8"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 8, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 9"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 8, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 9"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 9, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 10"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 9, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 10"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 10, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 11"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 10, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 11"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 11, new Error("Go away"));
-        return aa.waitForQueue(["GET ut:question-a 12"]);
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 11, new Error("Go away"));
+        return aa.waitForQueue(["GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a 12"]);
     }).then(function (args) {
-        aa.setResponse('GET ut:question-a', 12, new Error("Go away now!"));
+        aa.setResponse('GET /api/stage/material?path=ut%3Alecture-online&id=ut%3Aquestion-a', 12, new Error("Go away now!"));
         return promise.then(function () { t.fail(); }).catch(function (err) {
             t.equal(err.message, "Go away now!");
         }).then(function () {
