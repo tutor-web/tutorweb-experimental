@@ -763,8 +763,8 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
             out.encouragement = "You have aced this lecture!";
         } else if (a.grade_next_right && (a.grade_next_right > currentGrade)) {
             out.encouragement = "If you get the next question right: " + a.grade_next_right;
-        } else if (lecture.settings.award_lecture_aced && lecture.settings.award_tutorial_aced) {
-            out.encouragement = "Win " + Math.round(lecture.settings.award_lecture_aced / 1000) + " SMLY if you ace this lecture, bonus "
+        } else if (lecture.settings.award_stage_aced && lecture.settings.award_tutorial_aced) {
+            out.encouragement = "Win " + Math.round(lecture.settings.award_stage_aced / 1000) + " SMLY if you ace this stage, bonus "
                                        + Math.round(lecture.settings.award_tutorial_aced / 1000) + " SMLY for acing whole tutorial";
         }
 

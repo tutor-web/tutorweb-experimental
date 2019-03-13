@@ -1077,7 +1077,7 @@ test('_gradeSummaryStrings', function (t) {
             ],
             "settings": {
                 "hist_sel": 0,
-                "award_lecture_aced":  1024,
+                "award_stage_aced":  1024,
                 "award_tutorial_aced": 10960, // NB: these values are mSMLY, need rounding
             },
             "uri": "ut:lecture0",
@@ -1094,7 +1094,7 @@ test('_gradeSummaryStrings', function (t) {
         t.equal(grade_summary.practiceStats, undefined);
         t.equal(grade_summary.stats, undefined);
         t.equal(grade_summary.grade, undefined);
-        t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this lecture, bonus 11 SMLY for acing whole tutorial');
+        t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
         return (getQn(quiz, false));
 
     // Answer some questions, should see our grade
@@ -1107,7 +1107,7 @@ test('_gradeSummaryStrings', function (t) {
             t.equal(grade_summary.practiceStats, undefined);
             t.equal(grade_summary.stats, 'Answered 0 questions.');
             t.equal(grade_summary.grade, 'Your grade: 0');
-            t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this lecture, bonus 11 SMLY for acing whole tutorial');
+            t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
             return (setAns(quiz, chooseAnswer(args, true)));
         });
     }).then(function (args) {
@@ -1127,7 +1127,7 @@ test('_gradeSummaryStrings', function (t) {
             t.equal(grade_summary.practiceStats, "Answered 0 practice questions.");
             t.equal(grade_summary.stats, 'Answered 1 questions.');
             t.equal(grade_summary.grade, 'Your grade: 3.5');
-            t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this lecture, bonus 11 SMLY for acing whole tutorial');
+            t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
             return (setAns(quiz, chooseAnswer(args, false)));
         });
     }).then(function (args) {
