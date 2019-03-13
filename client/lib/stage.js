@@ -9,8 +9,7 @@ var AjaxApi = require('lib/ajaxapi.js');
 var Timer = require('lib/timer.js');
 var UserMenu = require('lib/usermenu.js');
 var render_progress = require('lib/progress.js').render_progress;
-var deSerializeForm = require('lib/deSerializeForm.js').deSerializeForm;
-var serializeForm = require('@f/serialize-form');
+var formson = require('formson');
 var h = require('hyperscript');
 
 /**
@@ -51,7 +50,7 @@ function QuizView($) {
         ]);
 
         if (a.student_answer) {
-            deSerializeForm(jqForm[0], a.student_answer);
+            formson.update_form(jqForm[0], a.student_answer);
         }
 
         return self.renderMath();
@@ -299,7 +298,7 @@ QuizView.prototype = new View(jQuery);
     twView.states['qn-skip'] = twView.states['qn-submit'] = function (curState) {
         // Disable all controls and mark answer
         twView.updateActions([]);
-        return quiz.setQuestionAnswer(curState === 'qn-skip' ? {} : serializeForm(twView.jqQuiz.children('form')[0])).then(function (args) {
+        return quiz.setQuestionAnswer(curState === 'qn-skip' ? {} : formson.form_to_object(twView.jqQuiz.children('form')[0])).then(function (args) {
             twView.renderAnswer(args.a, args.answerData, args.qn);
             quiz.lectureGradeSummary(twView.curUrl.lecUri).then(twView.renderGradeSummary.bind(twView));
             twMenu.syncAttempt(false);
@@ -330,7 +329,7 @@ QuizView.prototype = new View(jQuery);
     };
 
     twView.states['qn-submitreview'] = function (curState) {
-        return quiz.setQuestionReview(serializeForm(twView.jqQuiz.children('form')[1])).then(function (args) {
+        return quiz.setQuestionReview(formson.form_to_object(twView.jqQuiz.children('form')[1])).then(function (args) {
             twMenu.syncAttempt(false);
 
             twView.updateActions(postQuestionActions(args).filter(function (s) { return s !== 'qn-startreview'; }));

@@ -4,11 +4,11 @@
   "description": "Tutor-Web quiz system",
   "homepage": "http://www.tutor-web.net/",
   "dependencies": {
-    "@f/serialize-form": "^1.0.0",
     "bootstrap": "^4.0.0",
     "crel": "~3.1.0",
     "custom-event-polyfill": "^0.3.0",
     "es6-promise": "~4.2.2",
+    "formson": "git://github.com/lentinj/formson",
     "hodf": "shuttlethread/hodf",
     "hyperscript": "^2.0.2",
     "ie-array-find-polyfill": "^1.1.0",

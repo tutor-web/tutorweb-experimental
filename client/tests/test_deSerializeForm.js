@@ -2,17 +2,42 @@
 /*jslint nomen: true, plusplus: true*/
 var test = require('tape');
 
-var deSerializeForm = require('lib/deSerializeForm.js').deSerializeForm;
+var proto = '__proto__';
 
+function NodeList() {
+    var out = Array.apply(null, arguments);
+
+    out[proto] = NodeList.prototype;
+    return out;
+}
+NodeList.prototype = {};
+NodeList.prototype[proto] = Array.prototype;
+global.window = { NodeList: NodeList };
+
+var formson = require('formson');
+
+// NB: deSerializeForm used to be part of this project, replaced with formson
 test('deSerializeForm', function (t) {
     // Build a fake form object, run deSerializeForm on it, return
     function do_dsf(element_names, data) {
         var fake_form = { elements: element_names.map(function (n) {
-            return {name: n, value: "DEFAULT-" + n};
+            return {nodeName: 'INPUT', type: 'text', name: n, value: "DEFAULT-" + n};
         })};
 
-        deSerializeForm(fake_form, data);
-        return fake_form.elements;
+        fake_form.elements.forEach(function (el) {
+            if (!fake_form.elements.hasOwnProperty(el.name)) {
+                fake_form.elements[el.name] = el;
+            } else if (fake_form.elements[el.name] instanceof global.window.NodeList) {
+                fake_form.elements[el.name].push(el);
+            } else {
+                fake_form.elements[el.name] = new global.window.NodeList(fake_form.elements[el.name], el);
+            }
+        });
+
+        formson.update_form(fake_form, data);
+        return fake_form.elements.map(function (el) {
+            return { name: el.name, value: el.value };
+        });
     }
 
     t.deepEqual(do_dsf([], {}), [], "No elements or data passes through");
@@ -51,10 +76,9 @@ test('deSerializeForm', function (t) {
         cows: ['freda'],
     }), [
         { name: "cows[]", value: "freda" },
-        { name: "cows[]", value: "DEFAULT-cows[]" },
-        { name: "cows[]", value: "DEFAULT-cows[]" },
-    ], "If we run out of array elements, leave alone");
+        { name: "cows[]", value: "" },
+        { name: "cows[]", value: "" },
+    ], "If we run out of array elements, clear elements");
 
     t.end();
 });
-
