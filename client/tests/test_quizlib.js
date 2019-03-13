@@ -2067,7 +2067,7 @@ test('_updateAward', function (t) {
     });
 });
 
-broken_test('_updateUserDetails', function (t) {
+test('_updateUserDetails', function (t) {
     var ls = new MockLocalStorage(),
         aa = new MockAjaxApi(),
         quiz = new Quiz(ls, aa);
@@ -2086,11 +2086,11 @@ broken_test('_updateUserDetails', function (t) {
 
     // Fetch without data
     }).then(function (args) {
-        var promise = quiz.updateUserDetails('ut://tutorial0/', null);
+        var promise = quiz.updateUserDetails(null);
         t.deepEqual(aa.getQueue(), [
-            'POST ut://tutorial0/@@quizdb-student-updatedetails 0',
+            'POST /api/student/details 0',
         ]);
-        aa.setResponse('POST ut://tutorial0/@@quizdb-student-updatedetails', 0, {"things": true});
+        aa.setResponse('POST /api/student/details', 0, {"things": true});
         return promise;
 
     }).then(function (args) {
@@ -2100,15 +2100,15 @@ broken_test('_updateUserDetails', function (t) {
 
     // Fetch with data
     }).then(function (args) {
-        var promise = quiz.updateUserDetails('ut://tutorial0/', {email: "bob@geldof.com"});
+        var promise = quiz.updateUserDetails({email: "bob@geldof.com"});
         t.deepEqual(aa.getQueue(), [
-            'POST ut://tutorial0/@@quizdb-student-updatedetails 1',
+            'POST /api/student/details 1',
         ]);
         t.deepEqual(
-            aa.data['POST ut://tutorial0/@@quizdb-student-updatedetails 1'],
+            aa.data['POST /api/student/details 1'],
             {email: "bob@geldof.com"}
         );
-        aa.setResponse('POST ut://tutorial0/@@quizdb-student-updatedetails', 1, {"things": false});
+        aa.setResponse('POST /api/student/details', 1, {"things": false});
         return promise;
 
     }).then(function (args) {
