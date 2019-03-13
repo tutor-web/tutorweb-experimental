@@ -608,7 +608,6 @@ broken_test('_syncLecture', function (t) {
             "lec_answered": 8,
             "lec_correct": 3,
             "practice_answered": 0,
-            "practice_correct": 0,
             "synced" : true,
         });
         t.equal(lec.answerQueue[1].uri, assignedQns[3].uri);
@@ -617,7 +616,6 @@ broken_test('_syncLecture', function (t) {
         t.equal(lec.answerQueue[1].lec_correct, lec.answerQueue[1].correct ? 4 : 3);
         // Practice counts initialised
         t.equal(lec.answerQueue[1].practice_answered, 0);
-        t.equal(lec.answerQueue[1].practice_correct, 0);
         t.deepEqual(lec.answerQueue[1].synced, false);
         t.deepEqual(lec.settings, { "any_setting": 0.5 });
 
@@ -654,7 +652,7 @@ broken_test('_syncLecture', function (t) {
     }).then(function (args) {
         var lec = ls.getParsedItem('ut:lecture0');
         t.equal(lec.answerQueue.length, 2);
-        t.deepEqual(lec.answerQueue[0], {"camel" : 3, "synced" : true, lec_answered: 0, lec_correct: 0, practice_answered: 0, practice_correct: 0});
+        t.deepEqual(lec.answerQueue[0], {"camel" : 3, "synced" : true, lec_answered: 0, lec_correct: 0, practice_answered: 0});
         t.equal(assignedQns.length, 6);
         t.equal(lec.answerQueue[1].uri, assignedQns[assignedQns.length - 1].uri);
 
@@ -691,7 +689,6 @@ broken_test('_syncLecture', function (t) {
         t.equal(lec.answerQueue[1].lec_answered, 9);
         t.equal(lec.answerQueue[1].lec_correct, assignedQns[6].correct ? 4 : 3);
         t.equal(lec.answerQueue[1].practice_answered, 1);
-        t.equal(lec.answerQueue[1].practice_correct, assignedQns[6].correct ? 1 : 0);
 
     // Counts start from zero if server doesn't tell us otherwise
     }).then(function (args) {
@@ -726,7 +723,6 @@ broken_test('_syncLecture', function (t) {
         t.deepEqual(aqProperty('lec_answered'), [1, 2, 3, 4, 5]);
         t.deepEqual(aqProperty('lec_correct'),  [1, 2, 2, 3, 4]);
         t.deepEqual(aqProperty('practice_answered'), [0, 0, 1, 2, 2]);
-        t.deepEqual(aqProperty('practice_correct'),  [0, 0, 0, 1, 1]);
 
     // Do a sync with the wrong user, we complain.
     }).then(function (args) {
@@ -1624,7 +1620,6 @@ broken_test('_getNewQuestion', function (t) {
         t.equal(a.lec_answered, 1);
         t.ok(a.lec_correct <= a.lec_answered);
         t.equal(a.practice_answered, 0);
-        t.equal(a.practice_correct, 0);
 
         // Answer, get practice question
         return quiz.setQuestionAnswer([{name: "answer", value: 0}]);
@@ -1639,7 +1634,6 @@ broken_test('_getNewQuestion', function (t) {
         t.equal(a.lec_answered, 2);
         t.ok(a.lec_correct <= a.lec_answered);
         t.equal(a.practice_answered, 0);
-        t.equal(a.practice_correct, 0);
 
         // Answer it, practice counts go up
         return quiz.setQuestionAnswer([{name: "answer", value: 0}]);
