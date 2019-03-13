@@ -186,9 +186,9 @@ function newTutorial(quiz, tut_uri, extra_settings, question_counts) {
                         '<div>$\\mathbb{Q} \\backslash \\mathbb{R}$</div>',
                         '<div>$\\mathbb{N} \\cap \\mathbb{Q}$</div>' ],
                     "shuffle": [0, 1, 2],
+                    "correct": { "answer": [0] },
                     "answer": {
                         "explanation": "<div>\nThe symbol for the set of all irrational numbers (a)\n</div>",
-                        "correct": [0]
                     }
                 };
 
@@ -207,11 +207,11 @@ function chooseAnswer(args, correct) {
     for (i = 0; i < args.qn.choices.length; i++) {
         if (args.qn.choices[i].indexOf('(me)') > -1) {
             if (correct) {
-                return args.a.ordering.indexOf(i);
+                return { answer: i };
             }
         } else {
             if (!correct) {
-                return args.a.ordering.indexOf(i);
+                return { answer: i };
             }
         }
     }
@@ -246,9 +246,9 @@ function test_utils() {
                 '<div>$\\mathbb{Q} \\backslash \\mathbb{R}$</div>',
                 '<div>$\\mathbb{N} \\cap \\mathbb{Q}$</div>' ],
             "shuffle": [0, 1, 2],
+            "correct": { answer: [0] },
             "answer": {
                 "explanation": "<div>\nThe symbol for the set of all irrational numbers (a)\n</div>",
-                "correct": [0]
             }
         },
         "ut:question1" : {
@@ -258,9 +258,9 @@ function test_utils() {
                 '<div>$\\mathbb{Q} \\backslash \\mathbb{R}$</div>',
                 '<div>$\\mathbb{N} \\cap \\mathbb{Q}$ (me)</div>' ],
             "shuffle": [0, 1],
+            "correct": { answer: [0, 2] },
             "answer": {
                 "explanation": "<div>\nThe symbol for the set of all irrational numbers (b)\n</div>",
-                "correct": [0, 2]
             }
         },
         "ut:question2" : {
@@ -270,9 +270,9 @@ function test_utils() {
                 '<div>$\\mathbb{Q} \\backslash \\mathbb{R}$</div>',
                 '<div>$\\mathbb{N} \\cap \\mathbb{Q}$</div>' ],
             "shuffle": [0, 1, 2],
+            "correct": { answer: [0] },
             "answer": {
                 "explanation": "<div>\nThe symbol for the set of all irrational numbers (c)\n</div>",
-                "correct": [0]
             }
         },
     };
@@ -580,9 +580,9 @@ broken_test('_syncLecture', function (t) {
                 '<div>$\\mathbb{N} \\cap \\mathbb{Q}$</div>'
             ],
             "shuffle": [0, 1, 2],
+            "correct": { answer: [0] },
             "answer": {
                 "explanation": "<div>\nThe symbol for the set of all irrational numbers (a)\n</div>",
-                "correct": [0]
             },
         });
         return ajaxPromise;
