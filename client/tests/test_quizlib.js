@@ -3,6 +3,7 @@
 var test = require('tape');
 
 var Quiz = require('../lib/quizlib.js');
+var JSONLocalStorage = require('../lib/jsonls');
 var tk = require('timekeeper');
 var Promise = require('es6-promise').Promise;
 
@@ -23,6 +24,11 @@ function MockLocalStorage() {
         var value = this.obj[key];
         return value === undefined ? null : value;
     };
+
+    this.getParsedItem = function (key) {
+        var jsonls = new JSONLocalStorage(this);
+        return jsonls.getItem(key);
+    }
 
     this.setItem = function (key, value) {
         if (!this.obj.hasOwnProperty(key)) {
@@ -588,13 +594,13 @@ broken_test('_syncLecture', function (t) {
         return ajaxPromise;
     }).then(function (args) {
         t.equal(
-            JSON.parse(ls.getItem('ut:question8')).text,
+            ls.getParsedItem('ut:question8').text,
             '<div>The symbol for the set of all irrational numbers is... (a)</div>'
         );
 
     // Lecture should have been updated, with additional question kept
     }).then(function (args) {
-        var lec = JSON.parse(ls.getItem('ut:lecture0'));
+        var lec = ls.getParsedItem('ut:lecture0');
         t.equal(lec.answerQueue.length, 2);
         t.deepEqual(lec.answerQueue[0], {
             "time_end": 5,
@@ -646,7 +652,7 @@ broken_test('_syncLecture', function (t) {
 
     // Unanswered question still on end
     }).then(function (args) {
-        var lec = JSON.parse(ls.getItem('ut:lecture0'));
+        var lec = ls.getParsedItem('ut:lecture0');
         t.equal(lec.answerQueue.length, 2);
         t.deepEqual(lec.answerQueue[0], {"camel" : 3, "synced" : true, lec_answered: 0, lec_correct: 0, practice_answered: 0, practice_correct: 0});
         t.equal(assignedQns.length, 6);
@@ -679,7 +685,7 @@ broken_test('_syncLecture', function (t) {
         });
         return ajaxPromise;
     }).then(function (args) {
-        var lec = JSON.parse(ls.getItem('ut:lecture0'));
+        var lec = ls.getParsedItem('ut:lecture0');
         t.equal(lec.answerQueue.length, 2);
         t.equal(assignedQns.length, 7);
         t.equal(lec.answerQueue[1].lec_answered, 9);
@@ -712,7 +718,7 @@ broken_test('_syncLecture', function (t) {
             return syncPromise;
         });
     }).then(function (args) {
-        var lec = JSON.parse(ls.getItem('ut:lecture0'));
+        var lec = ls.getParsedItem('ut:lecture0');
         function aqProperty(k) {
             return lec.answerQueue.map(function (a) { return a[k]; });
         }
@@ -724,7 +730,7 @@ broken_test('_syncLecture', function (t) {
 
     // Do a sync with the wrong user, we complain.
     }).then(function (args) {
-        var lec = JSON.parse(ls.getItem('ut:lecture0'));
+        var lec = ls.getParsedItem('ut:lecture0');
 
         lec.user = 'ut_student';
         ls.setItem('ut:lecture0', JSON.stringify(lec));
@@ -741,7 +747,7 @@ broken_test('_syncLecture', function (t) {
             "question_uri": "ut:lecture0:all-questions",
         });
         return ajaxPromise.then(function () { t.fail(); }).catch(function (err) {
-            var lec = JSON.parse(ls.getItem('ut:lecture0'));
+            var lec = ls.getParsedItem('ut:lecture0');
 
             t.ok(err.message.indexOf("not_the_user_you_are_looking_for") > -1);
             t.equal(lec.answerQueue.length, 5);
@@ -777,7 +783,7 @@ broken_test('_syncLecture', function (t) {
         return ajaxPromise.then(function () {
             // All new questions updated
             Object.keys(newQuestions).map(function (k) {
-                t.deepEqual(JSON.parse(ls.getItem(k)), newQuestions[k]);
+                t.deepEqual(ls.getParsedItem(k), newQuestions[k]);
             });
         });
 
@@ -806,7 +812,7 @@ broken_test('_setQuestionAnswer', function (t) {
 
     // Fail to answer question, should get a null for the student answer
     }).then(function (args) {
-        var lec = JSON.parse(ls.getItem('ut:lecture0'));
+        var lec = ls.getParsedItem('ut:lecture0');
         t.equal(lec.answerQueue.length, 1);
         t.ok(lec.answerQueue[0].time_end > startTime);
         t.equal(typeof lec.answerQueue[0].student_answer, "object");
@@ -1284,7 +1290,7 @@ test('_gradeSummarylastEight', function (t) {
 });
 
 /** Should update question count upon answering questions */
-broken_test('_questionUpdate ', function (t) {
+test('_questionUpdate ', function (t) {
     var ls = new MockLocalStorage(),
         quiz = new Quiz(ls),
         assignedQns = [],
@@ -1306,7 +1312,7 @@ broken_test('_questionUpdate ', function (t) {
     // Turn questions into a hash for easy finding
     function qnHash() {
         var out = {};
-        JSON.parse(ls.getItem('ut:lecture0')).questions.map(function (qn) {
+        ls.getParsedItem('ut:lecture0').questions.map(function (qn) {
             out[qn.uri] = {"chosen": qn.chosen, "correct": qn.correct};
         });
         return out;
@@ -1589,7 +1595,7 @@ broken_test('_getNewQuestion', function (t) {
         // Pass some time, then request the same question again.
         tk.travel(new Date((new Date()).getTime() + 3000));
         t.notEqual(startTime, Math.round((new Date()).getTime() / 1000) - 1);
-        t.equal(JSON.parse(ls.getItem('ut:lecture0')).answerQueue.length, 1);
+        t.equal(ls.getParsedItem('ut:lecture0').answerQueue.length, 1);
 
         return quiz.getNewQuestion({practice: false}).then(function (args) {
             var new_a = args.a;
@@ -1597,7 +1603,7 @@ broken_test('_getNewQuestion', function (t) {
             // No question answered, so just get the same one back.
             t.deepEqual(a.uri, new_a.uri);
             t.deepEqual(a.ordering, new_a.ordering);
-            t.equal(JSON.parse(ls.getItem('ut:lecture0')).answerQueue.length, 1);
+            t.equal(ls.getParsedItem('ut:lecture0').answerQueue.length, 1);
             t.equal(a.allotted_time, new_a.remaining_time + 3); //3s have passed
 
             // Answer it, get new question
@@ -1609,7 +1615,7 @@ broken_test('_getNewQuestion', function (t) {
     }).then(function (args) {
         var a = args.a;
 
-        t.equal(JSON.parse(ls.getItem('ut:lecture0')).answerQueue.length, 2);
+        t.equal(ls.getParsedItem('ut:lecture0').answerQueue.length, 2);
 
         // Time has advanced
         t.equal(assignedQns[assignedQns.length - 1].time_start, a.time_start - 3);
@@ -1627,7 +1633,7 @@ broken_test('_getNewQuestion', function (t) {
     }).then(function (args) {
         var a = args.a;
 
-        t.equal(JSON.parse(ls.getItem('ut:lecture0')).answerQueue.length, 3);
+        t.equal(ls.getParsedItem('ut:lecture0').answerQueue.length, 3);
 
         // Counts have gone up (but for question we answered)
         t.equal(a.lec_answered, 2);
