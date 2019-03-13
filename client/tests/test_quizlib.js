@@ -923,7 +923,7 @@ broken_test('_setQuestionAnswer', function (t) {
     });
 });
 
-broken_test('_setQuestionAnswer_exam', function (t) {
+test('_setQuestionAnswer_exam', function (t) {
     var ls = new MockLocalStorage(),
         quiz = new Quiz(ls);
 
@@ -992,7 +992,7 @@ broken_test('_setQuestionAnswer_exam', function (t) {
 });
 
 /** Explanation delay should increase with incorrect questions */
-broken_test('_explanationDelay', function (t) {
+test('_explanationDelay', function (t) {
     var ls = new MockLocalStorage(),
         quiz = new Quiz(ls),
         utils = test_utils();
