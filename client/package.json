@@ -12,7 +12,6 @@
     "hodf": "shuttlethread/hodf",
     "hyperscript": "^2.0.2",
     "ie-array-find-polyfill": "^1.1.0",
-    "istanbul": "^0.4.4",
     "jquery": "~3.3.1",
     "knuth-shuffle": "~1.0.1",
     "lz-string": "~1.4.4",
@@ -29,6 +28,7 @@
     "jslint": "~0.11.0",
     "node-static": "~0.7.3",
     "nodeunit": "~0.11.2",
+    "nyc": "^13.3.0",
     "timekeeper": "~2.0.0",
     "uglify-js": "^3.3.16"
   },
@@ -41,6 +41,11 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/tutor-web/tutorweb.quiz.git"
+  },
+  "scripts": {
+    "coverage": "NODE_PATH=. nyc node_modules/.bin/tape tests/test_*.js",
+    "lint": "NODE_PATH=. jslint lib/*.js tests/*.js",
+    "test": "NODE_PATH=. tape tests/test_*.js"
   },
   "licence": "GPLv2"
 }

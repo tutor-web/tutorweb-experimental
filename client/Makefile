@@ -36,13 +36,15 @@ compile: node_modules/ clean-unused $(OUT_FILES)
 start: all
 
 test: node_modules/
-	$(NODE_CMD) node_modules/.bin/tape tests/test_*.js
+	yarn run test
 
 coverage: node_modules/
-	$(NODE_CMD) node_modules/istanbul/lib/cli.js cover node_modules/tape/bin/tape tests/test_*.js
+	yarn run coverage
+	mkdir -p www/coverage/client/
+	yarn run nyc report --reporter=html --report-dir=www/coverage/client/
 
 lint: node_modules/
-	$(NODE_CMD) node_modules/jslint/bin/jslint lib/*.js tests/*.js
+	yarn run lint
 
 clean:
 	rm -r -- "node_modules/" || true
@@ -274,4 +276,4 @@ www/tw.appcache: www/*.html www/tw.js www/polyfill.js www/mathjax-config.js www/
 	@echo -n "# " >> $@
 	@cat $+ | md5sum | cut -d' ' -f1 >> $@
 
-.PHONY: compile test start lint clean clean-unused watch
+.PHONY: compile test coverage start lint clean clean-unused watch

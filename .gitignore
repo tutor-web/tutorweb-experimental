@@ -1,8 +1,8 @@
 *.mktmp
-/client/coverage
+/client/.nyc_output/
 /client/doc
 /client/node_modules/
-/client/www/htmlcov
+/client/www/coverage/
 /client/www/css/*.min.css
 /client/www/css/*.png
 /client/www/js/*
