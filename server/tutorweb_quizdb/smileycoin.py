@@ -89,7 +89,7 @@ def callMethod(method, *params):
         """
         Jump through python3 hoops to encode base64 string
         """
-        return base64.encodestring(auth.encode('ascii')).decode('ascii').replace('\n', '')
+        return base64.encodebytes(auth.encode('ascii')).decode('ascii').replace('\n', '')
 
     callId = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
 

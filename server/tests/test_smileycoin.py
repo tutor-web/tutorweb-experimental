@@ -156,7 +156,7 @@ class MockHTTPHandler(urllib.request.HTTPHandler):
         requests.append(dict(
             url=req.get_full_url(),
             contenttype=req.headers['Content-type'],
-            auth=base64.decodestring(req.headers['Authorization'].replace('Basic ', '').encode('utf8')).decode('utf8'),
+            auth=base64.decodebytes(req.headers['Authorization'].replace('Basic ', '').encode('utf8')).decode('utf8'),
             data=json.loads(req.data.decode('utf8')),
         ))
 
