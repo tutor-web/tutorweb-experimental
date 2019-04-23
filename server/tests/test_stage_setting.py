@@ -49,9 +49,9 @@ class SettingSpecTest(unittest.TestCase):
 
         # String values come out unaltered, but can't be randomly chosen
         self.assertEqual(csv(key="iaa_mode", value="fun-size"), "fun-size")
-        with self.assertRaisesRegexp(ValueError, 'iaa_mode'):
+        with self.assertRaisesRegex(ValueError, 'iaa_mode'):
             csv(key="iaa_mode", value="fun-size", shape=2)
-        with self.assertRaisesRegexp(ValueError, 'iaa_mode'):
+        with self.assertRaisesRegex(ValueError, 'iaa_mode'):
             csv(key="iaa_mode", value="fun-size", max=4)
 
         # We can generate random strings with randstring

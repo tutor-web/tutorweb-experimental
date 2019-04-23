@@ -64,7 +64,7 @@ question <- function(permutation, data_frames) {
         ))
 
         # We fall over if permutation count is too high
-        with self.assertRaisesRegexp(ValueError, r'100 permutations'):
+        with self.assertRaisesRegex(ValueError, r'100 permutations'):
             out = material_render(self.mb_fake_ms('example.q.R'), 101)
 
     def test_material_dataframe(self):
@@ -81,7 +81,7 @@ question <- function(permutation, data_frames) {
 }
         ''')
         # Without dataframe, get an error
-        with self.assertRaisesRegexp(MissingDataException, 'agelength'):
+        with self.assertRaisesRegex(MissingDataException, 'agelength'):
             out = material_render(self.mb_fake_ms('example.q.R'), 1)
 
         # Dataframe provided, question renders

@@ -79,7 +79,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         ])
 
         # Other students not allowed to mark as superseded, nothing changes
-        with self.assertRaisesRegexp(ValueError, 'Expected to find one answer, not 0'):
+        with self.assertRaisesRegex(ValueError, 'Expected to find one answer, not 0'):
             out = view_stage_ug_rewrite(self.request(user=self.db_studs[1], params=dict(
                 uri='template1.t.R:1:10',
                 path=self.db_stages[0],

@@ -154,5 +154,5 @@ class PathToMaterialSourceTest(RequiresMaterialBank, unittest.TestCase):
 # TW:TAGS=math099,Q-0990t0,lec050500,
 # TW:PERMUTATIONS=12
         ''')
-        with self.assertRaisesRegexp(ValueError, "10 permutations"):
+        with self.assertRaisesRegex(ValueError, "10 permutations"):
             out = path_to_materialsource(self.material_bank.name, 'example.t.R', '')

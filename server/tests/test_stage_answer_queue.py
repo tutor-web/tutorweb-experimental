@@ -138,7 +138,7 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         self.assertEqual(additions, 0)
 
         # Nonsense items cause an error
-        with self.assertRaisesRegexp(ValueError, 'example9.q.R'):
+        with self.assertRaisesRegex(ValueError, 'example9.q.R'):
             (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [
                 aq_dict(time_end=2013, uri='example9.q.R:1:1', grade_after=9.9)
             ], 0)
