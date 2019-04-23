@@ -209,7 +209,7 @@ def sync_answer_queue(alloc, in_queue, time_offset):
                 .filter(Base.classes.answer.stage_id.in_(all_stages))
                 .filter(Base.classes.answer.user_id == alloc.db_student.id)
                 .order_by(Base.classes.answer.time_end, Base.classes.answer.time_offset)
-                .with_lockmode('update').all())
+                .with_for_update().all())
 
     # Fetch any reviews if we've written content here
     # NB: This won't select items in in_queue that haven't been inserted yet, but
