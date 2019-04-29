@@ -336,7 +336,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
     this.rewriteUgMaterial = function (old_a) {
         var self = this;
 
-        return self.ajaxApi.getJson('/api/stage/ug-rewrite?path=' + encodeURIComponent(self.lecUri) + '&uri=' + encodeURIComponent(old_a.uri)).then(function (data) {
+        return self.ajaxApi.getJson('/api/stage/ug-rewrite?path=' + encodeURIComponent(self.lecUri) + '&uri=' + encodeURIComponent(old_a.uri) + '&time_end=' + encodeURIComponent(old_a.time_end)).then(function (data) {
             return self._withLecture(null, function (curLecture) {
                 var a = data, lastAns = arrayLast(curLecture.answerQueue, {});
 
@@ -724,6 +724,7 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                 return {
                     uri: a.uri,
                     text: a.student_answer.text,  // TODO: rst it, somewhere
+                    time_end: a.time_end,
                     children: a.ug_reviews.map(function (r) {
                         return r;
                     }),

@@ -70,29 +70,34 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         self.db_studs = self.create_students(2)
         DBSession.flush()
 
-        # Templates should get their own sequence ID
+        # Add multiple questions, so we make sure we update the right one
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [
             aq_dict(uri='template1.t.R:1:1', time_end=1010, correct=None, student_answer=dict(text="2"), review=None),
+            aq_dict(uri='template1.t.R:1:1', time_end=1020, correct=None, student_answer=dict(text="x"), review=None),
         ], 0)
         self.assertEqual(out, [
-            aq_dict(uri='template1.t.R:1:10', time_end=1010, correct=None, student_answer=dict(text="2"), review=None),
+            aq_dict(uri='template1.t.R:1:1', time_end=1010, correct=None, student_answer=dict(text="2"), review=None),
+            aq_dict(uri='template1.t.R:1:1', time_end=1020, correct=None, student_answer=dict(text="x"), review=None),
         ])
 
         # Other students not allowed to mark as superseded, nothing changes
         with self.assertRaisesRegex(ValueError, 'Expected to find one answer, not 0'):
             out = view_stage_ug_rewrite(self.request(user=self.db_studs[1], params=dict(
-                uri='template1.t.R:1:10',
+                uri='template1.t.R:1:1',
                 path=self.db_stages[0],
+                time_end='1010',
             )))
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [], 0)
         self.assertEqual(out, [
-            aq_dict(uri='template1.t.R:1:10', time_end=1010, correct=None, student_answer=dict(text="2"), review=None),
+            aq_dict(uri='template1.t.R:1:1', time_end=1010, correct=None, student_answer=dict(text="2"), review=None),
+            aq_dict(uri='template1.t.R:1:1', time_end=1020, correct=None, student_answer=dict(text="x"), review=None),
         ])
 
         # Mark this question as superseded, we get back the question info
         out = view_stage_ug_rewrite(self.request(user=self.db_studs[0], params=dict(
-            uri='template1.t.R:1:10',
+            uri='template1.t.R:1:1',
             path=self.db_stages[0],
+            time_end=1010,
         )))
         self.assertEqual(out, dict(
             uri='template1.t.R:1:1',  # NB: We get the URI of the template, not the question
@@ -102,5 +107,6 @@ question <- function(permutation, data_frames) { return(list(content = '', corre
         # If we check again, we see it's superseded
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [], 0)
         self.assertEqual(out, [
-            aq_dict(uri='template1.t.R:1:10', time_end=1010, correct=False, student_answer=dict(text="2"), review={"superseded": True}),
+            aq_dict(uri='template1.t.R:1:1', time_end=1010, correct=False, student_answer=dict(text="2"), review={"superseded": True}),
+            aq_dict(uri='template1.t.R:1:1', time_end=1020, correct=None, student_answer=dict(text="x"), review=None),
         ])

@@ -72,7 +72,7 @@ def stage_material(alloc, requested_ids):
     for ms, permutation in requested_material:
         rendered = material_render(ms, permutation, student_dataframes[ms.bank])
 
-        if 'type.template' in ms.material_tags and permutation > ms.permutation_count:
+        if 'type.template' in ms.material_tags and permutation < 0:
             # It's a user-generated question, add in special review boxes for vetted reviewers
             if student_is_vetted(alloc.db_student, alloc.db_stage):
                 rendered['review_questions'].insert(0, VETTED_REVIEW_TEMPLATE)

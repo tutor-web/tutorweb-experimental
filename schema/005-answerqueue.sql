@@ -36,15 +36,6 @@ COMMENT ON COLUMN answer.student_answer IS 'The student_answer object, i.e. the 
 COMMENT ON COLUMN answer.review IS 'The students review of the material, if they did one';
 
 
-CREATE SEQUENCE IF NOT EXISTS ug_question_id
-    START WITH 10  -- i.e MAX_TEMPLATE_PERMUTATIONS
-    OWNED BY answer.permutation;
-COMMENT ON SEQUENCE ug_question_id IS ''
-    'IDs for user-generated questions, used as permutation values'
-    'Ideally would be one sequence per-template question ID, but this is fine too.'
-    'Start at 10 so 1..9 can be reserved for the template itself';
-
-
 CREATE OR REPLACE VIEW answer_stats AS
     SELECT a.stage_id
          , a.material_source_id
@@ -81,17 +72,17 @@ COMMENT ON VIEW stage_material_sources IS 'All appropriate material for all stag
 
 
 CREATE OR REPLACE VIEW stage_ugmaterial AS
-    SELECT DISTINCT ON (a.material_source_id, a.permutation)
+    SELECT DISTINCT ON (CASE WHEN a.permutation < 0 THEN 0 - a.permutation ELSE a.answer_id END)
     a.*
     , JSONB_AGG(JSONB_BUILD_ARRAY(user_id, review)) OVER curqn AS reviews
     FROM answer a
     WINDOW curqn AS (
         -- i.e. all rows dealing with the current question
-        PARTITION BY a.material_source_id, a.permutation
-        ORDER BY a.material_source_id, a.permutation, a.time_end, a.answer_id
+        PARTITION BY CASE WHEN a.permutation < 0 THEN 0 - a.permutation ELSE a.answer_id END
+        ORDER BY CASE WHEN a.permutation < 0 THEN 0 - a.permutation ELSE a.answer_id END, a.time_end, a.answer_id
         ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
     )
-    ORDER BY a.material_source_id, a.permutation, a.time_end, a.answer_id;
+    ORDER BY CASE WHEN a.permutation < 0 THEN 0 - a.permutation ELSE a.answer_id END, a.time_end, a.answer_id;
 COMMENT ON VIEW stage_ugmaterial IS 'All user-generated content and reviews against them';
 
 COMMIT;

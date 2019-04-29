@@ -1,6 +1,5 @@
 import logging
 
-from sqlalchemy import Sequence
 from sqlalchemy.orm.exc import NoResultFound
 
 from tutorweb_quizdb import DBSession, Base
@@ -173,15 +172,11 @@ def incoming_to_db(alloc, in_a):
             alloc.db_student.user_name,
         ))
 
-    if 'type.template' in ms.material_tags and permutation < 10:
-        # It's newly-written material, rather than a review. Assign new permutation
-        permutation = DBSession.execute(Sequence("ug_question_id"))
-
     return Base.classes.answer(
         stage_id=alloc.db_stage.stage_id,  # NB: Assume incoming answers are based on the latest stage
         user_id=alloc.db_student.id,
 
-        material_source_id=mss_id,
+        material_source_id=ms.material_source_id,
         permutation=permutation,
         client_id=in_a['client_id'],
         time_start=timestamp_to_datetime(in_a['time_start']),
@@ -215,9 +210,9 @@ def sync_answer_queue(alloc, in_queue, time_offset):
     # NB: This won't select items in in_queue that haven't been inserted yet, but
     #     should just be the self-review we won't return anyway.
     stage_ug_reviews = {}
-    for (mss_id, permutation, ug_reviews) in DBSession.execute(
+    for (answer_id, ug_reviews) in DBSession.execute(
             """
-            SELECT material_source_id, permutation, reviews FROM stage_ugmaterial
+            SELECT answer_id, reviews FROM stage_ugmaterial
              WHERE user_id = :user_id
                AND material_source_id IN (
                 SELECT material_source_id FROM stage_material_sources sms
@@ -228,7 +223,7 @@ def sync_answer_queue(alloc, in_queue, time_offset):
                 stage_id=alloc.db_stage.stage_id,  # NB: This uses latest stage, since material will be carried over.
                 user_id=alloc.db_student.id,
             )):
-        stage_ug_reviews[(mss_id, permutation)] = ug_reviews
+        stage_ug_reviews[answer_id] = ug_reviews
 
     # First pass, fill in any missing time_offset fields
     for a in in_queue[:]:
@@ -285,7 +280,7 @@ def sync_answer_queue(alloc, in_queue, time_offset):
             db_i += 1
 
         # If reviews are present, update DB entry based on them
-        db_entry.ug_reviews = stage_ug_reviews.get((db_entry.material_source_id, db_entry.permutation), None)
+        db_entry.ug_reviews = stage_ug_reviews.get(db_entry.answer_id, None)
         mark_aq_entry(db_entry, alloc, grade_hwm)
         out.append(db_to_incoming(alloc, db_entry))
         if db_entry.grade > grade_hwm:
@@ -301,9 +296,9 @@ def request_review(alloc):
 
     # Find a question that needs a review
     # Get all questions that we didn't write, ones with least reviews first
-    for (mss_id, permutation, reviews) in DBSession.execute(
+    for (stage_id, mss_id, answer_id, reviews) in DBSession.execute(
             """
-            SELECT material_source_id, permutation, reviews FROM stage_ugmaterial
+            SELECT stage_id, material_source_id, answer_id, reviews FROM stage_ugmaterial
              WHERE user_id != :user_id
                AND (correct IS NULL -- i.e. only ones for which a decision hasn't been reached
                    """ + ('OR correct' if is_vetted else '') + """) -- Vetted reviewers also see deemed-good questions
@@ -330,7 +325,9 @@ def request_review(alloc):
 
         if mark >= 0:
             # This one is good enough for reviewing
-            return dict(uri=alloc.to_public_id(mss_id, permutation))
+            return dict(
+                uri=alloc.to_public_id(mss_id, 0 - answer_id),
+            )
 
     # No available material to review
     return dict()

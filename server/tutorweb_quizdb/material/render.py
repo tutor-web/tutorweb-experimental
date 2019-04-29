@@ -22,16 +22,16 @@ def material_render(ms, permutation, student_dataframes={}):
     if len(missing) > 0:
         raise MissingDataException(missing)
 
-    if 'type.template' in ms.material_tags and permutation > ms.permutation_count:
-        # For templates, permutations > ms.permutation_count are user-generated material
-        out = ug_render(ms, permutation, student_dataframes)
-    elif ms.permutation_count < permutation:
+    if ms.permutation_count < permutation:
         # Otherwise, permutation should be in range
         raise ValueError("Question %s only has %d permutations, not %d" % (
             ms.path,
             ms.permutation_count,
             permutation,
         ))
+    elif 'type.template' in ms.material_tags and permutation < 0:
+        # For templates, permutations < 0 are user-generated material
+        out = ug_render(ms, permutation, student_dataframes)
     elif ms.path.endswith('.R'):
         out = r_render(ms, permutation, student_dataframes)
     else:

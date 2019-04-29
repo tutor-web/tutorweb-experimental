@@ -1,6 +1,7 @@
 from zope.sqlalchemy import mark_changed
 
 from tutorweb_quizdb import DBSession
+from tutorweb_quizdb.timestamp import timestamp_to_datetime
 
 from .index import alloc_for_view
 from .answer_queue import request_review
@@ -25,6 +26,7 @@ def view_stage_ug_rewrite(request):
     params:
     - path: Stage path
     - uri: Old URI of question
+    - time_end: Time question was answered
     """
     alloc = alloc_for_view(request)
     old_uri = request.params['uri']
@@ -38,20 +40,22 @@ def view_stage_ug_rewrite(request):
          WHERE user_id = :user_id
            AND material_source_id = :old_mss_id
            AND permutation = :old_permutation
+           AND time_end = :time_end
      RETURNING answer_id, student_answer
     """, dict(
         user_id=alloc.db_student.id,
+        # NB: We can't filter by stage_id since it might be an old stage
         old_mss_id=old_mss_id,
         old_permutation=old_permutation,
+        time_end=timestamp_to_datetime(float(request.params['time_end'])),
     )).fetchall()
     if len(r) != 1:
         raise ValueError("Expected to find one answer, not %d" % len(r))
     (answer_id, student_answer) = r[0]
     mark_changed(session)  # Mark this session changed, so sqlalchemy commits
 
-    # TODO: Assume there's only one permutation? We can't reproduce this
     return dict(
-        uri=alloc.to_public_id(old_mss_id, 1),
+        uri=alloc.to_public_id(old_mss_id, old_permutation),
         student_answer=student_answer,
     )
 

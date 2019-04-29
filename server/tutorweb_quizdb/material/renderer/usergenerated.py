@@ -102,7 +102,7 @@ UG_EXAMPLE_REVIEW = [
 def ug_render(ms, permutation, student_dataframes={}):
     (data,) = DBSession.query(Base.classes.answer.student_answer).filter_by(
         material_source_id=ms.material_source_id,
-        permutation=permutation,
+        answer_id=0 - permutation,  # permutations are negative of answer_id
     ).order_by(Base.classes.answer.answer_id).first()
     return ug_render_data(data)
 

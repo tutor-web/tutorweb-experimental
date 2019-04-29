@@ -108,17 +108,25 @@ class OriginalAllocation(BaseAllocation):
 
     def to_public_id(self, mss_id, permutation):
         return base64.b64encode(struct.pack(
-            'II',
+            'cII',
+            b'B' if permutation < 0 else b'A',
             self.cipher.encrypt(mss_id),
-            self.cipher.encrypt(permutation),
+            self.cipher.encrypt(abs(permutation)),
         )).decode('ascii')
 
     def from_public_id(self, public_id):
-        return tuple(
-            self.cipher.decrypt(x)
-            for x
-            in struct.unpack('II', base64.b64decode(public_id))
-        )
+        public_id = base64.b64decode(public_id)
+        if len(public_id) < 9:
+            # Pre-version-char format
+            version_char = b'A'
+            mss_id, permutation = struct.unpack('II', public_id)
+        else:
+            version_char, mss_id, permutation = struct.unpack('cII', public_id)
+        mss_id = self.cipher.decrypt(mss_id)
+        permutation = self.cipher.decrypt(permutation)
+        if version_char == b'B':
+            permutation = 0 - permutation
+        return mss_id, permutation
 
     def get_material(self):
         material = super(OriginalAllocation, self).get_material()
