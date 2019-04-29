@@ -4,7 +4,7 @@ requires = [
     'gitpython',
     'numpy',
     'plaster_pastedeploy',
-    'pluserable',
+    'pluserable==0.5.0',
     'psycopg2',
     'pyramid',
     'pyramid_jinja2',
