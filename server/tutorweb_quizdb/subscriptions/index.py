@@ -1,5 +1,3 @@
-import urllib.parse
-
 from pyramid.httpexceptions import HTTPNotFound
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -8,6 +6,7 @@ from sqlalchemy_utils import Ltree
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.student import get_current_student
 from tutorweb_quizdb.syllabus import path_to_ltree
+from tutorweb_quizdb.stage.utils import stage_url
 
 
 def add_syllabus(out, path, extras, level=0):
@@ -126,9 +125,7 @@ def view_subscription_list(request):
         out_syllabus[db_stage.syllabus_id]['children'].append(dict(
             stage=db_stage.stage_name,
             title=db_stage.title,
-            href='/api/stage?%s' % urllib.parse.urlencode(dict(
-                path=str(out_syllabus[db_stage.syllabus_id]['path'] + Ltree(db_stage.stage_name)),
-            )),
+            href=stage_url(syllabus_path=out_syllabus[db_stage.syllabus_id]['path'], stage_name=db_stage.stage_name),
         ))
 
     return out_root

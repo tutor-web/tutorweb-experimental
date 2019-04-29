@@ -1,7 +1,7 @@
 import time
-import urllib.parse
 
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
+from tutorweb_quizdb.stage.utils import stage_url
 from tutorweb_quizdb.student import get_current_student
 from tutorweb_quizdb.syllabus import path_to_ltree
 from .allocation import get_allocation
@@ -63,9 +63,7 @@ def stage_index(request):
         update_stats(alloc, questions)
 
     return dict(
-        uri='/api/stage?%s' % urllib.parse.urlencode(dict(
-            path=request.params['path'],
-        )),
+        uri=stage_url(path=request.params['path']),
         path=request.params['path'],
         user=alloc.db_student.username,
         title=alloc.db_stage.title,
