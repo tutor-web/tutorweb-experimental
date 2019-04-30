@@ -49,7 +49,7 @@ COMMENT ON TABLE  "group" IS 'All groups';
 INSERT INTO "group" (name, description)
     VALUES ('accept_terms', 'Accepted terms and conditions')
     ON CONFLICT (name)
-    DO UPDATE SET description = 'Accepted terms and conditions';
+    DO UPDATE SET description = EXCLUDED.description;
 
 
 CREATE TABLE IF NOT EXISTS user_group (
