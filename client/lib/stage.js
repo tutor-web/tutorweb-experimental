@@ -292,6 +292,22 @@ QuizView.prototype = new View(jQuery);
             } else {
                 twTimer.reset();
             }
+        })['catch'](function (err) {
+            if (err.message.indexOf('tutorweb::noquestions::') === 0) {
+                // If there aren't any questions, try again to fetch them, if this fails we error.
+                return twView.quiz.syncLecture(twView.quiz.lecUri, {
+                    ifMissing: 'fetch',
+                    syncForce: true,
+                    skipQuestions: false,
+                    forceQuestions: true,
+                    skipCleanup: false,
+                }, function (opTotal, opSucceeded, message) {
+                    render_progress(twView.jqQuiz, opSucceeded, opTotal, message);
+                }.bind(this)).then(function () {
+                    return 'set-lecture';
+                });
+            }
+            throw err;
         });
     };
 
