@@ -1,2 +1,13 @@
 {% extends "lib/base.html" %}
 
+{% block belowcontent %}
+<form id="preview_select">
+  <label>Material Path:</label>
+  <input type="text" name="path" value="" placeholder="e.g. 'test.dataframe/lecture100/employment.q.R'" style="width: 100%" />
+
+  <label>Permutation:</label>
+  <input type="number" name="permutation" value="1" style="width: 100%" />
+
+  <input type="submit" class="button" value="Render" />
+</form>
+{% endblock %}
