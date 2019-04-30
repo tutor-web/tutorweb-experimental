@@ -62,40 +62,39 @@ module.exports = function AjaxApi(jqAjax) {
             jqAjax(args).then(function (data) {
                 resolve(data);
             }).fail(function (jqXHR, textStatus, errorThrown) {
+                var err;
+
                 if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
                     // Response was JSON, so use what's inside
                     errorThrown = jqXHR.responseJSON.error.message;
                     textStatus = jqXHR.responseJSON.error.stack;
                 }
 
-                if (errorThrown === 'Redirect') {
-                    // Redirect error
-                    reject(new Error('tutorweb::updatedetails::You have not accepted the terms and conditions.'));
-                }
-
                 if (jqXHR.status === 401 || jqXHR.status === 403) {
                     if (errorThrown === "HTTPForbidden: User has not accepted terms") {
-                        reject(new Error("tutorweb::notacceptedterms::You have not accepted the Tutor-Web terms and conditions"));
+                        err = new Error("tutorweb::notacceptedterms::You have not accepted the Tutor-Web terms and conditions");
+
+                    } else {
+                        // Unauth / wrong user
+                        err = new Error("tutorweb::unauth::" + textStatus + ". Please " +
+                                         '<a href="' + '//' + window.document.location.host + '/login' +
+                                         '?came_from=' + encodeURIComponent(window.document.location) +
+                                         (/user \w+$/i.test(textStatus) ? '&login_name=' + textStatus.match(/for user (\w+)/i)[1] : '') +
+                                         '">click here to log-in</a> before continuing.::html');
                     }
-
-                    // Unauth / wrong user
-                    reject(new Error("tutorweb::unauth::" + textStatus + ". Please " +
-                                     '<a href="' + '//' + window.document.location.host + '/login' +
-                                     '?came_from=' + encodeURIComponent(window.document.location) +
-                                     (/user \w+$/i.test(textStatus) ? '&login_name=' + textStatus.match(/for user (\w+)/i)[1] : '') +
-                                     '">click here to log-in</a> before continuing.::html'));
-                }
-
-                if (textStatus === 'timeout') {
-                    reject(new Error("tutorweb::neterror::Timeout whilst fetching " + args.url));
-                }
-
-                if (!errorThrown && jqXHR.status === 0 && textStatus === 'error') {
+                } else if (textStatus === 'timeout') {
+                    err = new Error("tutorweb::neterror::Timeout whilst fetching " + args.url);
+                } else if (!errorThrown && jqXHR.status === 0 && textStatus === 'error') {
                     // Network error / request cancelled
-                    reject(new Error("tutorweb::neterror::Failed to fetch " + args.url));
+                    err = new Error("tutorweb::neterror::Failed to fetch " + args.url);
+                } else {
+                    err = new Error("tutorweb::error::" + errorThrown + " whilst fetching " + args.url + ": " + textStatus);
                 }
 
-                reject(new Error("tutorweb::error::" + errorThrown + " whilst fetching " + args.url + ": " + textStatus));
+                // Add common attributes and throw
+                err.url = args.url;
+                err.server_class = errorThrown;
+                reject(err);
             });
         });
     };
