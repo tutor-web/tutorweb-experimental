@@ -7,6 +7,7 @@ var View = require('./view.js');
 var AjaxApi = require('./ajaxapi.js');
 var UserMenu = require('./usermenu.js');
 var parse_qs = require('../lib/parse_qs.js').parse_qs;
+var parse_url = require('../lib/parse_qs.js').parse_url;
 var isQuotaExceededError = require('./ls_utils.js').isQuotaExceededError;
 var h = require('hyperscript');
 var select_list = require('lib/select_list.js').select_list;
@@ -109,6 +110,11 @@ StartView.prototype = new View(jQuery);
             }
             if (err.message.indexOf('tutorweb::notacceptedterms::') === 0) {
                 return 'terms-display';
+            }
+            if (err.message.indexOf('tutorweb::error::MissingDataException') === 0) {
+                // Set current path temporarily to the failing lecture and request data.
+                twView.curUrl.path = parse_url(err.url).path;
+                return 'data-display';
             }
             if (err.message.indexOf('tutorweb::neterror::') === 0) {
                 // i.e. we're probably offline
