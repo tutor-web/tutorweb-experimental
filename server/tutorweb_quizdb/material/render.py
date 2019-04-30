@@ -1,3 +1,6 @@
+from pyramid.httpexceptions import HTTPForbidden
+
+from tutorweb_quizdb.student import get_group
 from tutorweb_quizdb import DBSession, Base
 from .renderer.usergenerated import ug_render
 from .renderer.r import r_render
@@ -46,6 +49,9 @@ def material_render(ms, permutation, student_dataframes={}):
 
 
 def view_material_render(request):
+    if not request.user or get_group('admin.material_render') not in request.user.groups:
+        raise HTTPForbidden()
+
     ms = DBSession.query(Base.classes.material_source).filter_by(
         bank=request.params.get('material_bank', request.registry.settings['tutorweb.material_bank.default']),
         path=request.params['path'],

@@ -50,6 +50,10 @@ INSERT INTO "group" (name, description)
     VALUES ('accept_terms', 'Accepted terms and conditions')
     ON CONFLICT (name)
     DO UPDATE SET description = EXCLUDED.description;
+INSERT INTO "group" (name, description)
+    VALUES ('admin.material_render', 'Admin: Can render any material bank path')
+    ON CONFLICT (name)
+    DO UPDATE SET description = EXCLUDED.description;
 
 
 CREATE TABLE IF NOT EXISTS user_group (
