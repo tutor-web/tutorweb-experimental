@@ -28,3 +28,20 @@ module.exports.parse_qs = function (location) {
     });
     return out;
 };
+
+
+module.exports.parse_url = function (url_string) {
+    var i,
+        parts = url_string.split(/(\#|\?)/),
+        location = { pathname: parts[0] };
+
+    for (i = 1; i < parts.length; i += 2) {
+        if (parts[i] === '#') {
+            location.hash = '#' + parts[i + 1];
+        } else if (parts[i] === '?') {
+            location.search = '?' + parts[i + 1];
+        }
+    }
+
+    return module.exports.parse_qs(location);
+};
