@@ -30,6 +30,7 @@ function page_load(e) {
     }).then(function () {
         twView.jqQuiz.removeClass('busy');
     }).catch(function (err) {
+        console.error(err);
         twView.showAlert('error', err.message);
     });
 }
