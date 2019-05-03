@@ -61,16 +61,35 @@ def view_material_render(request):
     if not request.user or get_group('admin.material_render') not in request.user.groups:
         raise HTTPForbidden()
 
+    # Get material source in question
+    bank = request.json.get('material_bank', request.registry.settings['tutorweb.material_bank.default'])
     ms = DBSession.query(Base.classes.material_source).filter_by(
-        bank=request.params.get('material_bank', request.registry.settings['tutorweb.material_bank.default']),
-        path=request.params['path'],
+        bank=bank,
+        path=request.json['path'],
         next_material_source_id=None
     ).one()
 
-    return material_render(
-        ms,
-        permutation=int(request.params['permutation']),
-    )
+    # Find all data templates for this question, and add to response
+    out = dict(dataframe_templates={})
+    student_dataframes = {}
+    missing_data = False
+    for dataframe_path in ms.dataframe_paths:
+        out['dataframe_templates'][dataframe_path] = dataframe_template(bank, dataframe_path)
+        if dataframe_path in request.json.get('student_dataframes', {}):
+            student_dataframes[dataframe_path] = request.json['student_dataframes'][dataframe_path]
+        else:
+            missing_data = True
+
+    if missing_data:
+        out['error'] = "Not enough data to render question"
+    else:
+        out.update(material_render(
+            ms,
+            permutation=int(request.json.get('permutation', '1')),
+            student_dataframes=student_dataframes,
+        ))
+
+    return out
 
 
 def includeme(config):
