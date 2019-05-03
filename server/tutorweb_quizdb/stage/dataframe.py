@@ -4,14 +4,8 @@ import json
 from zope.sqlalchemy import mark_changed
 
 from tutorweb_quizdb import DBSession, Base
-from ..material.utils import material_bank_open
+from ..material.render import dataframe_template
 from .index import alloc_for_view
-
-
-def dataframe_template(material_bank, path):
-    """Fetch the template of given dataframe"""
-    with material_bank_open(material_bank, path, 'r') as f:
-        return json.load(f)
 
 
 def view_stage_dataframe(request):

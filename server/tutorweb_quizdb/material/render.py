@@ -1,9 +1,12 @@
+import json
+
 from pyramid.httpexceptions import HTTPForbidden
 
 from tutorweb_quizdb.student import get_group
 from tutorweb_quizdb import DBSession, Base
 from .renderer.usergenerated import ug_render
 from .renderer.r import r_render
+from .utils import material_bank_open
 
 
 class MissingDataException(Exception):
@@ -14,6 +17,12 @@ class MissingDataException(Exception):
 
     def __str__(self):
         return ", ".join(self.missing)
+
+
+def dataframe_template(material_bank, path):
+    """Fetch the template of given dataframe"""
+    with material_bank_open(material_bank, path, 'r') as f:
+        return json.load(f)
 
 
 def material_render(ms, permutation, student_dataframes={}):
