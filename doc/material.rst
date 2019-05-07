@@ -23,3 +23,13 @@ span.math / div.math
 
 .reveal-on-answer
     This element won't be added on-screen until the student has answered this question.
+
+Previewing material
+===================
+
+Your tutor-web user has to have the ``admin.material_render`` permission before being allowed to preview material.
+You can add this at the commandline::
+
+    echo username | sudo -H -unobody ./server/bin/student_import --groups 'admin.material_render' -
+
+You can then go to ``/preview`` and enter a path to a question you would like to preview.
