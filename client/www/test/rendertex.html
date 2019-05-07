@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Tutorweb</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <link rel="stylesheet" type="text/css" href="/css/libraries.min.css" />
+  <link rel="stylesheet" type="text/css" href="/css/test/rendertex.min.css" />
+
+  <script type="text/javascript" src="/mathjax/MathJax.js?config=../../mathjax-config.js"></script>
+  <style>
+.rendertex-test {
+    border-bottom: 5px solid black;
+    margin-bottom: 1rem;
+}
+.rendertex-test textarea {
+    display: block;
+    width: 100%;
+    height: 10rem;
+}
+  </style>
+</head>
+
+<body>
+
+  <main role="main" class="container">
+
+<pre id="test-1" class="rendertex-test parse-as-tex">
+lksdflksdflk\\indent
+
+\noindent New paragraph that \\ has a line $break$ and another \\
+here and \newline here, but not
+here.
+
+Space. \vspace{}. Gotta go to \hspace{moo} space
+$$
+display = \{mode\}
+$$
+
+% You can't see me
+\begin{verbatim}
+belh
+$fish$
+
+\textbf{Whee}
+$$
+\{Apricot
+$$
+moo
+% I'm hiding at the bottoms
+\end{verbatim}
+
+\url{http://moo.com}
+
+\href{http://moo.com}{The moo website}\url{http://oink.com}
+</pre>
+
+<div><div class="rendertex-test parse-as-tex">
+The \textbf{nested} parse-as-tex is found. $x^2$.
+</div></div>
+
+<div class="rendertex-test"><pre class="parse-as-rst">
+The **nested** parse-as-rst is found. :math:`x^2` preview.
+
+.. math::
+
+   \frac{ \sum_{t=0}^{N}f(t,k) }{N}
+</pre></div>
+
+<div><div class="rendertex-test">
+  <ol class="shuffle">
+    <li>These list elements</li>
+    <li>have</li>
+    <li>been</li>
+    <li>shuffled</li>
+  </ol>
+</div></div>
+
+
+<div class="rendertex-test">
+  <textarea class="preview-as-tex">This is a textbox with a tex $$x^2$$ preview.</textarea>
+  <textarea class="preview-as-rst">This is a textbox with a ReST :math:`x^2` preview.
+
+.. math::
+
+   \frac{ \sum_{t=0}^{N}f(t,k) }{N}
+  </textarea>
+</div>
+
+  </main>
+
+  <script type="text/javascript" src="/js/polyfill.min.js"></script>
+  <script type="text/javascript" src="/js/libraries.min.js"></script>
+  <script type="text/javascript" src="/js/test/rendertex.min.js"></script>
+</body>
+</html>

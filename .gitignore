@@ -1,12 +1,14 @@
 *.mktmp
 /client/.nyc_output/
+/client/coverage/
 /client/doc
 /client/node_modules/
 /client/www/coverage/
-/client/www/css/*.min.css
-/client/www/css/*.png
+/client/www/css/*
 /client/www/js/*
 /client/www/*.html
+/client/www/geogebra/
+/client/yarn-error.log
 
 *.pyc
 /server/*.egg-info/
