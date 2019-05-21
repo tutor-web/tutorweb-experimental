@@ -53,6 +53,10 @@ function page_load(qs, student_dataframes) {
     }).then(function () {
         twView.jqQuiz.removeClass('busy');
     }).catch(function (err) {
+        if (err.message.indexOf('tutorweb::unauth::') === 0) {
+            // i.e. do go-login
+            window.location.href = '/auth/login?next=' + encodeURIComponent(window.location.pathname + window.location.search);
+        }
         console.error(err);
         twView.showAlert('error', err.message);
     });
