@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS stage (
 SELECT ddl_lastupdate_trigger('stage');
 COMMENT ON TABLE  stage IS 'An individual stage in this syllabus item, and the tags for relevant content within';
 COMMENT ON COLUMN stage.syllabus_id IS 'Syllabus item this stage is part of';
+COMMENT ON COLUMN stage.stage_name IS 'An alphanumeric ID, used in URLs. Cannot vary between versions';
 COMMENT ON COLUMN stage.stage_setting_spec IS 'dict of setting key to a combination of:'
     '* value: Fixed value / mean value for gamma distribution'
     '* shape: Shape of gamma curve, if set will choose value for each student from gamma curve'

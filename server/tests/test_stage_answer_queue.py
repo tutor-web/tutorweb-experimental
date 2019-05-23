@@ -1,3 +1,4 @@
+from decimal import Decimal
 import unittest
 
 from .requires_postgresql import RequiresPostgresql
@@ -8,6 +9,7 @@ from tutorweb_quizdb.stage.allocation import get_allocation
 from tutorweb_quizdb.stage.setting import getStudentSettings
 from tutorweb_quizdb.stage.answer_queue import sync_answer_queue, request_review
 from tutorweb_quizdb.stage.material import stage_material
+from tutorweb_quizdb.student.results import result_summary, result_full
 from tutorweb_quizdb.student import get_group
 
 
@@ -577,16 +579,104 @@ question <- function(permutation, data_frames) { return(list(content = 'parp', c
 
         # Ace other 2 stages, get stage awards but not the big prize
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[0], self.db_studs[0]), [
-            aq_dict(time_end=2012, uri='example1.q.R:1:1', grade_after=9.9),
+            aq_dict(time_end=2012, uri='example1.q.R:1:1', grade_after=9.92),
         ], 0)
         self.assertEqual(self.coins_awarded(self.db_studs[0]), 2 * (AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED))
         (out, additions) = sync_answer_queue(get_alloc(self.db_stages[2], self.db_studs[0]), [
-            aq_dict(time_end=2013, uri='example1.q.R:1:1', grade_after=9.9),
+            aq_dict(time_end=2013, uri='example1.q.R:1:1', grade_after=9.93),
         ], 0)
         self.assertEqual(self.coins_awarded(self.db_studs[0]), 3 * (AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED))
 
         # Ace final stage in second lecture, get the full award
         (out, additions) = sync_answer_queue(get_alloc(self.db_other_stages[0], self.db_studs[0]), [
-            aq_dict(time_end=2013, uri='example1.q.R:1:1', grade_after=9.9),
+            aq_dict(time_end=2013, uri='example1.q.R:1:1', grade_after=9.94),
         ], 0)
         self.assertEqual(self.coins_awarded(self.db_studs[0]), 4 * (AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED) + AWARD_TUTORIAL_ACED)
+
+        # Check result summary
+        out = list(result_summary())
+        self.assertEqual(sorted(out[0][1:]), out[0][1:])  # Columns sorted
+        out_dict = [dict((k, str(row[i])) for i, k in enumerate(out[0])) for row in out[1:]]
+        self.assertEqual(out_dict, [
+            {
+                'student': 'user0',
+                str(self.db_other_stages[0].syllabus.path + 'stage0'): '9.940',
+                str(self.db_stages[0].syllabus.path + 'stage0'): '9.920',
+                str(self.db_stages[0].syllabus.path + 'stage1'): '9.900',
+                str(self.db_stages[0].syllabus.path + 'stage2'): '9.930',
+            }, {
+                'student': 'user1',
+                str(self.db_other_stages[0].syllabus.path + 'stage0'): '0',
+                str(self.db_stages[0].syllabus.path + 'stage0'): '0.100',
+                str(self.db_stages[0].syllabus.path + 'stage1'): '0',
+                str(self.db_stages[0].syllabus.path + 'stage2'): '0',
+            }, {
+                'student': 'user2',
+                str(self.db_other_stages[0].syllabus.path + 'stage0'): '0',
+                str(self.db_stages[0].syllabus.path + 'stage0'): '0.100',
+                str(self.db_stages[0].syllabus.path + 'stage1'): '0',
+                str(self.db_stages[0].syllabus.path + 'stage2'): '0',
+            }, {
+                'student': 'user3',
+                str(self.db_other_stages[0].syllabus.path + 'stage0'): '0',
+                str(self.db_stages[0].syllabus.path + 'stage0'): '0.100',
+                str(self.db_stages[0].syllabus.path + 'stage1'): '0',
+                str(self.db_stages[0].syllabus.path + 'stage2'): '0',
+            }
+        ])
+
+        # Check full results
+        out = list(result_full())
+        from tutorweb_quizdb.timestamp import timestamp_to_datetime
+
+        # Check other stage first, depending on it's value it will either be at the beginning or the end of the list
+        if str(self.db_other_stages[0].syllabus.path) < str(self.db_stages[0].syllabus.path):
+            self.assertEqual(out[1:2], [
+                (str(self.db_other_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('9.940'), timestamp_to_datetime(2013)),
+            ])
+            del out[1]
+        else:
+            self.assertEqual(out[-1:], [
+                (str(self.db_other_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('9.940'), timestamp_to_datetime(2013)),
+            ])
+            del out[-1]
+
+        # Check rest of values, should be in user/time order
+        self.assertEqual(out, [
+            ['lecture', 'stage', 'stage version', 'student', 'correct', 'grade', 'time'],
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('0.200'), timestamp_to_datetime(1005)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('0.100'), timestamp_to_datetime(1010)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('0.100'), timestamp_to_datetime(1010)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('0.200'), timestamp_to_datetime(1015)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('0.100'), timestamp_to_datetime(1020)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('0.200'), timestamp_to_datetime(1025)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('0.100'), timestamp_to_datetime(1130)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('0.100'), timestamp_to_datetime(1131)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user0', True, Decimal('9.920'), timestamp_to_datetime(2012)),
+
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user1', False, Decimal('0.100'), timestamp_to_datetime(1010)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user1', True, Decimal('0.100'), timestamp_to_datetime(1020)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user1', None, Decimal('0.100'), timestamp_to_datetime(1030)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user1', False, Decimal('0.100'), timestamp_to_datetime(1040)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user1', None, Decimal('0.100'), timestamp_to_datetime(1210)),
+
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user2', True, Decimal('0.100'), timestamp_to_datetime(1132)),
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user2', True, Decimal('0.100'), timestamp_to_datetime(1133)),
+
+            (str(self.db_stages[0].syllabus.path), 'stage0', 1, 'user3', True, Decimal('0.100'), timestamp_to_datetime(1131)),
+
+            (str(self.db_stages[0].syllabus.path), 'stage1', 1, 'user0', True, Decimal('0.100'), timestamp_to_datetime(2000)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 1, 'user0', True, Decimal('0.100'), timestamp_to_datetime(2001)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 1, 'user0', True, Decimal('0.100'), timestamp_to_datetime(2002)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 1, 'user0', True, Decimal('4.500'), timestamp_to_datetime(2003)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 1, 'user0', True, Decimal('5.500'), timestamp_to_datetime(2004)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 1, 'user0', True, Decimal('5.500'), timestamp_to_datetime(2005)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 2, 'user0', True, Decimal('6.500'), timestamp_to_datetime(2006)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 2, 'user0', True, Decimal('7.500'), timestamp_to_datetime(2007)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 2, 'user0', True, Decimal('8.500'), timestamp_to_datetime(2008)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 2, 'user0', True, Decimal('9.900'), timestamp_to_datetime(2009)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 2, 'user0', True, Decimal('9.900'), timestamp_to_datetime(2010)),
+            (str(self.db_stages[0].syllabus.path), 'stage1', 2, 'user0', True, Decimal('9.900'), timestamp_to_datetime(2011)),
+
+            (str(self.db_stages[0].syllabus.path), 'stage2', 1, 'user0', True, Decimal('9.930'), timestamp_to_datetime(2013)),
+        ])
