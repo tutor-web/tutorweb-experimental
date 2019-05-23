@@ -34,7 +34,7 @@ UWSGI_MAILPORT="${UWSGI_MAILPORT-25}"
 DB_SUDO_USER="${DB_SUDO_USER-postgres}"  # The user that has root access to DB
 DB_HOST="${DB_HOST-/var/run/postgresql/}"  # The hostname / socket path to connect to
 DB_NAME="${DB_NAME-$(echo -n ${PROJECT_NAME} | sed 's/\W/_/g')_db}"  # The DB to create
-DB_USER="${DB_USER-${UWSGI_USER}}"  # The credentials that the app will use
+DB_USER="${DB_USER-}"  # The credentials that the app will use
 DB_PASS="${DB_PASS-}"  # The credentials that the app will use
 DB_URL="postgresql://${DB_USER}:${DB_PASS}@/${DB_NAME}?host=${DB_HOST}"
 
@@ -50,11 +50,11 @@ set +a
 set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_|^DB_'
 
 # If just used to execute a server (in development mode, e.g.) do that
-[ $1 = '--exec' ] && { shift; exec $*; }
+[ "$1" = "--exec" ] && { shift; exec $*; }
 
 # ---------------------------
 # (re)create postgresql datbase
-(cd schema && sudo -u "${DB_SUDO_USER}" ./rebuild.sh "${DB_NAME}" "${DB_USER}" "${DB_PASS}"; ) || exit 1
+(cd schema && sudo -u "${DB_SUDO_USER}" ./rebuild.sh "${DB_NAME}" "${UWSGI_USER}" "${DB_PASS}"; ) || exit 1
 
 # ---------------------------
 # Systemd unit file to run uWSGI
