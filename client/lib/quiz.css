@@ -222,11 +222,13 @@ div#tw-actions a.disabled {
     color: red;
 }
 
-#tw-quiz .correct div.explanation {
+#tw-quiz .explanation {
+    border-radius: 3px;
+    padding: 1rem;
     /* Same as alert-success */
+    border: 1px solid #d6e9c6;;
     color: #468847;
     background-color: #dff0d8;
-    border-color: #d6e9c6;
 }
 
 #tw-quiz label.radio {
