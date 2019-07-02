@@ -67,6 +67,22 @@ question <- function(permutation, data_frames) {
         with self.assertRaisesRegex(ValueError, r'100 permutations'):
             out = material_render(self.mb_fake_ms('example.q.R'), 101)
 
+    def test_material_htmltools(self):
+        """Can convert htmltools' tags into a string"""
+        self.mb_write_file('example.q.R', b'''
+# TW:TAGS=math099,Q-0990t0,lec050500,
+# TW:PERMUTATIONS=100
+library(htmltools)
+question <- function(permutation, data_frames) {
+    return(list(
+        content = withTags(p(class = "hello", "Here is some", b("content"), ".")),
+        correct = list()
+    ))
+}
+        ''')
+        out = material_render(self.mb_fake_ms('example.q.R'), 1)
+        self.assertEqual(out['content'], """<p class="hello">\n  Here is some\n  <b>content</b>\n  .\n</p>""")
+
     def test_material_dataframe(self):
         """We check that requested data frames are available"""
         self.mb_write_file('example.q.R', b'''

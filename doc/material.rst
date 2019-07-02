@@ -33,7 +33,8 @@ An example script is below::
   indicating how hard this question is.
 * ``content`` is the raw HTML for the question. R helpers are available to
   generate this, and some special CSS classes will introduce behaviour, see
-  "HTML Content reference".
+  "HTML Content reference". This can either be a string or an `htmltools <https://cran.r-project.org/package=htmltools>`__
+  tag instance.
 * ``correct`` is a list of form values and the correct response. In the above
   case, the correct answer is the permutation, i.e. 1..10 depending on which
   permutation of the question is being used.
