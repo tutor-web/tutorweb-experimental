@@ -222,6 +222,17 @@ div#tw-actions a.disabled {
     color: red;
 }
 
+#tw-quiz blockquote {
+    margin-left: 2rem;
+    margin-right: 2rem;
+}
+
+#tw-quiz pre, #tw-quiz code {
+    border: 1px solid rgba(0,0,0,0.1);
+    background-color: rgba(128,128,128,0.05);
+    padding: 1px 3px 0px 3px;
+}
+
 #tw-quiz .explanation {
     border-radius: 3px;
     padding: 1rem;
