@@ -4,6 +4,7 @@ flake8==3.5.0
 Beaker[pycryptodome]
 pycryptodome
 psycopg2-binary
+hg+https://bitbucket.org/dholth/cryptacular@cb96fb3#egg=cryptacular
 -e git+git://github.com/pyrige/skippy@bce3109c3b74d84b61da83396b09f9b594aa3905#egg=skippy==1.0
 -e . ".[testing]"
 -e .
