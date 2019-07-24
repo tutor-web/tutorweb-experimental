@@ -58,16 +58,17 @@ def material_render(ms, permutation, student_dataframes={}):
 
 
 def view_material_render(request):
+    from tutorweb_quizdb.material.utils import file_md5sum, path_to_materialsource
+    import os.path
+
     if not request.user or get_group('admin.material_render') not in request.user.groups:
         raise HTTPForbidden()
 
-    # Get material source in question
-    bank = request.json.get('material_bank', request.registry.settings['tutorweb.material_bank.default'])
-    ms = DBSession.query(Base.classes.material_source).filter_by(
-        bank=bank,
-        path=request.json['path'],
-        next_material_source_id=None
-    ).one()
+    # Regenerate the material source the DB would hold
+    material_bank = request.json.get('material_bank', request.registry.settings['tutorweb.material_bank.default'])
+    ms = Base.classes.material_source(
+        **path_to_materialsource(material_bank, request.json['path'], None),
+        md5sum=file_md5sum(os.path.join(material_bank, request.json['path'])))
 
     # Find all data templates for this question, and add to response
     out = dict(dataframe_templates={})
