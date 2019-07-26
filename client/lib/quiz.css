@@ -194,9 +194,22 @@ div#tw-actions a.disabled {
     position: relative;
     list-style-type: none;
 }
-#tw-quiz ol input {
-    margin-top: 9px;
+#tw-quiz ol label {
+    position: relative;
+    padding-left: 1.2rem;
 }
+#tw-quiz ol label input[type=checkbox],
+#tw-quiz ol label input[type=radio] {
+    position: absolute;
+    /* (line-height - element-height) / 2 */
+    top: calc((20px - 13px) / 2);
+    left: 0;
+}
+#tw-quiz ol label p:last-child {
+    /* Don't bother with final margin */
+    margin-bottom: 0;
+}
+
 #tw-quiz ol + ol {
     margin-top: -1rem;
 }
@@ -206,17 +219,21 @@ div#tw-actions a.disabled {
     line-height: 30px;
 }
 
-#tw-quiz ol li.correct:before {
+#tw-quiz ol input.correct + *:before { /* NB: We can't have :before on an input, but something will be after it */
     position: absolute;
-    left: -0.9em;
+    left: -1.1em;
+    top: calc((20px - 14px) / 2);
+    line-height: 12px;
     padding: 1px 0;
     content: "\2714";
     color: green;
 }
 
-#tw-quiz ol li.incorrect.selected:before {
+#tw-quiz ol input.incorrect:checked + *:before { /* NB: We can't have :before on an input, but something will be after it */
     position: absolute;
-    left: -1em;
+    left: -1.1em;
+    top: calc((20px - 14px) / 2);
+    line-height: 12px;
     padding: 1px 0;
     content: "\2717";
     color: red;
@@ -242,17 +259,6 @@ div#tw-actions a.disabled {
     background-color: #dff0d8;
 }
 
-#tw-quiz label.radio {
-    position: relative;
-    margin-top: 2em;
-}
-#tw-quiz label.radio input[type='radio'] {
-    float: none;
-    position: absolute;
-    top: 50%;
-    height: 14px;
-    margin-top: -7px;
-}
 #tw-quiz textarea {
     min-width: 100%;
     max-width: 100%;
