@@ -54,7 +54,7 @@ set | grep -E '^PROJECT_|^SERVER_|^UWSGI_|^APP_|^DB_'
 
 # ---------------------------
 # (re)create postgresql datbase
-(cd schema && sudo -u "${DB_SUDO_USER}" ./rebuild.sh "${DB_NAME}" "${UWSGI_USER}" "${DB_PASS}"; ) || exit 1
+(cd schema && sudo -u "${DB_SUDO_USER}" DB_RW_USERS="${DB_RW_USERS-}" DB_RO_USERS="${DB_RO_USERS-}" ./rebuild.sh "${DB_NAME}" "${UWSGI_USER}"; ) || exit 1
 
 # ---------------------------
 # Systemd unit file to run uWSGI
