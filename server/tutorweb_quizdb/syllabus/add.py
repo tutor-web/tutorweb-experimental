@@ -96,7 +96,7 @@ def lec_import(tut_struct):
             tut_struct['titles'][i],
             tut_href,
             # Only set the requires_group permission on the course/tutorial itself
-            tut_struct.get('requires_group', None) if i >= len(path) - 2 else None
+            None,
         )
 
     # Add all lectures & stages
