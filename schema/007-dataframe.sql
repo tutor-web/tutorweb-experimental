@@ -1,7 +1,6 @@
 BEGIN;
 
 
-DROP TABLE IF EXISTS student_dataframe; -- TODO:
 -- TODO: Do we need to version user data?
 CREATE TABLE IF NOT EXISTS student_dataframe (
     user_id                  INTEGER,
