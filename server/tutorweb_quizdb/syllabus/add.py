@@ -113,6 +113,9 @@ def lec_import(tut_struct):
             material_tags = resolve_material_tags(stage_tmpl, db_lec)
             setting_spec = stage_tmpl['setting_spec'] or {}
 
+            if 'only_in' in stage_tmpl and lec_name not in stage_tmpl['only_in']:
+                continue
+
             if stage_tmpl['name'] in db_stages:
                 # If equivalent, do nothing
                 # TODO: Is this doing the right thing?
