@@ -1,7 +1,11 @@
+import logging
+
 from pyramid.httpexceptions import (
     HTTPForbidden,
     HTTPBadRequest
 )
+
+logger = logging.getLogger(__package__)
 
 
 def view_exception(e, request):
@@ -10,6 +14,8 @@ def view_exception(e, request):
     level = getattr(e, 'level', 'error')
     print_stack = getattr(e, 'print_stack', True)
     request.response.status = getattr(e, 'status_code', 500)
+    if getattr(e, 'status_code', 500) == 500:
+        logging.exception(e)
     return {level: dict(
         type=e.__class__.__name__,
         message=(e.__class__.__name__ + ": " if print_stack else "") + str(e),
