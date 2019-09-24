@@ -32,11 +32,51 @@ x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}
         """.strip())
 
     def test_parsing_errors(self):
-        """Errors get captured"""
+        """Errors & warnings get captured and appended to top"""
         self.assertEqual(to_rst("""
-.. parp
+``transactions`` is a json array of json objects:
 
-    Woo
+``
+[
+        {
+                \"txid\": \"id\",
+                \"vout\": n
+        },
+        ...
+]
+``
         """.strip()), """
-<b>Error: append() argument must be xml.etree.ElementTree.Element, not str</b>
+<div class="system-message severe"><div class="system-message-title">System message:</div>&lt;string&gt;:9: (SEVERE/4) Unexpected section title.
+
+},
+...</div><pre>``transactions`` is a json array of json objects:
+
+``
+[
+        {
+                &quot;txid&quot;: &quot;id&quot;,
+                &quot;vout&quot;: n
+        },
+        ...
+]
+``</pre>
+        """.strip())
+
+        self.assertEqual(to_rst("""
+Camel camel
+    camel
+Camel
+        """.strip()), """
+<div class="system-message warning"><div class="system-message-title">System message:</div>&lt;string&gt;:3: (WARNING/2) Definition list ends without a blank line; unexpected unindent.
+</div><dl><dt>Camel camel</dt><dd><p>camel</p></dd></dl><div class="alert-message block-message system-message warning"><p class="system-message-title admonition-title">System Message: WARNING/2</p><span class="literal">&amp;lt;string&amp;gt;</span>line 3 <p>Definition list ends without a blank line; unexpected unindent.</p></div><p>Camel</p>
+        """.strip())
+
+        self.assertEqual(to_rst("""
+Camel
+camel
+    camel
+        """.strip()), """
+<div class="system-message warning"><div class="system-message-title">System message:</div>&lt;string&gt;:3: (ERROR/3) Unexpected indentation.
+</div><p>Camel
+camel</p><div class="alert-message block-message system-message error"><p class="system-message-title admonition-title">System Message: ERROR/3</p><span class="literal">&amp;lt;string&amp;gt;</span>line 3 <p>Unexpected indentation.</p></div><blockquote><p>camel</p></blockquote>
         """.strip())

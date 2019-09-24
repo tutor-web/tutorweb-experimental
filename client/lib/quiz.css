@@ -284,6 +284,21 @@ div#tw-actions a.disabled {
     float: right;
 }
 
+#tw-quiz .parse-as-rst .system-message {
+    white-space: pre;
+    padding-left: 3px;
+    background: hsla(47, 100%, 27%, 0.2);
+    border: 2px solid hsl(47, 100%, 27%);
+}
+#tw-quiz .parse-as-rst .system-message.severe {
+    background: hsla(0, 100%, 27%, 0.2);
+    border: 2px solid hsl(0, 100%, 27%);
+}
+
+#tw-quiz .parse-as-rst .system-message-title {
+    font-weight: bold;
+}
+
 /* === Footer ============================================================== */
 
 #tw-grade {
