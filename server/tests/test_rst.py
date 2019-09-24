@@ -30,3 +30,13 @@ and they are</p><div class="math">\\begin{equation*}
 x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}
 \\end{equation*}</div>
         """.strip())
+
+    def test_parsing_errors(self):
+        """Errors get captured"""
+        self.assertEqual(to_rst("""
+.. parp
+
+    Woo
+        """.strip()), """
+<b>Error: append() argument must be xml.etree.ElementTree.Element, not str</b>
+        """.strip())
