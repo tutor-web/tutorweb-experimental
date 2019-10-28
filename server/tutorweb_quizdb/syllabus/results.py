@@ -68,7 +68,7 @@ def result_full(path=''):
         yield r
 
 
-def script_student_results():
+def script_syllabus_results():
     import csv
     import sys
     from tutorweb_quizdb import setup_script

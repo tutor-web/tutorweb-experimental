@@ -9,7 +9,7 @@ from tutorweb_quizdb.stage.allocation import get_allocation
 from tutorweb_quizdb.stage.setting import getStudentSettings
 from tutorweb_quizdb.stage.answer_queue import sync_answer_queue, request_review
 from tutorweb_quizdb.stage.material import stage_material
-from tutorweb_quizdb.student.results import result_summary, result_full
+from tutorweb_quizdb.syllabus.results import result_summary, result_full
 from tutorweb_quizdb.student import get_group
 
 
