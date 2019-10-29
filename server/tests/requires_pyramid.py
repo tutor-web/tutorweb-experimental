@@ -36,7 +36,8 @@ class RequiresPyramid():
 
     def create_stages(self, total,
                       stage_setting_spec_fn=lambda i: {},
-                      material_tags_fn=lambda i: None,
+                      material_tags_fn=lambda i: [],
+                      requires_group=None,
                       lec_parent='dept.tutorial'):
         from tutorweb_quizdb.syllabus.add import lec_import
         from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
@@ -45,7 +46,7 @@ class RequiresPyramid():
         lec_import(dict(
             path=lec_parent,
             titles=['UT %s' % p for p in lec_parent.split('.')],
-            requires_group=None,
+            requires_group=requires_group,
             lectures=[[lec_name, 'UT Lecture %s' % lec_name]],
             stage_template=[dict(
                 name='stage%d' % i, version=0,

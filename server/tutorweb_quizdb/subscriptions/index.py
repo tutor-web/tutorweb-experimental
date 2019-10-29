@@ -3,7 +3,7 @@ from pyramid.httpexceptions import HTTPNotFound
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils import Ltree
 
-from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
+from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST, models
 from tutorweb_quizdb.student import get_current_student
 from tutorweb_quizdb.syllabus import path_to_ltree
 from tutorweb_quizdb.stage.utils import stage_url
@@ -30,19 +30,25 @@ def add_syllabus(out, path, extras, level=0):
     return add_syllabus(n, path, extras, level + 1)
 
 
-def subscription_add(student, path):
+def subscription_add(student, path, add_to_group=False):
     """
     Ensure (student) is subscribed to (path)
     """
     # Find the syllabus item
     try:
-        dbl = (DBSession.query(Base.classes.syllabus)
-                        .filter_by(host_id=ACTIVE_HOST, path=path)
-                        .filter((Base.classes.syllabus.requires_group_id.is_(None)) |
-                                Base.classes.syllabus.requires_group_id.in_(g.id for g in student.groups))
-                        .one())
+        q = DBSession.query(Base.classes.syllabus).filter_by(host_id=ACTIVE_HOST, path=path)
+        if not add_to_group:
+            # If not adding student, make sure they're already part of group
+            q = q.filter((Base.classes.syllabus.requires_group_id.is_(None)) |
+                         Base.classes.syllabus.requires_group_id.in_(g.id for g in student.groups))
+        dbl = q.one()
     except NoResultFound:
         raise HTTPNotFound(path)
+
+    # Add student to group if we need to
+    if add_to_group and dbl.requires_group_id:
+        student.groups.append(DBSession.query(models.Group).filter_by(id=dbl.requires_group_id).one())
+        DBSession.flush()
 
     # Add subscription
     try:

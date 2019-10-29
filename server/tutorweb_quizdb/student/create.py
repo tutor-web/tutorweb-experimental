@@ -51,7 +51,7 @@ def create_student(request,
     - user_name: The new user-name
     - email: E-mail address, defaults to the same as the user_name
     - assign_password: If true, assign a password to any new student, otherwise mail them
-    - subscribe: Tutorials to subscribe this user to
+    - subscribe: Tutorials to subscribe this user to, adding them to any relevant groups
     """
     if not email:
         email = user_name
@@ -86,7 +86,7 @@ def create_student(request,
 
     # Make sure user is subscribed to everything required
     for s in subscribe:
-        subscription_add(db_u, Ltree(s))
+        subscription_add(db_u, Ltree(s), add_to_group=True)
     DBSession.flush()
 
     return (db_u, password)

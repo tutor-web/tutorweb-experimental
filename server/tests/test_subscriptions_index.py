@@ -5,6 +5,7 @@ from sqlalchemy_utils import Ltree
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
 
+from tutorweb_quizdb.student.create import create_student
 from tutorweb_quizdb.subscriptions.index import add_syllabus, subscription_add, subscription_remove, view_subscription_list
 from tutorweb_quizdb.subscriptions.available import view_subscription_available
 
@@ -324,3 +325,18 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                 ],
             }
         ]})
+
+        # TODO: Test subscription_add (should be a separate tests, but DB setup goes bang)
+        from pyramid.httpexceptions import HTTPNotFound
+
+        stage = self.create_stages(1, requires_group='ut.requires_group')[0]
+        stud, password = create_student(self.request(), 'user_test_subscription_add', assign_password=True)
+        self.assertEqual([g.name for g in stud.groups], [])
+
+        # Ignore any attempts to add to something we're not part of by default
+        # Can't add to something we're not part of
+        with self.assertRaisesRegex(HTTPNotFound, str(stage.syllabus.path)):
+            subscription_add(stud, stage.syllabus.path)
+
+        subscription_add(stud, stage.syllabus.path, add_to_group=True)
+        self.assertEqual([g.name for g in stud.groups], ['ut.requires_group'])
