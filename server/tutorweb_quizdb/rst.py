@@ -4,10 +4,10 @@ import re
 
 from html5css3 import Writer as Html5Writer
 from docutils.core import publish_string
-from docutils.utils import SystemMessage
 
 
 MESSAGE_TEMPLATE = '<div class="system-message %s"><div class="system-message-title">System message:</div>%s</div>'
+
 
 def to_rst(incoming):
     """Convert RST -> HTML"""
