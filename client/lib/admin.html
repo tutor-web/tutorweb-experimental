@@ -1,0 +1,14 @@
+{% extends "lib/base.html" %}
+
+{% block content %}
+<section id="tw-quiz">
+
+<h3>Student results</h3>
+<div id="csv-links">
+  <a href="/api/syllabus/student_grades.csv">Download results</a> &nbsp;|&nbsp;
+  <a href="/api/syllabus/student_answers.csv">Download full answers</a>
+</div>
+<div id="results-hot"></div>
+
+</section>
+{% endblock %}
