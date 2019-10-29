@@ -24,22 +24,33 @@ def get_current_student(request):
     if not request.user:
         raise HTTPForbidden()
 
-    if get_group('accept_terms') not in request.user.groups:
-        raise HTTPForbidden("User has not accepted terms")
+    student_check_group(request.user, 'accept_terms', error="User has not accepted terms")
 
     return request.user
+
+
+def student_check_group(student, group_name, error=None):
+    """Is (student) part of (group_name)? Raise HTTPForbidden(error) if (error) given"""
+    try:
+        group = get_group(group_name, auto_create=False)
+    except NoResultFound:
+        # No group exists, so student can't be part of it
+        group = None
+
+    if group and group in student.groups:
+        # Success
+        return True
+
+    # If we've got an error to raise, raise it. Otherwise return false
+    if error:
+        raise HTTPForbidden(error)
+    return False
 
 
 def student_is_vetted(student, stage):
     """Is this student vetted to review this stage in more detail?"""
     # Consider vettings at the tutorial-level
-    group_name = 'vetted.%s' % stage.syllabus.path[:-1]
-    try:
-        vetted_group = get_group(group_name, auto_create=False)
-    except NoResultFound:
-        # No group exists, so student can't be vetted
-        return False
-    return vetted_group in student.groups
+    return student_check_group(student, 'vetted.%s' % stage.syllabus.path[:-1])
 
 
 def includeme(config):
