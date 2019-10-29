@@ -4,7 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils import Ltree
 
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST, models
-from tutorweb_quizdb.student import get_current_student
+from tutorweb_quizdb.student import get_current_student, student_check_group
 from tutorweb_quizdb.syllabus import path_to_ltree
 from tutorweb_quizdb.stage.utils import stage_url
 
@@ -113,7 +113,10 @@ def view_subscription_list(request):
             # We're looking at the root of a subscription, so we don't want to
             # consider anything above this point in the path
             base_level = len(path) - 1
-        extras = dict(title=title)
+        extras = dict(
+            title=title,
+            can_admin=student_check_group(student, 'admin.%s' % path),
+        )
         if supporting_material_href:
             extras['supporting_material_href'] = supporting_material_href
         out_syllabus[syllabus_id] = add_syllabus(

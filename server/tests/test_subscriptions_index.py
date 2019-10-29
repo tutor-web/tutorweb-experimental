@@ -90,7 +90,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
         # Add some students
         self.db_studs = self.create_students(
             3,
-            student_group_fn=lambda i: ['accept_terms', 'super_secret'] if i == 0 else ['accept_terms']
+            student_group_fn=lambda i: ['accept_terms', 'super_secret', 'admin.dept0.tut1.lec1'] if i == 0 else ['accept_terms']
         )
 
     def test_call(self):
@@ -107,10 +107,12 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
             {
                 'path': Ltree('dept0.tut0'),
                 'title': 'UT Lecture dept0.tut0',
+                'can_admin': False,
                 'children': [
                     {
                         'path': Ltree('dept0.tut0.lec0'),
                         'title': 'UT Lecture dept0.tut0.lec0',
+                        'can_admin': False,
                         'supporting_material_href': 'http://wikipedia.org/',
                         'children': [
                             {
@@ -122,6 +124,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                     }, {
                         'path': Ltree('dept0.tut0.lec1'),
                         'title': 'UT Lecture dept0.tut0.lec1',
+                        'can_admin': False,
                         'children': [
                             {
                                 'href': '/api/stage?path=dept0.tut0.lec1.stage0',
@@ -135,6 +138,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
             {
                 'path': Ltree('dept0.tut1.lec1'),
                 'title': 'UT Lecture dept0.tut1.lec1',
+                'can_admin': True,  # NB: user0 can admin this
                 'children': [
                     {
                         'href': '/api/stage?path=dept0.tut1.lec1.stage0',
@@ -150,10 +154,12 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
             {
                 'path': Ltree('dept0.tut1'),
                 'title': 'UT Lecture dept0.tut1',
+                'can_admin': False,
                 'children': [
                     {
                         'path': Ltree('dept0.tut1.lec0'),
                         'title': 'UT Lecture dept0.tut1.lec0',
+                        'can_admin': False,
                         'children': [
                             {
                                 'href': '/api/stage?path=dept0.tut1.lec0.stage0',
@@ -164,6 +170,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                     }, {
                         'path': Ltree('dept0.tut1.lec1'),
                         'title': 'UT Lecture dept0.tut1.lec1',
+                        'can_admin': False,  # NB: user1 can't admin this
                         'children': [
                             {
                                 'href': '/api/stage?path=dept0.tut1.lec1.stage0',
@@ -188,10 +195,12 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
             {
                 'path': Ltree('dept0.tut1'),
                 'title': 'UT Lecture dept0.tut1',
+                'can_admin': False,
                 'children': [
                     {
                         'path': Ltree('dept0.tut1.lec0'),
                         'title': 'UT Lecture dept0.tut1.lec0',
+                        'can_admin': False,
                         'children': [
                             {
                                 'href': '/api/stage?path=dept0.tut1.lec0.stage0',
@@ -217,10 +226,12 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
             {
                 'path': Ltree('dept0.tut0'),
                 'title': 'UT Lecture dept0.tut0',
+                'can_admin': False,
                 'children': [
                     {
                         'path': Ltree('dept0.tut0.lec0'),
                         'title': 'UT Lecture dept0.tut0.lec0',
+                        'can_admin': False,
                         'supporting_material_href': 'http://wikipedia.org/',
                         'children': [
                             {
@@ -232,6 +243,7 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                     }, {
                         'path': Ltree('dept0.tut0.lec1'),
                         'title': 'UT Lecture dept0.tut0.lec1',
+                        'can_admin': False,
                         'children': [
                             {
                                 'href': '/api/stage?path=dept0.tut0.lec1.stage0',
@@ -252,24 +264,28 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                 'subscribed': None,
                 'supporting_material_href': None,
                 'title': 'UT Lecture dept0',
+                'can_admin': False,
                 'children': [
                     {
                         'path': Ltree('dept0.tut0'),
                         'subscribed': Ltree('dept0.tut0'),
                         'supporting_material_href': None,
                         'title': 'UT Lecture dept0.tut0',
+                        'can_admin': False,
                         'children': [
                             {
                                 'path': Ltree('dept0.tut0.lec0'),
                                 'subscribed': Ltree('dept0.tut0'),  # NB: This is the root of our subscription
                                 'supporting_material_href': 'http://wikipedia.org/',
                                 'title': 'UT Lecture dept0.tut0.lec0',
+                                'can_admin': False,
                                 'children': [],
                             }, {
                                 'path': Ltree('dept0.tut0.lec1'),
                                 'subscribed': Ltree('dept0.tut0'),  # NB: This is the root of our subscription
                                 'supporting_material_href': None,
                                 'title': 'UT Lecture dept0.tut0.lec1',
+                                'can_admin': False,
                                 'children': [],
                             },
                         ],
@@ -278,18 +294,21 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                         'subscribed': None,
                         'supporting_material_href': None,
                         'title': 'UT Lecture dept0.tut1',
+                        'can_admin': False,
                         'children': [
                             {
                                 'path': Ltree('dept0.tut1.lec0'),
                                 'subscribed': None,
                                 'supporting_material_href': None,
                                 'title': 'UT Lecture dept0.tut1.lec0',
+                                'can_admin': False,
                                 'children': [],
                             }, {
                                 'path': Ltree('dept0.tut1.lec1'),
                                 'subscribed': None,
                                 'supporting_material_href': None,
                                 'title': 'UT Lecture dept0.tut1.lec1',
+                                'can_admin': True,  # NB: user0 can admin this
                                 'children': [],
                             },
                         ],
@@ -300,24 +319,28 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
                 'subscribed': None,
                 'supporting_material_href': None,
                 'title': 'UT Lecture dept1',
+                'can_admin': False,
                 'children': [
                     {
                         'path': Ltree('dept1.tut2'),
                         'subscribed': None,
                         'supporting_material_href': None,
                         'title': 'UT Lecture dept1.tut2',
+                        'can_admin': False,
                         'children': [
                             {
                                 'path': Ltree('dept1.tut2.lec0'),
                                 'subscribed': None,
                                 'supporting_material_href': None,
                                 'title': 'UT Lecture dept1.tut2.lec0',
+                                'can_admin': False,
                                 'children': [],
                             }, {
                                 'path': Ltree('dept1.tut2.lec1'),
                                 'subscribed': None,
                                 'supporting_material_href': None,
                                 'title': 'UT Lecture dept1.tut2.lec1',
+                                'can_admin': False,
                                 'children': [],
                             },
                         ]

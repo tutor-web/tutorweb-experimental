@@ -1,7 +1,7 @@
 from sqlalchemy_utils import Ltree
 
 from tutorweb_quizdb import DBSession, ACTIVE_HOST
-from tutorweb_quizdb.student import get_current_student
+from tutorweb_quizdb.student import get_current_student, student_check_group
 
 
 def view_subscription_available(request):
@@ -45,6 +45,7 @@ def view_subscription_available(request):
             title=title,
             subscribed=subscribed,
             supporting_material_href=supporting_material_href,
+            can_admin=student_check_group(student, 'admin.%s' % path),
             children=[],
         ))
     return out
