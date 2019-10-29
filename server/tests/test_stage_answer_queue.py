@@ -1,6 +1,8 @@
 from decimal import Decimal
 import unittest
 
+from pyramid.httpexceptions import HTTPForbidden
+
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
 from .requires_materialbank import RequiresMaterialBank
@@ -9,7 +11,7 @@ from tutorweb_quizdb.stage.allocation import get_allocation
 from tutorweb_quizdb.stage.setting import getStudentSettings
 from tutorweb_quizdb.stage.answer_queue import sync_answer_queue, request_review
 from tutorweb_quizdb.stage.material import stage_material
-from tutorweb_quizdb.syllabus.results import result_summary, result_full
+from tutorweb_quizdb.syllabus.results import result_summary, result_full, view_syllabus_results
 from tutorweb_quizdb.student import get_group
 
 
@@ -680,3 +682,29 @@ question <- function(permutation, data_frames) { return(list(content = 'parp', c
 
             (str(self.db_stages[0].syllabus.path), 'stage2', 1, 'user0', True, Decimal('9.930'), timestamp_to_datetime(2013)),
         ])
+
+        # The view version requires admin permissions
+        with self.assertRaisesRegexp(HTTPForbidden, 'admin'):
+            view_syllabus_results(self.request(
+                user=self.db_studs[0],
+                params=dict(path=str(self.db_stages[0].syllabus.path)),
+            ))
+
+        # Add admin permissions, now the same as result_summary
+        self.db_studs[0].groups.append(get_group('admin.%s' % self.db_stages[0].syllabus.path, auto_create=True))
+        self.assertEqual(view_syllabus_results(self.request(
+            user=self.db_studs[0],
+            params=dict(path=str(self.db_stages[0].syllabus.path)),
+        ))['results'], list(result_summary(str(self.db_stages[0].syllabus.path))))
+
+        # Can't get at the other stages though, without that permission
+        with self.assertRaisesRegexp(HTTPForbidden, 'admin'):
+            view_syllabus_results(self.request(
+                user=self.db_studs[0],
+                params=dict(path=str(self.db_other_stages[0].syllabus.path)),
+            ))
+        self.db_studs[0].groups.append(get_group('admin.%s' % self.db_other_stages[0].syllabus.path, auto_create=True))
+        self.assertEqual(view_syllabus_results(self.request(
+            user=self.db_studs[0],
+            params=dict(path=str(self.db_other_stages[0].syllabus.path)),
+        ))['results'], list(result_summary(str(self.db_other_stages[0].syllabus.path))))

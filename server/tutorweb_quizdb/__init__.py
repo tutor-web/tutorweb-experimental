@@ -1,5 +1,7 @@
 import datetime
+import decimal
 import os.path
+import logging
 
 import pyramid.httpexceptions as exc
 from pyramid.authentication import AuthTktAuthenticationPolicy
@@ -91,16 +93,19 @@ def main(global_config, **settings):
     smileycoin.configure(settings, prefix='smileycoin.')
 
     config.include('tutorweb_quizdb.coin')
+    config.include('tutorweb_quizdb.csv_renderer')
     config.include('tutorweb_quizdb.exceptions')
     config.include('tutorweb_quizdb.logerror')
     config.include('tutorweb_quizdb.material')
     config.include('tutorweb_quizdb.subscriptions')
     config.include('tutorweb_quizdb.stage')
     config.include('tutorweb_quizdb.student')
+    config.include('tutorweb_quizdb.syllabus')
     config.include('tutorweb_quizdb.rst')
 
     json_renderer = config.registry.getUtility(IRendererFactory, name="json")
     json_renderer.add_adapter(datetime.datetime, lambda obj, request: obj.isoformat())
+    json_renderer.add_adapter(decimal.Decimal, lambda obj, request: float(obj))
     json_renderer.add_adapter(Ltree, lambda obj, request: str(obj))
 
     config.add_view(index, route_name='index', renderer='json')

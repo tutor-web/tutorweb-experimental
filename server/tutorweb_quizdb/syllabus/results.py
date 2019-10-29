@@ -68,6 +68,26 @@ def result_full(path=''):
         yield r
 
 
+def view_syllabus_results(request):
+    from tutorweb_quizdb.student import get_current_student, student_check_group
+    from tutorweb_quizdb.syllabus import path_to_ltree
+
+    student = get_current_student(request)
+    path = path_to_ltree(request.params['path'])
+    student_check_group(student, 'admin.%s' % path, error="Not an admin")
+
+    if hasattr(request, 'matched_route') and 'answers' in request.matched_route.name:
+        return dict(
+            filename="answers.%s" % path,
+            results=[r for r in result_full(str(path))],
+        )
+    else:
+        return dict(
+            filename="grades.%s" % path,
+            results=[r for r in result_summary(str(path))],
+        )
+
+
 def script_syllabus_results():
     import csv
     import sys
@@ -96,3 +116,12 @@ def script_syllabus_results():
         else:
             for r in result_summary(env['args'].path):
                 out_csv.writerow(r)
+
+
+def includeme(config):
+    config.add_view(view_syllabus_results, route_name='syllabus_student_grades', renderer='json')
+    config.add_route('syllabus_student_grades', '/syllabus/student_grades')
+    config.add_view(view_syllabus_results, route_name='syllabus_student_grades_csv', renderer='csv')
+    config.add_route('syllabus_student_grades_csv', '/syllabus/student_grades.csv')
+    config.add_view(view_syllabus_results, route_name='syllabus_student_answers_csv', renderer='csv')
+    config.add_route('syllabus_student_answers_csv', '/syllabus/student_answers.csv')

@@ -17,3 +17,7 @@ def path_to_ltree(path_str):
         return path_to_ltree(path_str)
     # Default case, convert to Ltree
     return Ltree(path_str)
+
+
+def includeme(config):
+    config.include('tutorweb_quizdb.syllabus.results')
