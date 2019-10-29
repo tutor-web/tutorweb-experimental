@@ -18,6 +18,17 @@ module.exports['subscription-menu'] = function () {
             select_list(sub_data.children, function (data) {
                 var link_el = null;
 
+                function admin_link() {
+                    if (!data.can_admin) {
+                        return null;
+                    }
+
+                    return h('a.link.pdf', {
+                        href: '/admin?path=' + data.path,
+                        title: 'Administer tutorial',
+                    }, h('img', {src: '/images/cog.png'}));
+                }
+
                 if (data.supporting_material_href) {
                     link_el = h('a.link.pdf', {
                         href: data.supporting_material_href,
@@ -32,6 +43,7 @@ module.exports['subscription-menu'] = function () {
                     data.title,
                     h('div.extras', [
                         link_el,
+                        admin_link(),
                         data.subscribed ? h('span.correct', "✔") : '',
                     ]),
                 ]);

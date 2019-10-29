@@ -47,6 +47,17 @@ function StartView() {
                                     : 'base',
                     grade_title = (subscriptions.lectures[data.href] || { stats: "" }).stats;
 
+                function admin_link() {
+                    if (!data.can_admin) {
+                        return null;
+                    }
+
+                    return h('a.link.pdf', {
+                        href: '/admin?path=' + data.path,
+                        title: 'Administer tutorial',
+                    }, h('img', {src: '/images/cog.png'}));
+                }
+
                 if (data.supporting_material_href) {
                     link_el = h('a.link.pdf', {
                         href: data.supporting_material_href,
@@ -62,6 +73,7 @@ function StartView() {
                     data.title,
                     h('div.extras', [
                         link_el,
+                        admin_link(),
                         h('abbr.grade.' + grade_class, { title: grade_title }, grade),
                     ]),
                 ]);
