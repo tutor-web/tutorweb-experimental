@@ -10,5 +10,16 @@
 </div>
 <div id="results-hot"></div>
 
+<h3>Add students</h3>
+<form id="new-students">
+<p>
+  Subscribe students to class/tutorial. If students don't exist yet they will be created.
+  Add student e-mail addresses, or "username,email@address", one per line to the box below.
+</p>
+<textarea name="users" placeholder="Paste usernames / e-mail addresses here, one per line."></textarea>
+<label><input type="checkbox" name="assign_password" value="true" />Assign new users passwords, instead of e-mailing them</label>
+<input type="submit" class="button" value="Add students" style="float: right" />
+</form>
+
 </section>
 {% endblock %}
