@@ -114,15 +114,21 @@ def includeme(config):
 
 def script_student_import():
     import argparse
-    import sys
     from tutorweb_quizdb import setup_script
 
     argparse_arguments = [
         dict(description='Create many users in one go'),
         dict(
             name='infile',
+            help='File of newline-separated usernames to read',
             type=argparse.FileType('r'),
-            default=sys.stdin),
+            nargs='?',
+            default=None),
+        dict(
+            name='--user',
+            help='User(s) to add/modify (if not provided by infile)',
+            action='append',
+            default=[]),
         dict(
             name='--groups',
             help='Groups to make sure these users are in (comma-separated)',
@@ -145,8 +151,14 @@ def script_student_import():
     ]
 
     with setup_script(argparse_arguments) as env:
-        with env['args'].infile as f:
-            new_user_names = filter(None, f.readlines())
+        new_user_names = env['args'].user
+        if env['args'].infile:
+            with env['args'].infile as f:
+                new_user_names += filter(None, f.readlines())
+        if len(new_user_names) == 0:
+            print("No users to add/modify")
+            env['argparser'].print_help()
+            exit(1)
 
         for new_user_name in new_user_names:
             new_user_name = new_user_name.strip()

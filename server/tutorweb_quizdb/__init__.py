@@ -158,6 +158,7 @@ def setup_script(argparse_arguments):
                 env['request'].environ['SERVER_NAME'],
                 env['request'].environ['SERVER_PORT'],
             )
+            env['argparser'] = parser
             env['args'] = args
             yield env
 
