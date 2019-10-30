@@ -20,7 +20,7 @@ Web-based class management
 A teacher can be given the ability to manage a tutorial/class from the
 tutor-web website. For example::
 
-    ./server/bin/student_import --user teacher@hi.is --groups admin.class.haskoli_islands_2019.612.0 -
+    ./server/bin/student_import --user teacher@hi.is --groups admin.class.haskoli_islands_2019.612.0
 
 Then they will get a cog icon next to class.haskoli_islands_2019.612.0,
 clicking that gives them access to the admin page, allowing...
