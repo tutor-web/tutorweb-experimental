@@ -8,8 +8,7 @@ var jQuery = require('jquery');
 var AjaxApi = require('lib/ajaxapi.js');
 
 function page_load(qs, state) {
-    var twView = new View(jQuery),
-        ajaxApi = new AjaxApi(jQuery.ajax);
+    var ajaxApi = new AjaxApi(jQuery.ajax);
 
     Array.prototype.forEach.call(document.querySelectorAll('#csv-links a'), function (a_el) {
         a_el.href = a_el.href + '?path=' + qs.path;
@@ -26,19 +25,23 @@ function page_load(qs, state) {
             data: data.results,
         });
         window.hot = hot;
-    }).catch(function (err) {
-        if (err.message.indexOf('tutorweb::unauth::') === 0) {
-            // TODO: "Not an admin" caught by this too
-            // i.e. do go-login
-            window.location.href = '/auth/login?next=' + encodeURIComponent(window.location.pathname + window.location.search);
-        }
-        console.error(err);
-        twView.showAlert('error', err.message);
     });
+}
+
+function global_catch(err) {
+    var twView = new View(jQuery);
+
+    if (err.message.indexOf('tutorweb::unauth::') === 0) {
+        // TODO: "Not an admin" caught by this too
+        // i.e. do go-login
+        window.location.href = '/auth/login?next=' + encodeURIComponent(window.location.pathname + window.location.search);
+    }
+    console.error(err);
+    twView.showAlert('error', err.message);
 }
 
 if (window) {
     document.addEventListener('DOMContentLoaded', function (e) {
-        page_load(parse_qs(window.location), window.history.state || {});
+        page_load(parse_qs(window.location), window.history.state || {}).catch(global_catch);
     });
 }
