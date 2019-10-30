@@ -8,6 +8,7 @@ from .requires_pyramid import RequiresPyramid
 from tutorweb_quizdb.student import get_group
 from tutorweb_quizdb.syllabus.bulk_subscribe import view_bulk_subscribe
 
+
 class BulkSubscribeTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase):
     maxDiff = None
 
