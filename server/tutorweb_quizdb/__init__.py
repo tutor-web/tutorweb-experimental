@@ -136,6 +136,12 @@ def setup_script(argparse_arguments):
     parser = argparse.ArgumentParser(**argparse_arguments[0])
     for a in argparse_arguments[1:]:
         parser.add_argument(a.pop('name'), **a)
+    parser.add_argument(
+        '--sql-trace',
+        help="Log all executed SQL statements",
+        action="store_true",
+        default=False,
+    )
     args = parser.parse_args()
 
     # Wrap the bootstrap context manager and inject our args in
@@ -154,4 +160,8 @@ def setup_script(argparse_arguments):
             )
             env['args'] = args
             yield env
+
+    logging.basicConfig()
+    if args.sql_trace:
+        logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     return contextmanager(script_context)()
