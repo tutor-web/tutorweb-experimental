@@ -32,7 +32,7 @@
     </ul>
   </div>
 
-  <main role="main" class="container">
+  <main role="main" class="{% block content_class %}container{% endblock %}">
     <h1 class="text-center"><a href="/"><img src="/images/logo.jpg" alt="Tutor web" /></a></h1>
     {% block content %}
     <section id="tw-quiz">
