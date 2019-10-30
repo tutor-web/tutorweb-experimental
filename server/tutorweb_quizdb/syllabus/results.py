@@ -26,11 +26,14 @@ def result_summary(path=''):
           AND sy.path <@ :path
      ORDER BY sy.path, st.stage_name, u.user_name, time_end DESC
     """, dict(
-        path=path
+        path=str(path)
     )):
         r = dict(r)
         # Make a user -> stage_path -> grade dict
         stage_path = str(r['path'] + Ltree(r['stage_name']))
+        if path:
+            # Don't repeat the path for the section we're searching
+            stage_path = stage_path.replace(str(path) + '.', '')
         cols.add(stage_path)
         data[r['user_name']][stage_path] = r['grade']
     cols = sorted(cols)

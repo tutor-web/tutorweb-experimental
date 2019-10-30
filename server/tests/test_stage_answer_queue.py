@@ -595,7 +595,7 @@ question <- function(permutation, data_frames) { return(list(content = 'parp', c
         ], 0)
         self.assertEqual(self.coins_awarded(self.db_studs[0]), 4 * (AWARD_STAGE_ANSWERED + AWARD_STAGE_ACED) + AWARD_TUTORIAL_ACED)
 
-        # Check result summary
+        # Check result summary for everything
         out = list(result_summary())
         self.assertEqual(sorted(out[0][1:]), out[0][1:])  # Columns sorted
         out_dict = [dict((k, str(row[i])) for i, k in enumerate(out[0])) for row in out[1:]]
@@ -624,6 +624,17 @@ question <- function(permutation, data_frames) { return(list(content = 'parp', c
                 str(self.db_stages[0].syllabus.path + 'stage0'): '0.100',
                 str(self.db_stages[0].syllabus.path + 'stage1'): '0',
                 str(self.db_stages[0].syllabus.path + 'stage2'): '0',
+            }
+        ])
+
+        # Just for db_other_stages[0]
+        out = list(result_summary(self.db_other_stages[0].syllabus.path))
+        self.assertEqual(sorted(out[0][1:]), out[0][1:])  # Columns sorted
+        out_dict = [dict((k, str(row[i])) for i, k in enumerate(out[0])) for row in out[1:]]
+        self.assertEqual(out_dict, [
+            {
+                'student': 'user0',
+                'stage0': '9.940',
             }
         ])
 
