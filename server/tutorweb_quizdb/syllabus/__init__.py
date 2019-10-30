@@ -20,4 +20,5 @@ def path_to_ltree(path_str):
 
 
 def includeme(config):
+    config.include('tutorweb_quizdb.syllabus.bulk_subscribe')
     config.include('tutorweb_quizdb.syllabus.results')
