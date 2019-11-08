@@ -67,6 +67,25 @@ question <- function(permutation, data_frames) {
         with self.assertRaisesRegex(ValueError, r'100 permutations'):
             out = material_render(self.mb_fake_ms('example.q.R'), 101)
 
+    def test_material_exception(self):
+        """R exceptions get reported upwards"""
+        self.mb_write_file('example.q.R', b'''
+# TW:TAGS=math099,Q-0990t0,lec050500,
+# TW:PERMUTATIONS=100
+library(htmltools)
+question <- function(permutation, data_frames) {
+    stop('Hammer time')
+}
+        ''')
+        out = material_render(self.mb_fake_ms('example.q.R'), 1)
+        self.assertEqual(out, dict(
+            tags=out['tags'],
+            error='RRuntimeError',
+            content='<div class="alert alert-error">RRuntimeError: Error in (function '
+                    '(permutation, data_frames)  : Hammer time\n'
+                    '</div>',
+        ))
+
     def test_material_htmltools(self):
         """Can convert htmltools' tags into a string"""
         self.mb_write_file('example.q.R', b'''

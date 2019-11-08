@@ -1,3 +1,5 @@
+import html
+import logging
 import json
 
 from pyramid.httpexceptions import HTTPForbidden
@@ -7,6 +9,9 @@ from tutorweb_quizdb import DBSession, Base
 from .renderer.usergenerated import ug_render
 from .renderer.r import r_render
 from .utils import material_bank_open
+
+
+logger = logging.getLogger(__package__)
 
 
 class MissingDataException(Exception):
@@ -41,13 +46,23 @@ def material_render(ms, permutation, student_dataframes={}):
             ms.permutation_count,
             permutation,
         ))
-    elif 'type.template' in ms.material_tags and permutation < 0:
-        # For templates, permutations < 0 are user-generated material
-        out = ug_render(ms, permutation, student_dataframes)
-    elif ms.path.endswith('.R'):
-        out = r_render(ms, permutation, student_dataframes)
-    else:
-        raise ValueError("Don't know how to render %s" % ms.path)
+
+    try:
+        if 'type.template' in ms.material_tags and permutation < 0:
+            # For templates, permutations < 0 are user-generated material
+            out = ug_render(ms, permutation, student_dataframes)
+        elif ms.path.endswith('.R'):
+            out = r_render(ms, permutation, student_dataframes)
+        else:
+            raise ValueError("Don't know how to render %s" % ms.path)
+    except Exception as e:
+        logger.exception(e)
+        out = dict(
+            error=e.__class__.__name__,
+            content='<div class="alert alert-error">%s</div>' % (
+                html.escape(e.__class__.__name__ + ": " + str(e)),
+            )
+        )
 
     # Add common extra detail to material object
     if 'tags' not in out:
