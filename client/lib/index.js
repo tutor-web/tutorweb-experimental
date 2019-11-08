@@ -108,6 +108,7 @@ StartView.prototype = new View(jQuery);
 
     twView.states['subscription-sync'] = twView.states['subscription-sync-force'] = function (curState) {
         return quiz.syncSubscriptions({
+            lectureAdd: twView.curUrl.path || null,
             syncForce: curState === 'subscription-sync-force',
         }, function (opTotal, opSucceeded, message) {
             render_progress(twView.jqQuiz, opSucceeded, opTotal, message);
