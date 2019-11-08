@@ -1719,6 +1719,7 @@ test('_getQuestionData', function (t) {
     Promise.resolve().then(function (args) {
         ls.setItem("http://camel.com/", '{"s": "camel"}');
         ls.setItem("http://sausage.com/", '{"s": "sausage"}');
+        ls.setItem("http://marmite.com/", '{"error": "MarmiteError"}');
 
     // Can fetch back data
     }).then(function (qn) {
@@ -1769,6 +1770,10 @@ test('_getQuestionData', function (t) {
         return quiz._getQuestionData("http://frankfurter.com/", true);
     }).then(function (qn) {
         t.deepEqual(qn, {s: "wurst", uri: "http://frankfurter.com/"});
+
+    // If the question didn't render, than we throw the error (so we retry and try something else)
+    }).then(function (qn) {
+        t.throws(function () { quiz._getQuestionData("http://marmite.com/", false); }, /MarmiteError/);
 
     }).then(function (args) {
         t.end();

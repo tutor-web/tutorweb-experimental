@@ -362,6 +362,10 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         } else {
             qn = self.ls.getItem(uri);
             if (qn) {
+                if (qn.error) {
+                    // This question didn't render properly, ignore it and get the next
+                    throw new Error(qn.error);
+                }
                 // Fetch out of localStorage
                 promise = Promise.resolve(qn);
             } else {
@@ -371,7 +375,13 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
                                                '?path=' + encodeURIComponent(self.lecUri) +
                                                '&id=' + encodeURIComponent(uri)).then(function (data) {
                     // Dig out the rendered material
-                    return data.data[uri];
+                    qn = data.data[uri];
+
+                    if (qn.error) {
+                        // This question didn't render properly, ignore it and get the next
+                        throw new Error(qn.error);
+                    }
+                    return qn;
                 });
             }
         }
