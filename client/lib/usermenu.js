@@ -130,13 +130,7 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
                     );
                 }
 
-                if (curUrl.hasOwnProperty('path')) {
-                    menu.action.unshift(
-                        { text: "Edit data for this lecture", action: "twstate:data-display" },
-                        { text: "Sync with server", action: "menustate:sync-force" },
-                        { text: "Get some help on this lecture", action: "popup:chat.html#!lecUri=" + encodeURIComponent(curUrl.lecUri) }
-                    );
-                } else if (document.location.pathname === '/') {
+                if (document.location.pathname === '/') {
                     menu.action.unshift(
                         { text: "Sync all subscriptions", action: "twstate:subscription-sync-force" },
                         { text: "Become a tutor", action: "popup:chat.html" }
@@ -145,6 +139,12 @@ module.exports = function UserMenu(jqUserMenu, quiz) {
                         { text: "Manage your subscriptions", action: "twstate:subscription-menu" },
                         { text: "Edit your profile", action: "twstate:go-profile" },
                         { text: "Clear data and logout", action: "twstate:logout" }
+                    );
+                } else if (curUrl.hasOwnProperty('path')) {
+                    menu.action.unshift(
+                        { text: "Edit data for this lecture", action: "twstate:data-display" },
+                        { text: "Sync with server", action: "menustate:sync-force" },
+                        { text: "Get some help on this lecture", action: "popup:chat.html#!lecUri=" + encodeURIComponent(curUrl.lecUri) }
                     );
                 } else {
                     menu.action.push(
