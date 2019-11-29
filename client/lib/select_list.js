@@ -15,7 +15,7 @@ function select_list(orig_data, item_fn, on_select) {
         var item = item_fn(data),
             has_children = (data.children || []).length;
 
-        return item ? h('li' + (has_children ? '.has-children' : ''), { 'data-dataindex': i }, [
+        return item ? h('li' + (has_children ? '.has-children' : '') + (data.init_select ? '.selected' : ''), { 'data-dataindex': i }, [
             item,
             has_children ? h('ul', data.children.map(select_list_inner)) : null,
         ]) : null;
@@ -24,6 +24,10 @@ function select_list(orig_data, item_fn, on_select) {
     function toggle(li_el, open_close, no_recurse) {
         var ul_el;
 
+        if (!li_el) {
+            // e.g. no init-select item, so nothing to toggle
+            return;
+        }
         li_el.classList.toggle('selected', open_close);
 
         ul_el = li_el.lastElementChild;
@@ -95,9 +99,9 @@ function select_list(orig_data, item_fn, on_select) {
         }
     }}, (orig_data || []).map(select_list_inner));
 
-    if (sl_el.querySelector('ul.select-list > li')) {
-        toggle(sl_el.querySelectorAll('ul.select-list > li:first-child')[0]);
-    }
+    // Call toggle for any init-selected items to sort heights out
+    // NB: Should ideally recurse down for selected items, but not needed yet.
+    toggle(sl_el.querySelector('ul.select-list li.selected'), true);
 
     if (on_select) {
         on_select(selected_items(orig_data, sl_el));

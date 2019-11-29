@@ -162,6 +162,10 @@ StartView.prototype = new View(jQuery);
                 twView.jqQuiz.empty();
                 return 'subscription-menu';
             }
+            subscriptions.subscriptions.children.forEach(function (item, i) {
+                // Make sure either path item is selected, or first item.
+                item.init_select = twView.curUrl.path ? item.path === twView.curUrl.path : i === 0;
+            });
             twView.renderChooseLecture(
                 subscriptions,
                 ['go-twhome', ''],
