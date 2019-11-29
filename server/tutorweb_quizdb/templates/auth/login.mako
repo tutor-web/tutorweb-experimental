@@ -37,7 +37,7 @@
       <div id="tw-actions">
         <button class="button" onclick="document.getElementById('deform').Log_in.click()">Log-in</button>
         <a href="${request.route_url('forgot_password')}" class="button">Forgot your password?</a>
-        <a href="${request.route_url('register')}" class="button">Sign up to Tutor-Web</a>
+        <a href="${request.route_url('register')}?${request.query_string}" class="button">Sign up to Tutor-Web</a>
       </div>
     </div>
   </main>
