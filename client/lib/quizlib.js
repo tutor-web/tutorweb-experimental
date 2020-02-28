@@ -747,7 +747,9 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
     /** Output a selection of summary strings on the given / current lecture */
     this._gradeSummary = function (lecture) {
-        var i, a, currentGrade, out = {};
+        var i, a, currentGrade,
+            out = {},
+            gradeVisible = getSetting(lecture.settings, 'grade_nmin', 8) - (lecture.answerQueue || []).length;
 
         if (!lecture) {
             throw new Error("No lecture Given");
@@ -767,12 +769,17 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
         if (a.hasOwnProperty('grade_after') || a.hasOwnProperty('grade_before')) {
             currentGrade = a.hasOwnProperty('grade_after') ? a.grade_after : a.grade_before;
-            out.grade = "Your grade: " + currentGrade;
+
+            if (gradeVisible > 0) {
+                out.grade = "Answer " + gradeVisible + " more questions to see your grade";
+            } else {
+                out.grade = "Your grade: " + currentGrade;
+            }
         }
 
         if (currentGrade >= 9.750) {
             out.encouragement = "You have aced this lecture!";
-        } else if (a.grade_next_right && (a.grade_next_right > currentGrade)) {
+        } else if (a.grade_next_right && gradeVisible <= 0  && (a.grade_next_right > currentGrade)) {
             out.encouragement = "If you get the next question right: " + a.grade_next_right;
         } else if (lecture.settings.award_stage_aced && lecture.settings.award_tutorial_aced) {
             out.encouragement = "Win " + Math.round(lecture.settings.award_stage_aced / 1000) + " SMLY if you ace this stage, bonus "

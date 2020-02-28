@@ -1099,7 +1099,7 @@ test('_gradeSummaryStrings', function (t) {
         t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
         return (getQn(quiz, false));
 
-    // Answer some questions, should see our grade
+    // Answer some questions, don't see our grade yet
     }).then(function (args) {
         return (getQn(quiz, false));
     }).then(function (args) {
@@ -1108,7 +1108,7 @@ test('_gradeSummaryStrings', function (t) {
             t.equal(grade_summary.practice, undefined);
             t.equal(grade_summary.practiceStats, undefined);
             t.equal(grade_summary.stats, 'Answered 0 questions.');
-            t.equal(grade_summary.grade, 'Your grade: 0');
+            t.equal(grade_summary.grade, 'Answer 7 more questions to see your grade');
             t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
             return (setAns(quiz, chooseAnswer(args, true)));
         });
@@ -1118,8 +1118,8 @@ test('_gradeSummaryStrings', function (t) {
         t.equal(grade_summary.practice, undefined);
         t.equal(grade_summary.practiceStats, undefined);
         t.equal(grade_summary.stats, 'Answered 1 questions.');
-        t.equal(grade_summary.grade, 'Your grade: 3.5');
-        t.equal(grade_summary.encouragement, 'If you get the next question right: 6');
+        t.equal(grade_summary.grade, 'Answer 7 more questions to see your grade');
+        t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
 
     }).then(function (args) {
         return (getQn(quiz, true));
@@ -1128,10 +1128,64 @@ test('_gradeSummaryStrings', function (t) {
             t.equal(grade_summary.practice, "Practice mode");
             t.equal(grade_summary.practiceStats, "Answered 0 practice questions.");
             t.equal(grade_summary.stats, 'Answered 1 questions.');
-            t.equal(grade_summary.grade, 'Your grade: 3.5');
+            t.equal(grade_summary.grade, 'Answer 6 more questions to see your grade');
             t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
             return (setAns(quiz, chooseAnswer(args, false)));
         });
+    }).then(function (args) {
+        return (getQn(quiz, false)).then(function (args) {
+            return quiz.lectureGradeSummary().then(function (grade_summary) {
+                t.equal(grade_summary.grade, 'Answer 5 more questions to see your grade');
+                return setAns(quiz, chooseAnswer(args, false));
+            });
+        });
+    }).then(function (args) {
+        return (getQn(quiz, false)).then(function (args) {
+            return quiz.lectureGradeSummary().then(function (grade_summary) {
+                t.equal(grade_summary.grade, 'Answer 4 more questions to see your grade');
+                return setAns(quiz, chooseAnswer(args, false));
+            });
+        });
+    }).then(function (args) {
+        return (getQn(quiz, false)).then(function (args) {
+            return quiz.lectureGradeSummary().then(function (grade_summary) {
+                t.equal(grade_summary.grade, 'Answer 3 more questions to see your grade');
+                return setAns(quiz, chooseAnswer(args, false));
+            });
+        });
+    }).then(function (args) {
+        return (getQn(quiz, false)).then(function (args) {
+            return quiz.lectureGradeSummary().then(function (grade_summary) {
+                t.equal(grade_summary.grade, 'Answer 2 more questions to see your grade');
+                return setAns(quiz, chooseAnswer(args, false));
+            });
+        });
+    }).then(function (args) {
+        return (getQn(quiz, false)).then(function (args) {
+            return quiz.lectureGradeSummary().then(function (grade_summary) {
+                t.equal(grade_summary.grade, 'Answer 1 more questions to see your grade');
+                return setAns(quiz, chooseAnswer(args, false));
+            });
+        });
+    }).then(function (args) {
+        return (getQn(quiz, false)).then(function (args) {
+            return quiz.lectureGradeSummary().then(function (grade_summary) {
+                t.equal(grade_summary.grade, 'Your grade: 0');
+                return setAns(quiz, chooseAnswer(args, false));
+            });
+        });
+    }).then(function (args) {
+        return (getQn(quiz, false)).then(function (args) {
+            return setAns(quiz, chooseAnswer(args, true)).then(function (args) {
+                return quiz.lectureGradeSummary().then(function (grade_summary) {
+                    t.equal(grade_summary.grade, 'Your grade: 0.25');
+                    t.equal(grade_summary.encouragement, 'If you get the next question right: 3.25');
+                });
+            });
+        });
+
+    }).then(function (args) {
+        return (getQn(quiz, true));
     }).then(function (args) {
         return quiz.lectureGradeSummary();
     }).then(function (grade_summary) {
