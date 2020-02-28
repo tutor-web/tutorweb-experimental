@@ -1093,6 +1093,11 @@ test('markAnswer', function (t) {
     t.equal(iaalib.markAnswer({student_answer: {correct: "yes", also_correct: "no"}}, {correct: ["yes"], also_correct: ["yes"]}), false);
     t.equal(iaalib.markAnswer({student_answer: {correct: "yes", also_correct: "yes"}}, {correct: ["yes"], also_correct: ["yes"]}), true);
 
+    // Answer specifications can be integers
+    t.equal(iaalib.markAnswer({student_answer: {correct: "5"}}, {correct: [2]}), false);
+    t.equal(iaalib.markAnswer({student_answer: {correct: "5"}}, {correct: [5]}), true);
+    t.equal(iaalib.markAnswer({student_answer: {correct: "5   "}}, {correct: [5]}), true);
+
     // Can use the non-empty function
     t.equal(iaalib.markAnswer({student_answer: {}}, {correct: {nonempty: 1}}), false);
     t.equal(iaalib.markAnswer({student_answer: {correct: ""}}, {correct: {nonempty: 1}}), false);
