@@ -27,9 +27,8 @@ LIBRARIES_CSS = \
 all: test lint compile
 
 www/geogebra:
-	wget -O /tmp/ggb-bundle.zip https://download.geogebra.org/package/geogebra-math-apps-bundle
+	[ -f "/tmp/ggb-bundle.zip" ] || wget -O /tmp/ggb-bundle.zip https://download.geogebra.org/package/geogebra-math-apps-bundle
 	unzip -o /tmp/ggb-bundle.zip -d $@
-	rm /tmp/ggb-bundle.zip
 
 compile: node_modules/ clean-unused $(OUT_FILES)
 
