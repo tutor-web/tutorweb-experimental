@@ -14,7 +14,7 @@ click==6.7
 colander==1.7.0
 cookiecutter==1.6.0
 coverage==4.5.1
-cryptacular==1.4.1
+cryptacular==1.5.5
 deform==2.0.7
 docutils==0.14
 flake8==3.5.0
