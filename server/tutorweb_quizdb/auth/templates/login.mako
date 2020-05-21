@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Tutorweb: Forgot Password</title>
+  <title>Tutorweb: Log in</title>
   <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="utf-8" />
@@ -26,10 +26,20 @@
 
     <section>
       ${render_flash_messages()|n}
-      <h3>Forgot Password</h3>
+      <h3>Log in</h3>
       ${form|n}
     </section>
 
+    <script>//<!--
+    document.getElementById('deform').Log_in.style.display = 'none';
+    // --></script>
+    <div class="status">
+      <div id="tw-actions">
+        <button class="button" onclick="document.getElementById('deform').Log_in.click()">Log-in</button>
+        <a href="${request.route_url('auth_activate_request_code')}" class="button">Forgot your password?</a>
+        <a href="${request.route_url('auth_register_register')}?${request.query_string}" class="button">Sign up to Tutor-Web</a>
+      </div>
+    </div>
   </main>
 </body>
 </html>

@@ -9,40 +9,76 @@ from tutorweb_quizdb.student import get_group
 from tutorweb_quizdb.subscriptions.index import subscription_add
 
 
-def trigger_forgot_password(request, user):
-    """
-    Rip out forgot password logic from pluserable.views.ForgotPasswordView
+EMAIL_TEMPLATE = ["Reset your password", """\
+Hello, {username}!
 
-    Obviously not the right thing to do, but running out of time
+Someone requested resetting your password. If it was you, click here:
+{link}
+
+If you don't want to change your password, please ignore this email message.
+
+Regards,
+{domain}\n"""]
+
+
+def activate_trigger_email(request, user):
+    """
+    Start user-activation process with an e-mail
+    - (user) can either be a user object, or a string containing a user's e-mail address
     """
     from pyramid.url import route_url
     from pyramid_mailer import get_mailer
     from pyramid_mailer.message import Message
-    from kerno.web.pyramid import IKerno
-    from pluserable.strings import get_strings
+
+    # Find user object if need be
+    if isinstance(user, str):
+        user = DBSession.query(models.User).filter_by(
+            host_id=ACTIVE_HOST,  # TODO: We oughta be adding that elsewhere.
+            email=user,
+        ).first()
+
+    if not user:
+        return
 
     # Assign new activation code to user
     user.activation = models.Activation()
     DBSession.flush()
 
-    Str = get_strings(request.registry.getUtility(IKerno))
-
     mailer = get_mailer(request)
     username = getattr(user, 'short_name', '') or \
         getattr(user, 'full_name', '') or \
         getattr(user, 'username', '') or user.email
-    body = Str.reset_password_email_body.format(
-        link=route_url('reset_password', request, code=user.activation.code),
+    subject = EMAIL_TEMPLATE[0]
+    body = EMAIL_TEMPLATE[1].format(
+        link=route_url('auth_activate_finalize', request, code=user.activation.code),
         username=username, domain=request.application_url)
-    subject = Str.reset_password_email_subject
     message = Message(subject=subject, recipients=[user.email], body=body)
     mailer.send(message)
+
+
+def activate_set_password(request, activation, new_pwd):
+    """Given an activation code, set a user's password"""
+    # Find activation object if need be
+    if isinstance(activation, str):
+        activation = DBSession.query(models.Activation).filter_by(code=activation).first()
+    if not activation:
+        raise ValueError("Unknown activation code")  # TODO: Better error message
+
+    user = DBSession.query(models.User).filter_by(
+        host_id=ACTIVE_HOST,
+        activation_id=activation.id,
+    ).one()
+    user.password = new_pwd
+    user.activation = None
+    DBSession.delete(activation)
+    DBSession.flush()
 
 
 def create_student(request,
                    user_name,
                    email=None,
                    assign_password=False,
+                   must_not_exist=False,
                    group_names=[],
                    subscribe=[]):
     """
@@ -51,6 +87,7 @@ def create_student(request,
     - user_name: The new user-name
     - email: E-mail address, defaults to the same as the user_name
     - assign_password: If true, assign a password to any new student, otherwise mail them
+    - must_not_exist: If true, raise an error if student already exists
     - subscribe: Tutorials to subscribe this user to, adding them to any relevant groups
     """
     if not email:
@@ -60,6 +97,8 @@ def create_student(request,
     try:
         db_u = DBSession.query(models.User).filter_by(host_id=ACTIVE_HOST, user_name=user_name).one()
         db_u.email = email
+        if must_not_exist:
+            raise ValueError('The username %s is already taken' % user_name)
     except NoResultFound:
         password = generate_password(10)
         db_u = models.User(
@@ -73,7 +112,7 @@ def create_student(request,
 
         if not assign_password:
             # Send an e-mail, forget the generated password
-            trigger_forgot_password(request, db_u)
+            activate_trigger_email(request, db_u)
             password = None
     DBSession.flush()
 

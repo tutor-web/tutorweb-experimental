@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 requires = [
+    'bag',
     'gitpython',
     'numpy',
     'plaster_pastedeploy',
-    'pluserable==0.5.0',
     'psycopg2',
     'pyramid',
     'pyramid_jinja2',

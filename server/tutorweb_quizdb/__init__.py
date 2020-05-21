@@ -62,7 +62,7 @@ def initialize_dbsession(settings, prefix=''):
 
 
 def index(request):
-    """Redirect pluserable from /api to js-controlled /"""
+    """Redirect from /api to js-controlled /"""
     raise exc.HTTPFound("/")
 
 
@@ -82,16 +82,9 @@ def main(global_config, **settings):
     config.include('pyramid_mailer')
     config.include('pyramid_mako')
 
-    config.include('pluserable')
-    for template in ['login', 'register', 'forgot_password', 'reset_password', 'edit_profile']:
-        config.override_asset(
-            to_override='pluserable:templates/%s.mako' % template,
-            override_with='tutorweb_quizdb:templates/auth/%s.mako' % template
-        )
-    config.setup_pluserable(os.path.join(global_config['here'], 'kerno.ini'))
-
     smileycoin.configure(settings, prefix='smileycoin.')
 
+    config.include('tutorweb_quizdb.auth')
     config.include('tutorweb_quizdb.coin')
     config.include('tutorweb_quizdb.csv_renderer')
     config.include('tutorweb_quizdb.exceptions')

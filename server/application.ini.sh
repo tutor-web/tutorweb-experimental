@@ -22,9 +22,6 @@ pyramid.includes =
 sqlalchemy.url = ${DB_URL}
 sqlalchemy.echo = false
 
-pluserable.login_redirect = index
-pluserable.logout_redirect = index
-
 tutorweb.material_bank.default = ${PROJECT_PATH}/db/material_bank
 
 tutorweb.script.server_name = ${SERVER_NAME}
