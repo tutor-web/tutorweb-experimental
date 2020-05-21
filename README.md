@@ -26,6 +26,15 @@ apt install \
     make nodejs nodejs-legacy yarn nginx
 ```
 
+R packages for question bank:
+
+```
+cat <<EOF | R
+install.packages('jsonlite')
+install.packages('htmltools')
+EOF
+```
+
 ## Production configuration
 
 Create a ``.local-conf`` configuration file, including the smileycoin wallet configuration:
