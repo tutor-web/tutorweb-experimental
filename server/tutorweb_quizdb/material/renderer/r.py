@@ -1,9 +1,11 @@
 import json
 import os
 import threading
+import warnings
 
 import rpy2.rinterface
 import rpy2.robjects as robjects
+from rpy2.rinterface import RRuntimeWarning
 from rpy2.robjects.packages import importr
 
 R_INTERPRETER_LOCK = threading.Lock()
@@ -47,6 +49,7 @@ def r_render(ms, permutation, student_dataframes={}):
             r_student_dataframes = jsonlite.fromJSON(
                 json.dumps(student_dataframes),
             )
+            warnings.filterwarnings("ignore", category=RRuntimeWarning)
             rob = robjects.globalenv['question'](permutation, r_student_dataframes)
             # TODO: Stacktraces?
             try:
