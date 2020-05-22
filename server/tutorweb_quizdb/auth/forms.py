@@ -66,8 +66,8 @@ class ProfileSchema(CSRFSchema):
             size=40, maxlength=260, type='email', placeholder=_("joe@example.com")))
 
 
-def process_form(request, schema, process_data, buttons=('submit',), init_data=None):
-    form = deform.Form(schema().bind(request=request), buttons=buttons)
+def process_form(request, schema, process_data, init_data=None):
+    form = deform.Form(schema().bind(request=request), buttons=('submit',))
 
     if request.method == 'POST':
         try:

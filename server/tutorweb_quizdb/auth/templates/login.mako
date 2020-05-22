@@ -30,12 +30,10 @@
       ${form|n}
     </section>
 
-    <script>//<!--
-    document.getElementById('deform').Log_in.style.display = 'none';
-    // --></script>
     <div class="status">
       <div id="tw-actions">
-        <button class="button" onclick="document.getElementById('deform').Log_in.click()">Log-in</button>
+        <label class="button" for="deformsubmit">Log in</label>
+        <style>#deformsubmit { display: none }</style>
         <a href="${request.route_url('auth_activate_request_code')}" class="button">Forgot your password?</a>
         <a href="${request.route_url('auth_register_register')}?${request.query_string}" class="button">Sign up to Tutor-Web</a>
       </div>

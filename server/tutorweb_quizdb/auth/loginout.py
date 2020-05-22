@@ -44,7 +44,7 @@ def login(request):
     if request.method == 'GET' and request.user:
         # Already logged in, skip
         return HTTPFound(location=request.params.get('next') or '/')
-    return process_form(request, LoginSchema, process_data, buttons=('Log_in',))
+    return process_form(request, LoginSchema, process_data)
 
 
 def logout(request):

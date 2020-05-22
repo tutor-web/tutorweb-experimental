@@ -30,6 +30,14 @@
       ${form|n}
     </section>
 
+    <div class="status">
+      <div id="tw-actions">
+        <label class="button" for="deformsubmit">Change Password</label>
+        <style>#deformsubmit { display: none }</style>
+        <a href="/" class="button">Back to main menu</a>
+      </div>
+    </div>
+
   </main>
 </body>
 </html>

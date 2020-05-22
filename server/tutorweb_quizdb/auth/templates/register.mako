@@ -30,6 +30,14 @@
       ${form|n}
     </section>
 
+    <div class="status">
+      <div id="tw-actions">
+        <label class="button" for="deformsubmit">Register</label>
+        <style>#deformsubmit { display: none }</style>
+        <a href="${request.route_url('auth_activate_request_code')}" class="button">Reset your password</a>
+        <a href="/" class="button">Back</a>
+      </div>
+    </div>
   </main>
 </body>
 </html>

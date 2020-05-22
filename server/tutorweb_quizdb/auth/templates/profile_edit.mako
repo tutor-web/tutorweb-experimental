@@ -30,12 +30,10 @@
       ${form|n}
     </section>
 
-    <script>//<!--
-    document.getElementById('deform').submit.style.display = 'none';
-    // --></script>
     <div class="status">
       <div id="tw-actions">
-        <button class="button" onclick="document.getElementById('deform').submit.click()">Submit changes</button>
+        <label class="button" for="deformsubmit">Save changes</label>
+        <style>#deformsubmit { display: none }</style>
         <a href="${request.route_url('auth_activate_request_code')}" class="button">Reset your password</a>
         <a href="/" class="button">Back to main menu</a>
       </div>
