@@ -67,7 +67,7 @@ question <- function(permutation, data_frames) { return(list(content = paste('q3
         self.mb_update()
 
         # Can't fetch yet, haven't provided data
-        with self.assertRaisesRegex(MissingDataException, 'df/data_a.json'):
+        with self.assertRaisesRegex(MissingDataException, r'df/data_a\.json'):
             lec_1_material = view_stage_material(self.request(user=self.db_studs[0], params=dict(path=self.db_stages[0])))
 
         # Note df keys for convenience
@@ -96,7 +96,7 @@ question <- function(permutation, data_frames) { return(list(content = paste('q3
         })
 
         # Need data_b also for other lecture
-        with self.assertRaisesRegex(MissingDataException, 'df/data_b.json'):
+        with self.assertRaisesRegex(MissingDataException, r'df/data_b\.json'):
             lec_2_material = view_stage_material(self.request(user=self.db_studs[0], params=dict(path=self.db_other_stages[0])))
         lec_2_df = view_stage_dataframe(self.request(
             user=self.db_studs[0],
@@ -116,5 +116,5 @@ question <- function(permutation, data_frames) { return(list(content = paste('q3
         })
 
         # The other user doesn't get anything
-        with self.assertRaisesRegex(MissingDataException, 'df/data_[ab]\.json'):
+        with self.assertRaisesRegex(MissingDataException, r'df/data_[ab]\.json'):
             lec_2_material = view_stage_material(self.request(user=self.db_studs[1], params=dict(path=self.db_other_stages[0])))

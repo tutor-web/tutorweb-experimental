@@ -695,7 +695,7 @@ question <- function(permutation, data_frames) { return(list(content = 'parp', c
         ])
 
         # The view version requires admin permissions
-        with self.assertRaisesRegexp(HTTPForbidden, 'admin'):
+        with self.assertRaisesRegex(HTTPForbidden, 'admin'):
             view_syllabus_results(self.request(
                 user=self.db_studs[0],
                 params=dict(path=str(self.db_stages[0].syllabus.path)),
@@ -709,7 +709,7 @@ question <- function(permutation, data_frames) { return(list(content = 'parp', c
         ))['results'], list(result_summary(str(self.db_stages[0].syllabus.path))))
 
         # Can't get at the other stages though, without that permission
-        with self.assertRaisesRegexp(HTTPForbidden, 'admin'):
+        with self.assertRaisesRegex(HTTPForbidden, 'admin'):
             view_syllabus_results(self.request(
                 user=self.db_studs[0],
                 params=dict(path=str(self.db_other_stages[0].syllabus.path)),

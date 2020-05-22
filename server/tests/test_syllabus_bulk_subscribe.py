@@ -24,7 +24,7 @@ class BulkSubscribeTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase):
             ))
 
         # The view version requires admin permissions
-        with self.assertRaisesRegexp(HTTPForbidden, 'admin'):
+        with self.assertRaisesRegex(HTTPForbidden, 'admin'):
             vbs(['cuthbert@example.com'])
         teacher.groups.append(get_group('admin.%s' % stages[0].syllabus.path, auto_create=True))
 
