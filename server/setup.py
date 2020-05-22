@@ -2,6 +2,8 @@ from setuptools import setup, find_packages
 
 requires = [
     'bag',
+    'deform',
+    'cryptacular >= 1.5.5',
     'gitpython',
     'numpy',
     'plaster_pastedeploy',

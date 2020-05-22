@@ -1,10 +1,7 @@
 wheel==0.30.0
 coverage==4.5.1
 flake8==3.5.0
-Beaker[pycryptodome]
-pycryptodome
 psycopg2-binary
-cryptacular==1.5.5
 -e git+git://github.com/pyrige/skippy@bce3109c3b74d84b61da83396b09f9b594aa3905#egg=skippy==1.0
 -e . ".[testing]"
 -e .
