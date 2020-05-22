@@ -12,7 +12,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy_utils import Ltree
-from zope.sqlalchemy import ZopeTransactionExtension
+from zope.sqlalchemy import register
 
 from pyramid.session import SignedCookieSessionFactory
 
@@ -37,7 +37,8 @@ class BaseExtensions(object):
                 key not in json_exclude}
 
 
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+DBSession = scoped_session(sessionmaker())
+register(DBSession)
 Base = automap_base(cls=BaseExtensions)
 import tutorweb_quizdb.models  # noqa
 from sqlalchemy_utils import LtreeType  # noqa
