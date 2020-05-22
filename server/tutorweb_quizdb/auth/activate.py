@@ -5,31 +5,25 @@ from tutorweb_quizdb.student.create import activate_trigger_email, activate_set_
 
 
 def request_code(request):
+    def process_data(captured):
+        activate_trigger_email(request, captured['email'])
+        return dict(
+            form="<p>Please check your e-mail inbox. You shall get a message with further instructions shortly.</p>",
+        )
+
     if request.user:
         # Already logged in, so change the current user's password
-        email = request.user.email
-    else:
-        # Not logged in, ask who we should be
-        captured = process_form(request, ActivateRequestSchema)
-        if not captured.get('_is_form_data', False):
-            return captured
-        email = captured['email']
-
-    activate_trigger_email(request, email)
-    return dict(
-        render_flash_messages=lambda: "",
-        form="<p>Please check your e-mail inbox. You shall get a message with further instructions shortly.</p>",
-    )
+        return process_data(dict(email=request.user.email))
+    return process_form(request, ActivateRequestSchema, process_data)
 
 
 def finalize(request):
-    code = request.matchdict.get('code', None)
-    captured = process_form(request, ActivateFinalizeSchema)
-    if not captured.get('_is_form_data', False):
-        return captured
+    def process_data(captured):
+        code = request.matchdict.get('code', None)
+        activate_set_password(request, code, captured['password'])
+        return HTTPFound(location=request.params.get('next') or '/')
 
-    activate_set_password(request, code, captured['password'])
-    return HTTPFound(location=request.params.get('next') or '/')
+    return process_form(request, ActivateFinalizeSchema, process_data)
 
 
 def includeme(config):

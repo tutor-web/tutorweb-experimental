@@ -66,22 +66,25 @@ class ProfileSchema(CSRFSchema):
             size=40, maxlength=260, type='email', placeholder=_("joe@example.com")))
 
 
-def process_form(request, schema, error=None, buttons=('submit',), init_data=None):
+def process_form(request, schema, process_data, buttons=('submit',), init_data=None):
     form = deform.Form(schema().bind(request=request), buttons=buttons)
 
-    if not error and request.method == 'POST':
+    if request.method == 'POST':
         try:
             captured = form.validate(request.POST.items())
             captured['_is_form_data'] = True
-            return captured
+            try:
+                return process_data(captured)
+            except deform.exception.ValidationFailure:
+                pass
+            except Exception as e:
+                form.widget.handle_error(form, colander.Invalid(form.widget, "Error: %s" % e))
         except deform.exception.ValidationFailure as e:
             # Render error form
             return dict(
-                render_flash_messages=lambda: "",  # TODO:
                 form=e.render(),
             )
 
     return dict(
-        render_flash_messages=lambda: error or "",  # TODO:
         form=form.render(init_data or {}),
     )

@@ -17,35 +17,34 @@ def get_user(request):
 
 
 def login(request):
+    def process_data(captured):
+        # Find matching user
+        handle = captured['handle'].lower()
+        # TODO: We explicitly set @hi.is in usernames, is this bad?
+        if '@' in handle:
+            user = DBSession.query(models.User).filter(
+                func.lower(models.User.email) == handle).first()
+        else:
+            user = DBSession.query(models.User).filter(
+                func.lower(models.User.username) == handle).first()
+
+        # Are they valid?
+        if not user or not user.check_password(captured['password']):
+            raise ValueError("Invalid username / password")
+        if not user.is_activated:
+            raise ValueError("Inactive account")
+
+        # Finish login
+        user.last_login_date = datetime.datetime.utcnow()
+        return HTTPFound(
+            headers=remember(request, user.id),
+            location=request.params.get('next') or '/',
+        )
+
     if request.method == 'GET' and request.user:
         # Already logged in, skip
         return HTTPFound(location=request.params.get('next') or '/')
-
-    captured = process_form(request, LoginSchema, buttons=('Log_in',))
-    if not captured.get('_is_form_data', False):
-        return captured
-
-    # Find matching user
-    handle = captured['handle'].lower()
-    if '@' in handle:
-        user = DBSession.query(models.User).filter(
-            func.lower(models.User.email) == handle).first()
-    else:
-        user = DBSession.query(models.User).filter(
-            func.lower(models.User.username) == handle).first()
-
-    # Are they valid?
-    if not user or not user.check_password(captured['password']):
-        return process_form(request, LoginSchema, buttons=('Log_in',), error="Invalid username / password")
-    if not user.is_activated:
-        return process_form(request, LoginSchema, buttons=('Log_in',), error="Inactive account")
-
-    # Finish login
-    user.last_login_date = datetime.datetime.utcnow()
-    return HTTPFound(
-        headers=remember(request, user.id),
-        location=request.params.get('next') or '/',
-    )
+    return process_form(request, LoginSchema, process_data, buttons=('Log_in',))
 
 
 def logout(request):

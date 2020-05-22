@@ -26,7 +26,6 @@
     <h1 class="text-center"><a href="/"><img src="/images/logo.jpg" alt="Tutor web" /></a></h1>
 
     <section>
-      ${render_flash_messages()|n}
       <h3>Reset Password</h3>
       ${form|n}
     </section>
