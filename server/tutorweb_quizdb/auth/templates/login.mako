@@ -7,6 +7,7 @@
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="/css/libraries.min.css" />
   <link rel="stylesheet" type="text/css" href="/css/index.min.css" />
+  <link rel="stylesheet" type="text/css" href="/api/static/css/form.css" />
 
   <link rel="shortcut icon" href="/images/tutor-favicon.ico" />
   <link rel="icon" sizes="76x76" href="/images/apple-touch-icon-ipad-76x76.png" />

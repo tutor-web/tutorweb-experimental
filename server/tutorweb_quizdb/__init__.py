@@ -81,6 +81,7 @@ def main(global_config, **settings):
     config.include('pyramid_jinja2')
     config.include('pyramid_mailer')
     config.include('pyramid_mako')
+    config.add_static_view('static', 'deform:static')
 
     smileycoin.configure(settings, prefix='smileycoin.')
 
