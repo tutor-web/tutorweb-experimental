@@ -46,6 +46,8 @@ cat <<EOF >> ${OUTFILE}
 use = egg:waitress#main
 unix_socket = ${UWSGI_SOCKET}
 unix_socket_perms = 666
+trusted_proxy = localhost
+trusted_proxy_headers = x-forwarded-for x-forwarded-host x-forwarded-proto x-forwarded-port
 EOF
 
 cat <<EOF >> ${OUTFILE}
