@@ -6,6 +6,7 @@ requires = [
     'cryptacular >= 1.5.5',
     'gitpython',
     'numpy',
+    'lti',
     'plaster_pastedeploy',
     'psycopg2',
     'pyramid',

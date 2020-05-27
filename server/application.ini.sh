@@ -27,6 +27,8 @@ tutorweb.material_bank.default = ${PROJECT_PATH}/db/material_bank
 tutorweb.script.server_name = ${SERVER_NAME}
 tutorweb.script.is_https = ${SERVER_IS_HTTPS}
 
+tutorweb.lti.secrets = ${APP_LTI_SECRETS}
+
 mail.default_sender = ${UWSGI_MAILSENDER}
 mail.host = ${UWSGI_MAILHOST}
 mail.port = ${UWSGI_MAILPORT}
