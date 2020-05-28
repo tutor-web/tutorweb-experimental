@@ -90,7 +90,7 @@ def view_material_render(request):
     student_dataframes = {}
     missing_data = False
     for dataframe_path in ms.dataframe_paths:
-        out['dataframe_templates'][dataframe_path] = dataframe_template(bank, dataframe_path)
+        out['dataframe_templates'][dataframe_path] = dataframe_template(ms.bank, dataframe_path)
         if dataframe_path in request.json.get('student_dataframes', {}):
             student_dataframes[dataframe_path] = request.json['student_dataframes'][dataframe_path]
         else:
