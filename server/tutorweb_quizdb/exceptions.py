@@ -16,6 +16,7 @@ def view_exception(e, request):
     request.response.status = getattr(e, 'status_code', 500)
     if getattr(e, 'status_code', 500) == 500:
         logging.exception(e)
+
     return {level: dict(
         type=e.__class__.__name__,
         message=(e.__class__.__name__ + ": " if print_stack else "") + str(e),
@@ -24,6 +25,6 @@ def view_exception(e, request):
 
 
 def includeme(config):
-    config.add_exception_view(view_exception, Exception, renderer='json')
-    config.add_exception_view(view_exception, HTTPForbidden, renderer='json')
-    config.add_exception_view(view_exception, HTTPBadRequest, renderer='json')
+    for e_class in (Exception, HTTPForbidden, HTTPBadRequest):
+        config.add_exception_view(view_exception, e_class, accept='text/html', renderer='templates/exceptions.mako')
+        config.add_exception_view(view_exception, e_class, accept='application/json', renderer='json')

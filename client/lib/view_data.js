@@ -9,6 +9,7 @@ module.exports['data-display'] = function () {
 
     return window.fetch('/api/stage/dataframe?path=' + encodeURIComponent(this.curUrl.path), {
         method: "GET",
+        headers: { "Accept": 'application/json' },
     }).then(function (response) {
         return response.json();
     }.bind(this)).then(function (data) {
@@ -42,7 +43,7 @@ module.exports['data-save'] = function () {
 
     return window.fetch('/api/stage/dataframe?path=' + encodeURIComponent(this.curUrl.path), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept": 'application/json' },
         body: JSON.stringify({
             data: data,
         }),

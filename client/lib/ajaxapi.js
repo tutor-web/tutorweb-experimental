@@ -22,6 +22,7 @@ module.exports = function AjaxApi(jqAjax) {
     this.getJson = function (url, extras) {
         return this.ajax({
             type: 'GET',
+            headers: { accept: "application/json" },
             url: url
         }, extras).then(function (data) {
             if (typeof data !== 'object') {
@@ -37,6 +38,7 @@ module.exports = function AjaxApi(jqAjax) {
             data: JSON.stringify(data),
             contentType: 'application/json',
             type: 'POST',
+            headers: { accept: "application/json" },
             url: url
         }, extras).then(function (data) {
             if (typeof data !== 'object') {

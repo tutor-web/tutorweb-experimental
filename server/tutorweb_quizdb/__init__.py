@@ -86,6 +86,13 @@ def main(global_config, **settings):
 
     smileycoin.configure(settings, prefix='smileycoin.')
 
+    # Prefer outputting json over HTML (for exceptions)
+    config.add_accept_view_order('text/html')
+    config.add_accept_view_order(
+        'application/json',
+        weighs_more_than='text/html',
+    )
+
     config.include('tutorweb_quizdb.exceptions')
     with config.route_prefix_context('auth'):
         config.include('tutorweb_quizdb.auth')
