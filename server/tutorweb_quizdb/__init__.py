@@ -71,7 +71,7 @@ def main(global_config, **settings):
     """
     Generate WSGI application
     """
-    config = Configurator(settings=settings, route_prefix='/api/')
+    config = Configurator(settings=settings)
 
     initialize_dbsession(settings, prefix='sqlalchemy.')
     config.set_authorization_policy(ACLAuthorizationPolicy())
@@ -86,18 +86,20 @@ def main(global_config, **settings):
 
     smileycoin.configure(settings, prefix='smileycoin.')
 
-    config.include('tutorweb_quizdb.auth')
-    config.include('tutorweb_quizdb.coin')
-    config.include('tutorweb_quizdb.csv_renderer')
     config.include('tutorweb_quizdb.exceptions')
-    config.include('tutorweb_quizdb.logerror')
-    config.include('tutorweb_quizdb.lti')
-    config.include('tutorweb_quizdb.material')
-    config.include('tutorweb_quizdb.subscriptions')
-    config.include('tutorweb_quizdb.stage')
-    config.include('tutorweb_quizdb.student')
-    config.include('tutorweb_quizdb.syllabus')
-    config.include('tutorweb_quizdb.rst')
+    with config.route_prefix_context('auth'):
+        config.include('tutorweb_quizdb.auth')
+        config.include('tutorweb_quizdb.lti')
+    with config.route_prefix_context('api'):
+        config.include('tutorweb_quizdb.coin')
+        config.include('tutorweb_quizdb.csv_renderer')
+        config.include('tutorweb_quizdb.logerror')
+        config.include('tutorweb_quizdb.material')
+        config.include('tutorweb_quizdb.subscriptions')
+        config.include('tutorweb_quizdb.stage')
+        config.include('tutorweb_quizdb.student')
+        config.include('tutorweb_quizdb.syllabus')
+        config.include('tutorweb_quizdb.rst')
 
     json_renderer = config.registry.getUtility(IRendererFactory, name="json")
     json_renderer.add_adapter(datetime.datetime, lambda obj, request: obj.isoformat())

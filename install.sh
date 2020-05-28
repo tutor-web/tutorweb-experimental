@@ -167,7 +167,7 @@ cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
     }
 
     location /auth/ {
-        proxy_pass  http://unix:${UWSGI_SOCKET}:/api/;
+        proxy_pass  http://unix:${UWSGI_SOCKET}:/auth/;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Host \$host:\$server_port;
