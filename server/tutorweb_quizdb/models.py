@@ -13,7 +13,11 @@ crypt = cryptacular.bcrypt.BCRYPTPasswordManager()
 
 
 class UserBase:
-    """Base class for a User model."""
+    """
+    Base class for a User model.
+
+    Lifted from pluserable: https://github.com/nandoflorestan/pluserable
+    """
 
     def __init__(self, email, password, salt=None, activation=None, **kw):
         """User constructor."""
@@ -158,6 +162,8 @@ def activation_lifetime():
 class ActivationBase:
     """Handles activations and password reset items for users.
 
+    Lifted from pluserable: https://github.com/nandoflorestan/pluserable
+
     ``code`` is a random hash that is valid only once.
     Once the hash is used to access the site, it is removed.
 
@@ -177,6 +183,8 @@ class ActivationBase:
 
 class ActivationMixin(ActivationBase):
     """Handles email confirmation codes and password reset codes for users.
+
+    Lifted from pluserable: https://github.com/nandoflorestan/pluserable
 
     The code should be a random hash that is valid only once.
     After the hash is used to access the site, it'll be removed.
