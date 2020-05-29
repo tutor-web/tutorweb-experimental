@@ -59,7 +59,11 @@ def initialize_dbsession(settings, prefix=''):
     engine = engine_from_config(settings, prefix=prefix)
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
-    Base.prepare(engine, reflect=True)
+    if len(Base.classes) == 0:
+        # Base is empty, so reflect classes into it
+        # NB: When running multiple unit-tests, we should only do this once
+        Base.prepare(engine, reflect=True)
+    return DBSession
 
 
 def index(request):
