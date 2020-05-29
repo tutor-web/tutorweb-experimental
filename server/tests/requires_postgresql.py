@@ -1,4 +1,5 @@
 import os
+import os.path
 import subprocess
 
 import testing.postgresql
@@ -35,7 +36,11 @@ class RequiresPostgresql():
     def setUp(self):
         super(RequiresPostgresql, self).setUp()
 
+        # Set cwd to something known, to avoid upsetting Postgresql
+        old_cwd = os.getcwd()
+        os.chdir(os.path.dirname(os.path.dirname(__file__)))
         self.postgresql = Postgresql()
+        os.chdir(old_cwd)
         initDatabase(self.postgresql)
 
     def tearDown(self):
