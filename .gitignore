@@ -4,6 +4,7 @@
 /client/doc
 /client/node_modules/
 /client/www/coverage/
+/client/www/htmlcov
 /client/www/css/*
 /client/www/js/*
 /client/www/*.html
