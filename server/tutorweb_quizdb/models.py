@@ -123,6 +123,8 @@ class Group(Base):
             autoincrement=True,
             primary_key=True)
 
+    users = relationship("User", secondary='user_group')
+
 
 class UserGroup(Base):
     __tablename__ = 'user_group'

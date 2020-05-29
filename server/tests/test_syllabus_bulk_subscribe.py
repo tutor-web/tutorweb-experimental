@@ -46,7 +46,7 @@ class BulkSubscribeTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase):
             dict(user_name='dibble@example.com', email='dibble@example.com', password=''),
             dict(user_name='grub@example.com', email='grub@example.com', password=out['users'][2]['password']),
         ]))
-        self.assertEqual([ug.user.user_name for ug in get_group('class.bulk_subscribe').usergroup_collection], [
+        self.assertEqual([u.user_name for u in get_group('class.bulk_subscribe').users], [
             'cuthbert@example.com',
             'dibble@example.com',
             'grub@example.com',
