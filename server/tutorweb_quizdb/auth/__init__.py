@@ -3,3 +3,4 @@ def includeme(config):
     config.include('.register')
     config.include('.activate')
     config.include('.profile')
+    config.include('.policy')

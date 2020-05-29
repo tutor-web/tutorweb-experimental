@@ -4,8 +4,6 @@ import os.path
 import logging
 
 import pyramid.httpexceptions as exc
-from pyramid.authentication import AuthTktAuthenticationPolicy
-from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.interfaces import IRendererFactory
 from sqlalchemy import engine_from_config
@@ -13,8 +11,6 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy_utils import Ltree
 from zope.sqlalchemy import register
-
-from pyramid.session import SignedCookieSessionFactory
 
 from tutorweb_quizdb import smileycoin
 
@@ -44,14 +40,6 @@ import tutorweb_quizdb.models  # noqa
 from sqlalchemy_utils import LtreeType  # noqa
 
 
-def read_machine_id():
-    """
-    Get contents of /etc/machine-id
-    """
-    with open('/etc/machine-id', 'r') as f:
-        return f.read()
-
-
 def initialize_dbsession(settings, prefix=''):
     """
     Use Automap to generate class definitions from tables
@@ -78,11 +66,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
 
     initialize_dbsession(settings, prefix='sqlalchemy.')
-    config.set_authorization_policy(ACLAuthorizationPolicy())
 
-    machine_id = read_machine_id()
-    config.set_authentication_policy(AuthTktAuthenticationPolicy(machine_id + '-auth'))
-    config.set_session_factory(SignedCookieSessionFactory(machine_id + '-session'))
     config.include('pyramid_jinja2')
     config.include('pyramid_mailer')
     config.include('pyramid_mako')

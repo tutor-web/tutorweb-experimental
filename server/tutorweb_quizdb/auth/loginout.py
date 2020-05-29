@@ -1,19 +1,11 @@
 import datetime
 
 from pyramid.httpexceptions import HTTPFound
-from pyramid.security import remember, forget, unauthenticated_userid
+from pyramid.security import remember, forget
 from sqlalchemy import func
 
 from tutorweb_quizdb import DBSession, models
 from tutorweb_quizdb.auth.forms import process_form, LoginSchema
-
-
-def get_user(request):
-    id = unauthenticated_userid(request)
-    if id:
-        return DBSession.query(models.User).get(id)
-    else:
-        return None
 
 
 def login(request):
@@ -56,7 +48,6 @@ def logout(request):
 
 
 def includeme(config):
-    config.add_request_method(get_user, 'user', reify=True)  # populate request.user
     config.add_view(login, route_name='auth_loginout_login', renderer='templates/login.mako')
     config.add_route('auth_loginout_login', '/login')
     config.add_view(logout, route_name='auth_loginout_logout')
