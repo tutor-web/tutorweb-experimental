@@ -1,4 +1,5 @@
 import concurrent.futures
+import os
 import unittest
 import time
 
@@ -146,6 +147,7 @@ question <- function(permutation, data_frames) {
             self.assertEqual(out['content'], '<p class="hints">You should write question %d</p>' % perm)
             return out
 
+        orig_cwd = os.getcwd()
         thread_count = 100
         with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             futures = executor.map(test_thread, range(thread_count))
@@ -154,3 +156,6 @@ question <- function(permutation, data_frames) {
             [x['content'] for x in futures],
             ['<p class="hints">You should write question %d</p>' % i for i in range(thread_count)],
         )
+
+        # Still in the right directory, not snuck into material bank
+        self.assertEqual(orig_cwd, os.getcwd())

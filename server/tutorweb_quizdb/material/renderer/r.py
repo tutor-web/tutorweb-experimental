@@ -40,9 +40,9 @@ def rob_to_dict(a):
 def r_render(ms, permutation, student_dataframes={}):
     """Execute R script to generate content"""
     # TODO: Caching of question objects?
-    old_wd = os.getcwd()
-    try:
-        with R_INTERPRETER_LOCK:
+    with R_INTERPRETER_LOCK:
+        try:
+            old_wd = os.getcwd()
             robjects.r('''question <- function () stop("R question script did not define a question function")''')
             robjects.r('''setwd''')(os.path.dirname(os.path.join(ms.bank, ms.path)))
             robjects.r('''source''')(os.path.join(ms.bank, ms.path))
@@ -61,5 +61,5 @@ def r_render(ms, permutation, student_dataframes={}):
                 raise ValueError("R question %s did not return 'content'" % ms.path)
             rv['content'] = "".join(rv['content'])
             return rv
-    finally:
-        os.chdir(old_wd)
+        finally:
+            os.chdir(old_wd)
