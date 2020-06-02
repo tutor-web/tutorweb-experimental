@@ -12,13 +12,8 @@ def login(request):
     def process_data(captured):
         # Find matching user
         handle = captured['handle'].lower()
-        # TODO: We explicitly set @hi.is in usernames, is this bad?
-        if '@' in handle:
-            user = DBSession.query(models.User).filter(
-                func.lower(models.User.email) == handle).first()
-        else:
-            user = DBSession.query(models.User).filter(
-                func.lower(models.User.username) == handle).first()
+        user = DBSession.query(models.User).filter(
+            func.lower(models.User.username) == handle).first()
 
         # Are they valid?
         if not user or not user.check_password(captured['password']):
