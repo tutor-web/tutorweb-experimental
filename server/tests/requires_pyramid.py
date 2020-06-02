@@ -24,8 +24,7 @@ class RequiresPyramid():
     def request(self, settings={}, user=None, params={}, method='GET', body=None):
         request = testing.DummyRequest(method=method)
         request.registry.settings.update(settings)
-        if user:
-            request.user = user
+        request.user = user
         request.params = params
         if body:
             setattr(request, 'json', body)
