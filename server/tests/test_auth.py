@@ -74,6 +74,22 @@ class AuthFunctionalTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase)
         res = testapp.get('/auth/login', status=302)
         self.assertEqual(res.location, 'http://localhost/')
 
+        # Can't change our profile (not accepted terms)
+        res = testapp.get('/auth/edit_profile', status=403)
+
+        # Can change our profile
+        res = testapp.get('/api/student/accept-terms', status=200)
+        res = testapp.get('/auth/edit_profile', status=200)
+        self.assertEqual(
+            set(res.form.fields.keys()),
+            set(('email', 'csrf_token', '__formid__', 'submit', '_charset_')))
+        self.assertEqual(res.form.fields['email'][0].value, 'parrot@example.com')
+        res.form.set('email', 'parrot@birdy.example.com')
+        res = res.form.submit()
+
+        res = testapp.get('/auth/edit_profile', status=200)
+        self.assertEqual(res.form.fields['email'][0].value, 'parrot@birdy.example.com')
+
         # Logout, and we just get the form again
         res = testapp.get('/auth/logout', status=302)
         self.assertEqual(res.location, 'http://localhost/')
@@ -81,3 +97,6 @@ class AuthFunctionalTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase)
         self.assertEqual(
             set(res.form.fields.keys()),
             set(('password', 'csrf_token', 'handle', '__formid__', 'submit', '_charset_')))
+
+        # Changing profile goes to login page
+        res = testapp.get('/auth/edit_profile', status=403)
