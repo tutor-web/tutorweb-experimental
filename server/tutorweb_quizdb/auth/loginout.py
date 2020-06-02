@@ -4,7 +4,7 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.security import remember, forget
 from sqlalchemy import func
 
-from tutorweb_quizdb import DBSession, models
+from tutorweb_quizdb import DBSession, models, ACTIVE_HOST
 from tutorweb_quizdb.auth.forms import process_form, LoginSchema
 
 
@@ -13,6 +13,7 @@ def login(request):
         # Find matching user
         handle = captured['handle'].lower()
         user = DBSession.query(models.User).filter(
+            models.User.host_id == ACTIVE_HOST,
             func.lower(models.User.username) == handle).first()
 
         # Are they valid?
