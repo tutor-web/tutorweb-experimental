@@ -32,10 +32,16 @@ def activate_trigger_email(request, user):
 
     # Find user object if need be
     if isinstance(user, str):
+        handle = user
         user = DBSession.query(models.User).filter_by(
             host_id=ACTIVE_HOST,
-            email=user,
+            email=handle,
         ).first()
+        if not user:
+            user = DBSession.query(models.User).filter_by(
+                host_id=ACTIVE_HOST,
+                username=handle,
+            ).first()
 
     if not user:
         return
