@@ -68,7 +68,7 @@ def activate_set_password(request, activation, new_pwd):
     if isinstance(activation, str):
         activation = DBSession.query(models.Activation).filter_by(code=activation).first()
     if not activation:
-        raise ValueError("Unknown activation code")  # TODO: Better error message
+        raise ValueError("Activation code has expired, or never existed")
 
     user = DBSession.query(models.User).filter_by(
         host_id=ACTIVE_HOST,
