@@ -12,7 +12,7 @@ def view_logerror(request):
     messages.append('user: %s' % request.user)
     messages.append('user-agent: "%s"' % (request.user_agent or 'unknown'))
 
-    logger.warn(
+    logger.warning(
         'Clientside error %s:\n%s',
         ' '.join('(%s)' % m for m in messages),
         pp.pformat(request.json),
