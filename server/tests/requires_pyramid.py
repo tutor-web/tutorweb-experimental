@@ -16,7 +16,8 @@ class RequiresPyramid():
             self.db_session = tutorweb_quizdb.initialize_dbsession(dict(url=self.postgresql.url()))
 
     def tearDown(self):
-        self.db_session.remove()
+        if hasattr(self, 'db_session'):
+            self.db_session.remove()
         testing.tearDown()
 
         super(RequiresPyramid, self).tearDown()
