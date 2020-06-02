@@ -26,7 +26,7 @@ lint: lib/.requirements
 coverage: compile
 	./bin/coverage run ./bin/py.test tests/
 	./bin/coverage html
-	ln -rs htmlcov ../client/www/htmlcov
+	ln -rsf htmlcov ../client/www/htmlcov
 	echo Visit http://...//htmlcov/index.html
 
 application.ini: ./application.ini.sh ../install.sh ../.local-conf
