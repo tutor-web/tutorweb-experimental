@@ -27,7 +27,7 @@ def finalize(request):
 
 
 def includeme(config):
-    config.add_view(request_code, route_name='auth_activate_request_code', renderer='templates/activate_request_code.mako')
     config.add_route('auth_activate_request_code', '/forgot-password')
-    config.add_view(finalize, route_name='auth_activate_finalize', renderer='templates/activate_finalize.mako')
+    config.add_view(request_code, route_name='auth_activate_request_code', renderer='templates/activate_request_code.mako')
     config.add_route('auth_activate_finalize', '/reset-password/{code}')
+    config.add_view(finalize, route_name='auth_activate_finalize', renderer='templates/activate_finalize.mako')
