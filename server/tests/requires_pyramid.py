@@ -4,7 +4,7 @@ from sqlalchemy_utils import Ltree
 
 from pyramid import testing
 
-from tutorweb_quizdb import initialize_dbsession
+import tutorweb_quizdb
 
 
 class RequiresPyramid():
@@ -13,13 +13,23 @@ class RequiresPyramid():
 
         self.config = testing.setUp()
         if hasattr(self, 'postgresql'):
-            self.db_session = initialize_dbsession(dict(url=self.postgresql.url()))
+            self.db_session = tutorweb_quizdb.initialize_dbsession(dict(url=self.postgresql.url()))
 
     def tearDown(self):
         self.db_session.remove()
         testing.tearDown()
 
         super(RequiresPyramid, self).tearDown()
+
+    def functional_test(self):
+        from webtest import TestApp
+
+        return TestApp(tutorweb_quizdb.main({}, **{
+            "pyramid.includes": "pyramid_mailer.testing",
+            "sqlalchemy.url": self.postgresql.url(),
+            "sqlalchemy.echo": "false",
+            "mako.directories": "tutorweb_quizdb: tutorweb_quizdb:auth/",
+        }))
 
     def request(self, settings={}, user=None, params={}, method='GET', body=None):
         request = testing.DummyRequest(method=method)

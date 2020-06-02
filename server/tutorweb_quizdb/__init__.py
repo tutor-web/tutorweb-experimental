@@ -68,7 +68,6 @@ def main(global_config, **settings):
     initialize_dbsession(settings, prefix='sqlalchemy.')
 
     config.include('pyramid_jinja2')
-    config.include('pyramid_mailer')
     config.include('pyramid_mako')
     config.add_static_view('static', 'deform:static')
 

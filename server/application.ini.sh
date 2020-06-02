@@ -17,6 +17,7 @@ pyramid.debug_notfound = false
 pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 pyramid.includes =
+    pyramid_mailer
     pyramid_tm
 
 sqlalchemy.url = ${DB_URL}
