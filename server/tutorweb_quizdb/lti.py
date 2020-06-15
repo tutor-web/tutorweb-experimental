@@ -3,7 +3,11 @@ import time
 
 from lti import ToolConfig, ToolProvider
 from oauthlib.oauth1 import RequestValidator
+from pyramid.httpexceptions import HTTPForbidden, HTTPFound
 from pyramid.response import Response
+from pyramid.security import remember
+
+from tutorweb_quizdb.student.create import create_student
 
 
 request_validator = None
@@ -77,21 +81,27 @@ def sso(request):
                 return request.params[a]
         raise ValueError("None of %s found in request" % ",".join(args))
 
+    # Validate user, get details
     tool_provider = PyramidToolProvider.from_pyramid_request(request=request)
-    if tool_provider.is_valid_request(request_validator):
-        user_handle = get_param_fallback("custom_canvas_user_login_id", "lis_person_contact_email_primary", "user_id")
-        user_email = get_param_fallback("lis_person_contact_email_primary")
-        user_full_name = get_param_fallback("lis_person_name_full", None)
-    else:
-        user_handle = 'invalid'
-        user_email = 'invalid'
-        user_full_name = 'invalid'
+    if not tool_provider.is_valid_request(request_validator):
+        raise HTTPForbidden("Not a valid OAuth request")
 
-    return Response(" ".join((
-        user_handle,
-        user_email,
-        user_full_name,
-    )), content_type='text/plain')
+    # Create user if they don't exist
+    (user, _) = create_student(
+        request,
+        user_name=get_param_fallback("custom_canvas_user_login_id", "lis_person_contact_email_primary", "user_id"),
+        email=get_param_fallback("lis_person_contact_email_primary"),
+        # Also have get_param_fallback("lis_person_name_full", None) if needed
+        assign_password=True,  # They can reset if they need it
+        group_names=[],
+        subscribe=[],
+    )
+
+    # Redirect to requested page
+    return HTTPFound(
+        headers=remember(request, user.id),
+        location=request.path_qs.replace('/auth/sso/', '/'),
+    )
 
 
 def tool_config(request):
