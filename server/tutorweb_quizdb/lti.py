@@ -55,8 +55,12 @@ class PyramidToolProvider(ToolProvider):
             raise ValueError('request must be supplied')
 
         params = dict(request.POST.copy())
+        for k in request.GET.keys():
+            # request.POST includes query-string parameters(?)
+            # Remove them to avoid confusing PyLTI
+            del params[k]
         headers = dict(request.headers)
-        url = request.url
+        url = request.url.replace('/auth/sso/', '/')  # Undo the rewrite in NGINX
         out = cls.from_unpacked_request(secret, params, url, headers)
         if secret is None:
             # NB: Otherwise we won't set the secret from the validator in is_valid_request()
@@ -124,7 +128,7 @@ def includeme(config):
         return out
 
     config.add_view(sso, route_name='lti_sso')
-    config.add_route('lti_sso', '/sso')
+    config.add_route('lti_sso', '/sso/*next_path')
     config.add_view(tool_config, route_name='lti_tool_config')
     config.add_route('lti_tool_config', '/tool-config.xml')
 
