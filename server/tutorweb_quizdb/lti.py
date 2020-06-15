@@ -25,7 +25,7 @@ class TwRequestValidator(RequestValidator):
                                      request, request_token=None, access_token=None):
         # Timeout any old entries first
         expiry_time = int(time.time()) - (60 * 15)  # 15 mins ago
-        for n in self.nonce_db:
+        for n in self.nonce_db.copy():
             if n.timestamp < expiry_time:
                 self.nonce_db.discard(n)
 
