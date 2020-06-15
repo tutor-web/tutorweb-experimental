@@ -170,6 +170,10 @@ cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
         proxy_pass  http://unix:${UWSGI_SOCKET}:/auth/;
     }
 
+    location = /lti-tool-config.xml {
+        proxy_pass  http://unix:${UWSGI_SOCKET}:/auth/lti-tool-config.xml;
+    }
+
     location /mathjax/ {
         alias "${PROJECT_PATH}/client/node_modules/mathjax/";
     }

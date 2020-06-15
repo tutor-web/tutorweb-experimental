@@ -135,7 +135,7 @@ def includeme(config):
     config.add_view(sso, route_name='lti_sso')
     config.add_route('lti_sso', '/sso/*next_path')
     config.add_view(tool_config, route_name='lti_tool_config')
-    config.add_route('lti_tool_config', '/tool-config.xml')
+    config.add_route('lti_tool_config', '/lti-tool-config.xml')
 
     # Configure the request validator
     global request_validator
