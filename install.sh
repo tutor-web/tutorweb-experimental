@@ -155,23 +155,19 @@ cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
     gzip        on;
 
     proxy_intercept_errors on;
+    proxy_set_header Host            \$host;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host \$host:\$server_port;
+    proxy_set_header X-Forwarded-Port \$server_port;
     error_page 502 503 504 /error/bad_gateway.json;
 
     location /api/ {
         proxy_pass  http://unix:${UWSGI_SOCKET}:/api/;
-        proxy_set_header Host            \$host;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host \$host:\$server_port;
-        proxy_set_header X-Forwarded-Port \$server_port;
     }
 
     location /auth/ {
         proxy_pass  http://unix:${UWSGI_SOCKET}:/auth/;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host \$host:\$server_port;
-        proxy_set_header X-Forwarded-Port \$server_port;
     }
 
     location /mathjax/ {
