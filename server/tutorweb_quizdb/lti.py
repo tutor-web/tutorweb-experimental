@@ -118,11 +118,6 @@ def tool_config(request):
     lti_tool_config.extensions['canvas.instructure.com'] = dict(
         tool_id='tutor-web',
         privacy_level='public',  # i.e. we want names & e-mail addresses
-        course_navigation=dict(
-            enabled="true",
-            url=request.application_url,
-            text="Hello",
-        ),
     )
     return Response(lti_tool_config.to_xml(), content_type='text/xml')
 
