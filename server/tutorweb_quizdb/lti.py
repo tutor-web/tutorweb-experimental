@@ -116,6 +116,7 @@ def tool_config(request):
     # See https://www.edu-apps.org/build_xml.html
     # https://www.edu-apps.org/extensions/index.html
     lti_tool_config.extensions['canvas.instructure.com'] = dict(
+        domain=request.domain,  # We need tomain set so canvas associates any t-w URL with us
         tool_id='tutor-web',
         privacy_level='public',  # i.e. we want names & e-mail addresses
     )
