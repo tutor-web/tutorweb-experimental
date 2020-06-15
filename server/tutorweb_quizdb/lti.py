@@ -57,7 +57,11 @@ class PyramidToolProvider(ToolProvider):
         params = dict(request.POST.copy())
         headers = dict(request.headers)
         url = request.url
-        return cls.from_unpacked_request(secret, params, url, headers)
+        out = cls.from_unpacked_request(secret, params, url, headers)
+        if secret is None:
+            # NB: Otherwise we won't set the secret from the validator in is_valid_request()
+            out.consumer_key = None
+        return out
 
 
 def sso(request):
