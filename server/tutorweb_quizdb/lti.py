@@ -1,4 +1,3 @@
-import collections
 import time
 
 from lti import ToolConfig, ToolProvider
@@ -7,6 +6,7 @@ from pyramid.httpexceptions import HTTPForbidden, HTTPFound
 from pyramid.response import Response
 from pyramid.security import remember
 
+from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.student.create import create_student
 
 
@@ -18,29 +18,33 @@ class TwRequestValidator(RequestValidator):
     client_key_length = (3, 50)
     nonce_length = (13, 50)
 
-    nonce_db = set()
-    NonceEntry = collections.namedtuple('NonceEntry', 'client_key timestamp nonce token')
-
     def __init__(self, secrets_db):
-        self.start_time = int(time.time()) - 10  # 10 seconds ago
         self.secrets_db = secrets_db
 
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce,
                                      request, request_token=None, access_token=None):
-        # Timeout any old entries first
-        expiry_time = int(time.time()) - (60 * 15)  # 15 mins ago
-        for n in self.nonce_db.copy():
-            if n.timestamp < expiry_time:
-                self.nonce_db.discard(n)
+        token = request_token or access_token or ''  # Just use one of them
 
-        n = self.NonceEntry(client_key, int(timestamp), nonce, request_token or access_token)
-        if n.timestamp < self.start_time:
-            # Nonce generated before we started, bin it to be safe
+        # Bin old nonces from table
+        max_age = int(time.time()) - (60 * 15)
+        DBSession.execute("DELETE FROM lti_nonce WHERE timestamp < :max_age", dict(
+            max_age=max_age,
+        ))
+
+        if DBSession.query(Base.classes.lti_nonce).filter_by(
+                client_key=client_key,
+                timestamp=int(timestamp),
+                nonce=nonce,
+                token=token,
+        ).count() > 0 or int(timestamp) < max_age:
             return False
-        if n in self.nonce_db:
-            # Already been used, delete it
-            return False
-        self.nonce_db.add(n)
+        DBSession.add(Base.classes.lti_nonce(
+            client_key=client_key,
+            timestamp=int(timestamp),
+            nonce=nonce,
+            token=token,
+        ))
+        DBSession.flush()
         return True
 
     def validate_client_key(self, client_key, request):
