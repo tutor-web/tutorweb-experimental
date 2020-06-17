@@ -2,7 +2,6 @@ import time
 
 from tutorweb_quizdb.stage.utils import stage_url, get_current_stage
 from tutorweb_quizdb.student import get_current_student
-from tutorweb_quizdb.lti import lti_replace_grade
 from .allocation import get_allocation
 from .answer_queue import sync_answer_queue
 from .setting import getStudentSettings, clientside_settings
