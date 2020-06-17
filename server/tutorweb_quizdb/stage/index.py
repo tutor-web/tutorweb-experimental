@@ -1,9 +1,8 @@
 import time
 
-from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
-from tutorweb_quizdb.stage.utils import stage_url
+from tutorweb_quizdb.stage.utils import stage_url, get_current_stage
 from tutorweb_quizdb.student import get_current_student
-from tutorweb_quizdb.syllabus import path_to_ltree
+from tutorweb_quizdb.lti import lti_replace_grade
 from .allocation import get_allocation
 from .answer_queue import sync_answer_queue
 from .setting import getStudentSettings, clientside_settings
@@ -16,24 +15,11 @@ def update_stats(alloc, questions):
         q['correct'] = q['initial_correct'] + s['stage_correct']
 
 
-def stage_get(host_id, path):
-    """
-    Get the stage object, given a complete path
-    """
-    return (DBSession.query(Base.classes.stage)
-            .filter_by(stage_name=str(path[-1]))
-            .filter_by(next_stage_id=None)
-            .join(Base.classes.syllabus)
-            .filter(Base.classes.syllabus.host_id == host_id)
-            .filter(Base.classes.syllabus.path == path[:-1])
-            .one())
-
-
 def alloc_for_view(request):
     """
     Return a configured allocation object based in request params
     """
-    db_stage = stage_get(ACTIVE_HOST, path_to_ltree(request.params['path']))
+    db_stage = get_current_stage(request)
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
     return get_allocation(settings, db_stage, db_student)

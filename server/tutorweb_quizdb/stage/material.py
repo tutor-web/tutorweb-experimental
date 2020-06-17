@@ -1,9 +1,9 @@
-from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
+from tutorweb_quizdb import DBSession, Base
 from tutorweb_quizdb.material.render import material_render
 from tutorweb_quizdb.student import get_current_student, student_is_vetted
-from tutorweb_quizdb.syllabus import path_to_ltree
 from .allocation import get_allocation
-from .index import update_stats, stage_get
+from .index import update_stats
+from .utils import get_current_stage
 from .setting import getStudentSettings
 
 
@@ -85,7 +85,7 @@ def view_stage_material(request):
     """
     Get one, or all material for a stage
     """
-    db_stage = stage_get(ACTIVE_HOST, path_to_ltree(request.params['path']))
+    db_stage = get_current_stage(request)
     db_student = get_current_student(request)
     settings = getStudentSettings(db_stage, db_student)
     alloc = get_allocation(settings, db_stage, db_student)
