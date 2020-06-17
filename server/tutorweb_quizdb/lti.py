@@ -108,7 +108,7 @@ def sso(request):
     )
 
 
-def tool_config(request):
+def view_tool_config(request):
     """Generate tool config and return"""
     lti_tool_config = ToolConfig(
         title="Tutor-web",
@@ -139,7 +139,7 @@ def includeme(config):
 
     config.add_view(sso, route_name='lti_sso')
     config.add_route('lti_sso', '/sso/*next_path')
-    config.add_view(tool_config, route_name='lti_tool_config')
+    config.add_view(view_tool_config, route_name='lti_tool_config')
     config.add_route('lti_tool_config', '/lti-tool-config.xml')
 
     # Configure the request validator

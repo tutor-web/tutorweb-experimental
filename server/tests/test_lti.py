@@ -4,7 +4,7 @@ import unittest.mock
 from .requires_postgresql import RequiresPostgresql
 from .requires_pyramid import RequiresPyramid
 
-from tutorweb_quizdb.lti import TwRequestValidator
+from tutorweb_quizdb.lti import TwRequestValidator, view_tool_config
 
 
 # NB: We RequiresPyramid to make sure DBSession is set up
@@ -58,3 +58,10 @@ class TwRequestValidatorTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
         self.assertEqual(gcs("k2"), "secret2")
         self.assertEqual(gcs("non-existant"), "")
         self.assertEqual(gcs(None), "")
+
+
+class ViewToolConfigTest(RequiresPyramid, unittest.TestCase):
+    def test_call(self):
+        resp = view_tool_config(self.request())
+        self.assertEqual(resp.content_type, 'text/xml')
+        self.assertTrue(resp.body.startswith(b'<?xml version="1.0" encoding="UTF-8"?><cartridge_basiclti_link'))
