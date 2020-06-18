@@ -1,15 +1,20 @@
+import decimal
+import logging
 import time
 
-from lti import ToolConfig, ToolProvider
+from lti import ToolConfig, ToolProvider, OutcomeRequest
 from oauthlib.oauth1 import RequestValidator
 from pyramid.httpexceptions import HTTPForbidden, HTTPFound
 from pyramid.response import Response
 from pyramid.security import remember
 
 from tutorweb_quizdb import DBSession, Base
+from tutorweb_quizdb.stage.utils import get_current_stage
 from tutorweb_quizdb.student.create import create_student
+from tutorweb_quizdb.syllabus import path_to_ltree
 
 
+logger = logging.getLogger(__package__)
 request_validator = None
 
 
@@ -90,6 +95,9 @@ def sso(request):
     if not tool_provider.is_valid_request(request_validator):
         raise HTTPForbidden("Not a valid OAuth request")
 
+    # Find any stage in the final query
+    stage = get_current_stage(request, optional=True)
+
     # Create user if they don't exist
     (user, _) = create_student(
         request,
@@ -98,14 +106,56 @@ def sso(request):
         # Also have get_param_fallback("lis_person_name_full", None) if needed
         assign_password=True,  # They can reset if they need it
         group_names=[],
-        subscribe=[],
+        subscribe=[path_to_ltree('nearest-tut:%s' % stage.syllabus.path)] if stage else [],  # NB: subscribe will also auto-add groups (i.e. class)
     )
+
+    if stage and tool_provider.is_outcome_service():
+        # Store details for writing back grades as an outcome
+        DBSession.merge(Base.classes.lti_sourcedid(
+            user_id=user.user_id,
+            stage_id=stage.stage_id,
+            client_key=tool_provider.consumer_key,
+            lis_outcome_service_url=tool_provider.lis_outcome_service_url,
+            lis_result_sourcedid=tool_provider.lis_result_sourcedid,
+        ))
+        DBSession.flush()
 
     # Redirect to requested page
     return HTTPFound(
         headers=remember(request, user.id),
         location=request.path_qs.replace('/auth/sso/', '/'),
     )
+
+
+def lti_replace_grade(stage, user, grade):
+    """For given stage/user combo, try and update their grade in any LTI"""
+    # Find any associated LTI with this stage/student
+    sourcedid = DBSession.query(Base.classes.lti_sourcedid).filter_by(
+        stage=stage,
+        user=user
+    ).first()
+    if sourcedid is None:
+        return
+    grade_perc = decimal.Decimal("%1.4f" % (grade / 10.0))  # NB: Turn 0..10 grade into 0..1
+    if sourcedid.last_perc is not None and grade_perc == sourcedid.last_perc:
+        return  # Hasn't changed since last time
+
+    # Post data to consumer
+    outcome_resp = OutcomeRequest(opts=dict(
+        consumer_key=sourcedid.client_key,
+        consumer_secret=request_validator.get_client_secret(sourcedid.client_key, None),
+        lis_outcome_service_url=sourcedid.lis_outcome_service_url,
+        lis_result_sourcedid=sourcedid.lis_result_sourcedid,
+    )).post_replace_result(grade_perc)
+
+    # Report success / failure
+    if outcome_resp.is_success():
+        sourcedid.last_perc = grade_perc
+        sourcedid.last_error = None
+    else:
+        logger.warn("Couldn't write back results to LTI: %s" % outcome_resp.description)
+        sourcedid.last_error = outcome_resp.description
+    DBSession.flush()
 
 
 def view_tool_config(request):

@@ -2,6 +2,7 @@ import time
 
 from tutorweb_quizdb.stage.utils import stage_url, get_current_stage
 from tutorweb_quizdb.student import get_current_student
+from tutorweb_quizdb.lti import lti_replace_grade
 from .allocation import get_allocation
 from .answer_queue import sync_answer_queue
 from .setting import getStudentSettings, clientside_settings
@@ -38,6 +39,10 @@ def stage_index(request):
 
     # Sync answer queue
     (answer_queue, additions) = sync_answer_queue(alloc, incoming.get('answerQueue', []), time_offset)
+
+    # Sync LTI if possible
+    if len(answer_queue) > 0:
+        lti_replace_grade(alloc.db_stage, alloc.db_student, answer_queue[-1].get('grade_after', 0))
 
     # If we've gone over a refresh interval, tell client to throw away questions
     if alloc.should_refresh_questions(answer_queue, additions):
