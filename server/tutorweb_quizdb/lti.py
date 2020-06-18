@@ -153,7 +153,7 @@ def lti_replace_grade(stage, user, grade):
         sourcedid.last_perc = grade_perc
         sourcedid.last_error = None
     else:
-        logger.warn("Couldn't write back results to LTI: %s" % outcome_resp.description)
+        logger.warning("Couldn't write back results to LTI: %s" % outcome_resp.description)
         sourcedid.last_error = outcome_resp.description
     DBSession.flush()
 
