@@ -182,7 +182,7 @@ cat <<EOF >> /etc/nginx/sites-available/${PROJECT_NAME}
         if (\$request_method = POST ) {
             # Assume any POST requests outside the API are Oauth attempts
             rewrite ^/([A-Za-z0-9]+) /auth/sso/\$1 break;
-            proxy_pass  http://unix:/tmp/tutor-web_uwsgi.development.sock:;
+            proxy_pass  http://unix:${UWSGI_SOCKET}:;
         }
 
         # Old Plone URL that we told coin explorers to use
