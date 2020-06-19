@@ -23,8 +23,11 @@ class TwRequestValidator(RequestValidator):
     client_key_length = (3, 50)
     nonce_length = (13, 50)
 
+    dummy_client = 'dummy_key'
+
     def __init__(self, secrets_db):
         self.secrets_db = secrets_db
+        assert(self.dummy_client not in self.secrets_db)
 
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce,
                                      request, request_token=None, access_token=None):
@@ -53,11 +56,14 @@ class TwRequestValidator(RequestValidator):
         return True
 
     def validate_client_key(self, client_key, request):
-        return client_key in self.secrets_db
+        if client_key in self.secrets_db:
+            return True
+        logger.warning("Invalid client_key %s" % client_key)
+        return False
 
     def get_client_secret(self, client_key, request):
         # NB: We always return something, even if client_key is invalid
-        return self.secrets_db.get(client_key, '')
+        return self.secrets_db.get(client_key, 'dummy_secret')
 
 
 class PyramidToolProvider(ToolProvider):

@@ -56,8 +56,21 @@ class TwRequestValidatorTest(RequiresPyramid, RequiresPostgresql, unittest.TestC
 
         self.assertEqual(gcs("k1"), "secret1")
         self.assertEqual(gcs("k2"), "secret2")
-        self.assertEqual(gcs("non-existant"), "")
-        self.assertEqual(gcs(None), "")
+        self.assertEqual(gcs("non-existant"), "dummy_secret")
+        self.assertEqual(gcs(None), "dummy_secret")
+
+    def test_dummy_secret(self):
+        """Will use dummy secret when "validating" invalid keys, so implement it"""
+        v = TwRequestValidator(dict(k1="secret1", k2="secret2"))
+        self.assertTrue(isinstance(v.dummy_client, str))
+        self.assertTrue(isinstance(v.get_client_secret(v.dummy_client, None), str))
+
+        # The dummy key isn't valid
+        self.assertFalse(v.validate_client_key(v.dummy_client, None))
+
+        # Can't accidentally add it to the secrets DB
+        with self.assertRaises(AssertionError):
+            TwRequestValidator({v.dummy_client: "woo"})
 
 
 class ViewToolConfigTest(RequiresPyramid, unittest.TestCase):
