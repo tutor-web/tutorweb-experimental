@@ -2127,6 +2127,7 @@ test('_updateUserDetails', function (t) {
             "uri": "ut:lecture0",
             "slide_uri": "http://slide-url-for-lecture0",
             "title": "UT Lecture 0 (no answers)",
+            "user": "brenda",
         },
     ], {}).then(function (args) {
         return args;
@@ -2162,6 +2163,29 @@ test('_updateUserDetails', function (t) {
         // Returned our fake data
         t.deepEqual(args, {"things": false});
         return true;
+
+    // Set the lecture, we start checking the username matches
+    }).then(function (args) {
+        return quiz.setCurrentLecture({ lecUri: 'ut:lecture0' });
+    }).then(function (args) {
+        var promise = quiz.updateUserDetails(null);
+        t.deepEqual(aa.getQueue(), [
+            'POST /api/student/details 2',
+        ]);
+        aa.setResponse('POST /api/student/details', 2, {"username": "barry"});
+        return promise.then(function () { t.fail(); }).catch(function (err) {
+            t.ok(err.message.indexOf("brenda") > -1);
+        });
+
+    }).then(function (args) {
+        var promise = quiz.updateUserDetails(null);
+        t.deepEqual(aa.getQueue(), [
+            'POST /api/student/details 3',
+        ]);
+        aa.setResponse('POST /api/student/details', 3, {"username": "brenda"});
+        return promise.then(function (details) {
+            t.deepEqual(details.username, "brenda");
+        });
 
     // Stop it and tidy up
     }).then(function (args) {

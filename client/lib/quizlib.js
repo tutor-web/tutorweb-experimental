@@ -822,6 +822,19 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
 
     /** Return promise, returning (updated) student details */
     this.updateUserDetails = function (userDetails) {
-        return this.ajaxApi.postJson('/api/student/details', userDetails);
+        var self = this;
+
+        return self.ajaxApi.postJson('/api/student/details', userDetails).then(function (details) {
+            if (!self.lecUri) {
+                // There isn't a set lecture to check yet, so continue
+                return details;
+            }
+            return self._getLecture(self.lecUri, true).then(function (lecture) {
+                if (lecture.user && lecture.user !== details.username) {
+                    throw new Error("You were logged in before as " + lecture.user + " and need to log out first");
+                }
+                return details;
+            });
+        });
     };
 };
