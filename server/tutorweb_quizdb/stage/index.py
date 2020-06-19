@@ -8,6 +8,10 @@ from .answer_queue import sync_answer_queue
 from .setting import getStudentSettings, clientside_settings
 
 
+class IncorrectUserException(Exception):
+    status_code = 400
+
+
 def update_stats(alloc, questions):
     """Update answered / correct counts for this question array before sending out"""
     for q, s in zip(questions, alloc.get_stats([x['uri'] for x in questions])):
@@ -33,6 +37,11 @@ def stage_index(request):
 
     # Parse incoming JSON body
     incoming = request.json_body if request.body else {}
+    if 'user' in incoming and alloc.db_student.user_name != incoming['user']:
+        raise IncorrectUserException("You are logged in as %s, but have drills for %s downloaded. Log out and start again" % (
+            alloc.db_student.user_name,
+            incoming['user'],
+        ))
 
     # Work out how far off client clock is to ours, to nearest 10s (we're interested in clock-setting issues, request-timing)
     time_offset = round(time.time() - incoming.get('current_time', time.time()), -2)
