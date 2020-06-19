@@ -237,24 +237,28 @@ QuizView.prototype = new View(jQuery);
             }
             twView.updateActions(postQuestionActions(args));
         })['catch'](function (err) {
-            if (err.message.indexOf("Unknown lecture: ") === 0) {
-                twView.showAlert('info', 'You are not subscribed yet, you need to subscribe before taking drills. Do you wish to?');
-                twView.selected_item = 'nearest-tut:' + twView.curUrl.path;
-                twView.return_state = 'set-lecture';
-                twView.updateActions(['subscription-add']);
-                return;
-            }
-
-            if (err.message.indexOf("Subscriptions not yet downloaded") === 0) {
-                twView.updateActions([]);
-                return quiz.syncSubscriptions({}, function (opTotal, opSucceeded, message) {
-                    render_progress(twView.jqQuiz, opSucceeded, opTotal, message);
-                }).then(function () {
+            // Try syncing, see if that fixes our problems (e.g. subscriptions not here or out-of-date)
+            twView.updateActions([]);
+            return quiz.syncSubscriptions({}, function (opTotal, opSucceeded, message) {
+                render_progress(twView.jqQuiz, opSucceeded, opTotal, message);
+            }).then(function () {
+                return quiz.setCurrentLecture({lecUri: twView.curUrl.path}).then(function () {
+                    // It's there now, so can try again
                     return 'set-lecture';
+                }).catch(function (err) {
+                    // Still not subscribed, ask user if they'd like to
+                    if (err.message.indexOf("Unknown lecture: ") === 0) {
+                        twView.jqQuiz.empty();
+                        twView.showAlert('info', 'You are not subscribed yet, you need to subscribe before taking drills. Do you wish to?');
+                        twView.selected_item = 'nearest-tut:' + twView.curUrl.path;
+                        twView.return_state = 'set-lecture';
+                        twView.updateActions(['subscription-add']);
+                        return;
+                    }
+                    // Something else is wrong, throw it upwards
+                    throw err;
                 });
-            }
-
-            throw err;
+            });
         })['catch'](function (err) {
             if (err.message.indexOf('tutorweb::unauth::') === 0) {
                 return 'go-login';
