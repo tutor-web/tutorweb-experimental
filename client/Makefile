@@ -58,8 +58,11 @@ clean-unused:
 watch:
 	while inotifywait -r lib; do make compile; done
 
+upgrade: node_modules/
+	$(YARN) upgrade-interactive --latest
+
 node_modules/: package.json yarn.lock
-	$(YARN)
+	$(YARN) install --link-duplicates --frozen-lockfile
 	touch node_modules/
 
 yarn.lock:
