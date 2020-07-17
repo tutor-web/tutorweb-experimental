@@ -1152,9 +1152,10 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
-"formson@git://github.com/lentinj/formson":
+formson@^0.9.1:
   version "0.9.1"
-  resolved "git://github.com/lentinj/formson#9a96ed748ae370d40aa64220dcf940f4735ee145"
+  resolved "https://registry.yarnpkg.com/formson/-/formson-0.9.1.tgz#b9f0e1c5566ee86eba7a107696fa196f1675cf61"
+  integrity sha512-74uHnQRbE024SsiGC343vwCv0ZZA5ACHkCXv7MtQuUajyA4ry0tHEZtZ4P+1zAiuglQzRqaMYlk5HJTVHAqEew==
 
 fs-exists-cached@^1.0.0:
   version "1.0.0"
