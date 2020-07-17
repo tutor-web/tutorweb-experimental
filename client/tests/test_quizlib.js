@@ -1349,13 +1349,13 @@ test('_questionUpdate ', function (t) {
 
     // Emulate old onSuccess interface
     function gnq(opts, onSuccess) {
-        quiz.getNewQuestion(opts).then(function (args) {
-            onSuccess(args.qn, args.a);
+        return quiz.getNewQuestion(opts).then(function (args) {
+            return onSuccess(args.qn, args.a);
         });
     }
     function sqa(opts, onSuccess) {
-        quiz.setQuestionAnswer(opts).then(function (args) {
-            onSuccess(args.a, args.answerData);
+        return quiz.setQuestionAnswer(opts).then(function (args) {
+            return onSuccess(args.a, args.answerData);
         });
     }
 
@@ -1387,9 +1387,9 @@ test('_questionUpdate ', function (t) {
         qnBefore = qnHash();
 
         // Assign a question, should see jump in counts
-        gnq({practice: true}, function (qn, a) {
+        return gnq({practice: true}, function (qn, a) {
             assignedQns.push(a);
-            sqa([{name: "answer", value: 0}], function () {
+            return sqa([{name: "answer", value: 0}], function () {
                 t.equal(
                     qnBefore[assignedQns[0].uri].chosen + 1,
                     qnHash()[assignedQns[0].uri].chosen
