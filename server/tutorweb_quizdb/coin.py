@@ -1,5 +1,6 @@
 import datetime
 
+from pyramid.httpexceptions import HTTPForbidden
 from pyramid.response import Response
 from sqlalchemy.sql import func
 
@@ -16,6 +17,42 @@ def view_totalcoin(request):
     """Show approximate number of coins"""
     out = (smileycoin.getBlockCount() - 1000) * 10000 + 24000000000
     return Response(str(out), status=200, content_type="text/plain")
+
+
+def view_verifystudent(request):
+    """Verify a student via. LTI"""
+    import hashlib
+    from .lti import PyramidToolProvider, request_validator
+
+    # Find out who they are via. LTI
+    tool_provider = PyramidToolProvider.from_pyramid_request(request=request)
+    if not tool_provider.is_valid_request(request_validator):
+        raise HTTPForbidden("Not a valid OAuth request")
+    user_identity = request.params.get("user_id", "")
+    if "custom_canvas_user_login_id" in request.params:
+        user_identity += ":%s" % request.params["custom_canvas_user_login_id"]
+    message = hashlib.sha256()
+    message.update((user_identity + "?" + request.query_string).encode("utf8"))
+    message = message.hexdigest()
+
+    addr = smileycoin.getAddress()
+    sig = smileycoin.signMessage(addr, message)
+    return Response("""
+Your Identity: %s
+
+
+-----BEGIN SMILEYCOIN SIGNED MESSAGE-----
+%s
+-----BEGIN SIGNATURE-----
+%s
+%s
+-----END SMILEYCOIN SIGNED MESSAGE-----
+    """.strip() % (
+        user_identity,
+        message,
+        addr,
+        sig,
+    ), status=200, content_type="text/plain")
 
 
 def utcnow():
@@ -134,6 +171,8 @@ def view_award(request):
 
 def includeme(config):
     config.add_view(view_totalcoin, route_name='coin_totalcoin')
+    config.add_view(view_verifystudent, route_name='coin_verifystudent')
     config.add_view(view_award, route_name='coin_award', renderer='json')
     config.add_route('coin_totalcoin', '/coin/totalcoin')
+    config.add_route('coin_verifystudent', '/coin/verifystudent')
     config.add_route('coin_award', '/coin/award')

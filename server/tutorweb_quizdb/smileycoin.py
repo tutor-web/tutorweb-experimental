@@ -31,6 +31,18 @@ def getBlockCount():
     return callMethod('getblockcount')
 
 
+def signMessage(walletId, message):
+    """Sign message with wallet walletId"""
+    if CONFIG['wallet_passphrase']:
+        callMethod('walletpassphrase', CONFIG['wallet_passphrase'], 2)
+    return callMethod('signmessage', walletId, message)
+
+
+def verifyMessage(walletId, signature, message):
+    """Verify message with wallet walletId"""
+    return callMethod('verifymessage', walletId, signature, message)
+
+
 def sendTransaction(walletId, coinOwed):
     """Send coinOwed in milli-SMLY to walletId, return tx id if worked"""
     if walletId.startswith('$$UNITTEST'):
