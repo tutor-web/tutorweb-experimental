@@ -26,6 +26,13 @@ def initDatabase(postgresql):
     return b''.join(out)
 
 
+def query_to_sql(q):
+    """Helper to turn query into a SQL string"""
+    from sqlalchemy.dialects import postgresql
+
+    return str(q.statement.compile(dialect=postgresql.dialect()))
+
+
 Postgresql = testing.postgresql.PostgresqlFactory(
     cache_initialized_db=True,
     on_initialized=initDatabase,
