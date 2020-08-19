@@ -32,7 +32,7 @@ def view_verifystudent(request):
     if "custom_canvas_user_login_id" in request.params:
         user_identity += ":%s" % request.params["custom_canvas_user_login_id"]
     message = hashlib.sha256()
-    message.update((user_identity + "?" + request.query_string).encode("utf8"))
+    message.update((user_identity).encode("utf8"))
     message = message.hexdigest()
 
     addr = smileycoin.getAddress()
@@ -42,7 +42,7 @@ Your Identity: %s
 
 
 -----BEGIN SMILEYCOIN SIGNED MESSAGE-----
-%s
+%s?%s
 -----BEGIN SIGNATURE-----
 %s
 %s
@@ -50,6 +50,7 @@ Your Identity: %s
     """.strip() % (
         user_identity,
         message,
+        request.query_string,
         addr,
         sig,
     ), status=200, content_type="text/plain")
