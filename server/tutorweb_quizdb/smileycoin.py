@@ -54,7 +54,7 @@ def getAddress(account=None):
     """
     return callMethod(
         'getnewaddress',
-        account or CONFIG['DEFAULT_ACCOUNT'],
+        account or CONFIG['default_account'],
     )
 
 
@@ -93,7 +93,7 @@ def callMethod(method, *params):
 
     callId = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
 
-    request = urllib.request.Request('http://%s:%d' % (
+    request = urllib.request.Request('http://%s:%s' % (
         CONFIG['rpc_host'],
         CONFIG['rpc_port'],
     ), json.dumps(dict(
@@ -116,7 +116,6 @@ def callMethod(method, *params):
             if not out['error']:
                 out['error'] = dict(message='', code=e.code)
         except ValueError:
-            e.seek(0)
             out = dict(id=callId, error=dict(
                 message=" ".join([e.msg, e.read().decode('utf8')]),
                 code=e.code,
