@@ -111,7 +111,7 @@ def sso(request):
         email=get_param_fallback("lis_person_contact_email_primary"),
         # Also have get_param_fallback("lis_person_name_full", None) if needed
         assign_password=True,  # They can reset if they need it
-        group_names=[],
+        group_names=['ltiuser.%s' % tool_provider.consumer_key],
         subscribe=[path_to_ltree('nearest-tut:%s' % stage.syllabus.path)] if stage else [],  # NB: subscribe will also auto-add groups (i.e. class)
     )
 
