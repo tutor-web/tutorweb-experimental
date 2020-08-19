@@ -40,8 +40,10 @@
 """
 import json
 
+from sqlalchemy.sql import expression
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy_utils import Ltree
+from sqlalchemy_utils.types.ltree import LQUERY
 
 from tutorweb_quizdb import DBSession, Base, ACTIVE_HOST
 from tutorweb_quizdb.student import get_group
@@ -105,9 +107,16 @@ def lec_import(tut_struct):
                 None,  # Only set the requires_group permission on the course/tutorial itself
             )
 
+    # Get all current lectures
+    db_lecs = dict()
+    for s in DBSession.query(Base.classes.syllabus).filter_by(host_id=ACTIVE_HOST).filter(Base.classes.syllabus.path.lquery(expression.cast(str(path) + '.*{1}', LQUERY))):
+        db_lecs[s.path] = s
+
     # Add all lectures & stages
     for lec_name, lec_title, lec_href, *_unused_ in (l + [None, None] for l in tut_struct['lectures']):
         db_lec = upsert_syllabus(path + Ltree(lec_name), lec_title, lec_href, tut_struct.get('requires_group', None))
+        if path + Ltree(lec_name) in db_lecs:
+            del db_lecs[path + Ltree(lec_name)]
 
         # Get all current stages, put in dict
         db_stages = dict()
@@ -141,6 +150,13 @@ def lec_import(tut_struct):
                 stage_setting_spec=setting_spec
             ))
             DBSession.flush()
+
+    # Tidy up any unused lectures
+    for s in db_lecs.values():
+        deleted_id = get_group('admin.deleted', auto_create=True).id
+        if s.requires_group_id != deleted_id:
+            s.requires_group_id = deleted_id
+    DBSession.flush()
 
 
 def multiple_lec_import(data):

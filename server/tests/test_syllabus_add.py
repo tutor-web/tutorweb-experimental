@@ -1,7 +1,11 @@
 import unittest
 import unittest.mock
 
-from tutorweb_quizdb.syllabus.add import multiple_lec_import
+from .requires_postgresql import RequiresPostgresql
+from .requires_pyramid import RequiresPyramid
+
+from tutorweb_quizdb.syllabus.add import lec_import, multiple_lec_import
+from tutorweb_quizdb.subscriptions.available import view_subscription_available
 
 
 class MultipleLecImportTest(unittest.TestCase):
@@ -76,3 +80,103 @@ class MultipleLecImportTest(unittest.TestCase):
                 ],
             ),
         ])
+
+
+class LecImportTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase):
+    maxDiff = None
+
+    def test_call(self):
+        from tutorweb_quizdb import DBSession
+        self.DBSession = DBSession
+
+        (stud, clairvoyant) = self.create_students(2, student_group_fn=lambda i: ['accept_terms', 'admin.deleted'] if i == 1 else ['accept_terms'])
+
+        def simple_tree(vsa):
+            out = [str(vsa.get('path', ''))]
+            for c in vsa.get('children', []):
+                out.append(simple_tree(c))
+            return out
+
+        lec_import(dict(
+            path='ut.lec_import.0',
+            titles=['ut', 'lec_import', '0'],
+            requires_group=None,
+            lectures=[
+                ['lec0', 'UT lec0'],
+                ['lec1', 'UT lec1'],
+            ],
+            stage_template=[dict(
+                name='stage%d' % i, version=0,
+                title='UT stage %s' % i,
+                material_tags=[],
+                setting_spec={},
+            ) for i in range(2)],
+        ))
+        lec_import(dict(
+            path='ut.lec_import.1',
+            titles=['ut', 'lec_import', '1'],
+            requires_group=None,
+            lectures=[
+                ['leca', 'UT lecb'],
+                ['lecb', 'UT lecb'],
+            ],
+            stage_template=[dict(
+                name='stage%d' % i, version=0,
+                title='UT stage %s' % i,
+                material_tags=[],
+                setting_spec={},
+            ) for i in range(2)],
+        ))
+        self.assertEqual(
+            simple_tree(view_subscription_available(self.request(user=stud))),
+            ['', ['ut', ['ut.lec_import', [
+                'ut.lec_import.0',
+                ['ut.lec_import.0.lec0'],
+                ['ut.lec_import.0.lec1'],
+            ], [
+                'ut.lec_import.1',
+                ['ut.lec_import.1.leca'],
+                ['ut.lec_import.1.lecb'],
+            ]]]])
+
+        # Remove a lecture, goes away
+        lec_import(dict(
+            path='ut.lec_import.0',
+            titles=['ut', 'lec_import', '0'],
+            requires_group=None,
+            lectures=[
+                ['lec0', 'UT lec0'],
+                ['lec9', 'UT lec9'],
+            ],
+            stage_template=[dict(
+                name='stage%d' % i, version=0,
+                title='UT stage %s' % i,
+                material_tags=[],
+                setting_spec={},
+            ) for i in range(2)],
+        ))
+        self.assertEqual(
+            simple_tree(view_subscription_available(self.request(user=stud))),
+            ['', ['ut', ['ut.lec_import', [
+                'ut.lec_import.0',
+                ['ut.lec_import.0.lec0'],
+                ['ut.lec_import.0.lec9'],
+            ], [
+                'ut.lec_import.1',
+                ['ut.lec_import.1.leca'],
+                ['ut.lec_import.1.lecb'],
+            ]]]])
+
+        # clairvoyant can see dead items
+        self.assertEqual(
+            simple_tree(view_subscription_available(self.request(user=clairvoyant))),
+            ['', ['ut', ['ut.lec_import', [
+                'ut.lec_import.0',
+                ['ut.lec_import.0.lec0'],
+                ['ut.lec_import.0.lec1'],
+                ['ut.lec_import.0.lec9'],
+            ], [
+                'ut.lec_import.1',
+                ['ut.lec_import.1.leca'],
+                ['ut.lec_import.1.lecb'],
+            ]]]])

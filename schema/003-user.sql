@@ -54,6 +54,10 @@ INSERT INTO "group" (name, description)
     VALUES ('admin.material_render', 'Admin: Can render any material bank path')
     ON CONFLICT (name)
     DO UPDATE SET description = EXCLUDED.description;
+INSERT INTO "group" (name, description)
+    VALUES ('admin.deleted', 'Admin: Can see old items now hidden from public view')
+    ON CONFLICT (name)
+    DO UPDATE SET description = EXCLUDED.description;
 
 
 CREATE TABLE IF NOT EXISTS user_group (

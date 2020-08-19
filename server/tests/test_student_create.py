@@ -54,8 +54,8 @@ class CreateStudentTest(RequiresPyramid, RequiresPostgresql, unittest.TestCase):
             )
             return [g.name for g in stud.groups]
 
-        stage0 = self.create_stages(1, requires_group='ut.requires_group')
-        stage1 = self.create_stages(1, requires_group='ut.requires_other_group')
+        stage0 = self.create_stages(1, lec_parent='dept.tutorial0', requires_group='ut.requires_group')
+        stage1 = self.create_stages(1, lec_parent='dept.tutorial1', requires_group='ut.requires_other_group')
 
         # Not subscribed to any groups by default
         self.assertEqual(do_cs([]), [])
