@@ -100,8 +100,9 @@ function select_list(orig_data, item_fn, on_select) {
     }}, (orig_data || []).map(select_list_inner));
 
     // Call toggle for any init-selected items to sort heights out
-    // NB: Should ideally recurse down for selected items, but not needed yet.
-    toggle(sl_el.querySelector('ul.select-list li.selected'), true);
+    Array.prototype.forEach.call(sl_el.querySelectorAll('ul.select-list li.selected'), function (el) {
+        toggle(el, true);
+    });
 
     if (on_select) {
         on_select(selected_items(orig_data, sl_el));

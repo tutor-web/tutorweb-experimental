@@ -108,7 +108,7 @@ StartView.prototype = new View(jQuery);
 
     twView.states['subscription-sync'] = twView.states['subscription-sync-force'] = function (curState) {
         return quiz.syncSubscriptions({
-            lectureAdd: twView.curUrl.path || null,
+            lectureAdd: twView.curUrl.path ? 'nearest-tut:' + twView.curUrl.path : null,
             syncForce: curState === 'subscription-sync-force',
         }, function (opTotal, opSucceeded, message) {
             render_progress(twView.jqQuiz, opSucceeded, opTotal, message);
@@ -158,14 +158,25 @@ StartView.prototype = new View(jQuery);
 
     twView.states.lecturemenu = function () {
         return quiz.getAvailableLectures().then(function (subscriptions) {
+            function markSelected(parent, selected_path) {
+                if (!selected_path) {
+                    return;
+                }
+                parent.children.forEach(function (item) {
+                    if (selected_path.indexOf(item.path) === 0) {  // i.e. item is parent of selected_path
+                        item.init_select = true;
+                        markSelected(item, selected_path);
+                    } else {
+                        item.init_select = false;
+                    }
+                });
+            }
+
             if (Object.keys(subscriptions.lectures).length === 0) {
                 twView.jqQuiz.empty();
                 return 'subscription-menu';
             }
-            subscriptions.subscriptions.children.forEach(function (item, i) {
-                // Make sure either path item is selected, or first item.
-                item.init_select = twView.curUrl.path ? item.path === twView.curUrl.path : i === 0;
-            });
+            markSelected(subscriptions.subscriptions, twView.curUrl.path || (subscriptions.subscriptions.children[0] || {}).path);
             twView.renderChooseLecture(
                 subscriptions,
                 ['go-twhome', ''],
