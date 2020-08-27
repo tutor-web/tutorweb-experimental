@@ -764,7 +764,8 @@ module.exports = function Quiz(rawLocalStorage, ajaxApi) {
         }
 
         if (a.hasOwnProperty('lec_answered') && a.hasOwnProperty('lec_correct')) {
-            out.stats = "Answered " + (a.lec_answered - (a.practice_answered || 0)) + " questions.";
+            out.stats = "Answered " + (a.lec_answered - (a.practice_answered || 0)) + " questions, "
+                + (a.lec_correct) + " correctly.";
         }
 
         if (a.hasOwnProperty('grade_after') || a.hasOwnProperty('grade_before')) {

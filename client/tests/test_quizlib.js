@@ -1107,7 +1107,7 @@ test('_gradeSummaryStrings', function (t) {
         return quiz.lectureGradeSummary().then(function (grade_summary) {
             t.equal(grade_summary.practice, undefined);
             t.equal(grade_summary.practiceStats, undefined);
-            t.equal(grade_summary.stats, 'Answered 0 questions.');
+            t.equal(grade_summary.stats, 'Answered 0 questions, 0 correctly.');
             t.equal(grade_summary.grade, 'Answer 7 more questions to see your grade');
             t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
             return (setAns(quiz, chooseAnswer(args, true)));
@@ -1117,7 +1117,7 @@ test('_gradeSummaryStrings', function (t) {
     }).then(function (grade_summary) {
         t.equal(grade_summary.practice, undefined);
         t.equal(grade_summary.practiceStats, undefined);
-        t.equal(grade_summary.stats, 'Answered 1 questions.');
+        t.equal(grade_summary.stats, 'Answered 1 questions, 1 correctly.');
         t.equal(grade_summary.grade, 'Answer 7 more questions to see your grade');
         t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
 
@@ -1127,7 +1127,7 @@ test('_gradeSummaryStrings', function (t) {
         return quiz.lectureGradeSummary().then(function (grade_summary) {
             t.equal(grade_summary.practice, "Practice mode");
             t.equal(grade_summary.practiceStats, "Answered 0 practice questions.");
-            t.equal(grade_summary.stats, 'Answered 1 questions.');
+            t.equal(grade_summary.stats, 'Answered 1 questions, 1 correctly.');
             t.equal(grade_summary.grade, 'Answer 6 more questions to see your grade');
             t.equal(grade_summary.encouragement, 'Win 1 SMLY if you ace this stage, bonus 11 SMLY for acing whole tutorial');
             return (setAns(quiz, chooseAnswer(args, false)));
