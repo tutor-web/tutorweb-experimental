@@ -160,7 +160,8 @@ def lti_replace_grade(stage, user, grade):
         sourcedid.last_error = None
     else:
         logger.warning("Couldn't write back results to LTI: %s" % outcome_resp.description)
-        sourcedid.last_error = outcome_resp.description
+        # NB: outcome_resp.description is a lxml.objectify.StringElement, which sqlalchemy can't encode
+        sourcedid.last_error = str(outcome_resp.description)
     DBSession.flush()
 
 
