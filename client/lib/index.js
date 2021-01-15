@@ -182,7 +182,7 @@ StartView.prototype = new View(jQuery);
                 twView.jqQuiz.empty();
                 return 'subscription-menu';
             }
-            markSelected(subscriptions.subscriptions, twView.curUrl.path || (subscriptions.subscriptions.children[0] || {}).path);
+            markSelected(subscriptions.subscriptions, twView.curUrl.path.replace("/api/stage?path=", "") || (subscriptions.subscriptions.children[0] || {}).path);
             twView.renderChooseLecture(subscriptions, true);
 
             // Get all lecture titles from unsynced lectures

@@ -280,7 +280,7 @@ module.exports = function View($) {
                 window.location.reload(false);
                 break;
             case 'gohome':
-                window.location.href = '/';
+                window.location.href = '/' + ((self.curUrl || {}).path ? '?path=' + encodeURIComponent(self.curUrl.path) : '');
                 break;
             case 'go-coin':
                 window.location.href = 'coin.html';
