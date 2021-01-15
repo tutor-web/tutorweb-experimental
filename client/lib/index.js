@@ -15,7 +15,7 @@ var render_progress = require('lib/progress.js').render_progress;
 
 function StartView() {
     /** Generate expanding list for tutorials / lectures */
-    this.renderChooseLecture = function (subscriptions) {
+    this.renderChooseLecture = function (subscriptions, update_url) {
         function grade_for(data) {
             var i, out;
 
@@ -77,6 +77,16 @@ function StartView() {
                         h('abbr.grade.' + grade_class, { title: grade_title }, grade),
                     ]),
                 ]);
+            }, function (selected_items) {
+                if (!update_url || selected_items.length === 0) {
+                    return;
+                }
+
+                var sel_path = selected_items[selected_items.length - 1].path;
+
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, "", "?path=" + encodeURIComponent(sel_path));
+                }
             }),
         ]));
     };
@@ -147,11 +157,7 @@ StartView.prototype = new View(jQuery);
 
     twView.states['menu-cleanstorage'] = function () {
         return quiz.getAvailableLectures().then(function (subscriptions) {
-            twView.renderChooseLecture(
-                subscriptions,
-                [],
-                ['subscription-remove']
-            );
+            twView.renderChooseLecture(subscriptions, false);
             twView.showAlert('warning', 'You have run out of storage space. Please choose items to remove.');
         });
     };
@@ -177,11 +183,7 @@ StartView.prototype = new View(jQuery);
                 return 'subscription-menu';
             }
             markSelected(subscriptions.subscriptions, twView.curUrl.path || (subscriptions.subscriptions.children[0] || {}).path);
-            twView.renderChooseLecture(
-                subscriptions,
-                ['go-twhome', ''],
-                ['go-twhome', 'subscription-remove', 'go-slides', 'go-drill']
-            );
+            twView.renderChooseLecture(subscriptions, true);
 
             // Get all lecture titles from unsynced lectures
             unsyncedLectures = Object.keys(subscriptions.lectures)
