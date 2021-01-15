@@ -183,6 +183,43 @@ class SubscriptionsListTest(RequiresPyramid, RequiresPostgresql, unittest.TestCa
             },
         ]})
 
+        # Try adding a more specific lecture. This should be picked up and ignored
+        subscription_add(self.db_studs[1], Ltree('dept0.tut1.lec1'))
+        DBSession.flush()
+        out = view_subscription_list(self.request(user=self.db_studs[1]))
+        self.assertEqual(out, {'children': [
+            {
+                'path': Ltree('dept0.tut1'),
+                'title': 'UT Lecture dept0.tut1',
+                'can_admin': False,
+                'children': [
+                    {
+                        'path': Ltree('dept0.tut1.lec0'),
+                        'title': 'UT Lecture dept0.tut1.lec0',
+                        'can_admin': False,
+                        'children': [
+                            {
+                                'href': '/api/stage?path=dept0.tut1.lec0.stage0',
+                                'stage': 'stage0',
+                                'title': 'UT stage dept0.tut1.lec0.stage0'
+                            },
+                        ],
+                    }, {
+                        'path': Ltree('dept0.tut1.lec1'),
+                        'title': 'UT Lecture dept0.tut1.lec1',
+                        'can_admin': False,  # NB: user1 can't admin this
+                        'children': [
+                            {
+                                'href': '/api/stage?path=dept0.tut1.lec1.stage0',
+                                'stage': 'stage0',
+                                'title': 'UT stage dept0.tut1.lec1.stage0'
+                            },
+                        ],
+                    }
+                ]
+            },
+        ]})
+
         # Make dept0.tut1.lec1 super-secret, only stud0 can see it
         self.db_lecs['dept0.tut1.lec1'].requires_group_id = [g.id for g in self.db_studs[0].groups if g.name == 'super_secret'][0]
         DBSession.flush()

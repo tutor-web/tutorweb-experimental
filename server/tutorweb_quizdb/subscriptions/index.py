@@ -52,8 +52,12 @@ def subscription_add(student, path, add_to_group=False):
 
     # Add subscription
     try:
+        # Find a subscription with either same path or above it
         dbs = (DBSession.query(Base.classes.subscription)
-                        .filter_by(user=student, syllabus=dbl)
+                        .filter_by(user=student)
+                        .join(Base.classes.syllabus)
+                        .filter_by(host_id=ACTIVE_HOST)
+                        .filter(Base.classes.syllabus.path.op("@>")(path))
                         .one())
         return dbs
     except NoResultFound:
