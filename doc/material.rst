@@ -137,7 +137,7 @@ the names should match the form field names (note that in the first example,
     correct = list(number = c(5, 6))
 
 * ``list(nonempty = TRUE)``: Means any answer is fine, so long as there is
-  something. Most useful for a text field for entering examples, e.g.
+  something. Most useful for a text field for entering examples, e.g::
 
         content = withTags(tagList(
             p(class = "hints", "Write an example or proof for this lecture"),
